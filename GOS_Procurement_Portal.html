@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>GOS Group – Procurement Portal</title>
+<title>GOS Group - Procurement Portal</title>
 <script src="https://cdn.jsdelivr.net/npm/@azure/msal-browser@3.27.0/lib/msal-browser.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
 <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
@@ -145,7 +145,7 @@ body{font-family:'Plus Jakarta Sans',-apple-system,sans-serif;background:var(--g
   <div class="login-card">
     <div class="login-logo">GOS</div>
     <div class="login-title">Procurement Portal</div>
-    <div class="login-sub">GOS Group – Sistem Pengajuan Pengadaan<br>Masuk dengan akun Microsoft GOS Group Anda</div>
+    <div class="login-sub">GOS Group - Sistem Pengajuan Pengadaan<br>Masuk dengan akun Microsoft GOS Group Anda</div>
     <button class="login-btn" onclick="signIn()">
       <svg viewBox="0 0 21 21" fill="none"><rect x="1" y="1" width="9" height="9" fill="#f25022"/><rect x="11" y="1" width="9" height="9" fill="#7fba00"/><rect x="1" y="11" width="9" height="9" fill="#00a4ef"/><rect x="11" y="11" width="9" height="9" fill="#ffb900"/></svg>
       Masuk dengan Microsoft
@@ -255,7 +255,7 @@ body{font-family:'Plus Jakarta Sans',-apple-system,sans-serif;background:var(--g
           </div>
           <div class="section-title"><div class="sec-num" style="background:#B35A1A">4</div>Dokumen Pendukung</div>
           <div class="field">
-            <label>Upload Dokumen <span style="font-weight:400;color:var(--gray-500);font-size:11px">(opsional – maks. 10MB)</span></label>
+            <label>Upload Dokumen <span style="font-weight:400;color:var(--gray-500);font-size:11px">(opsional - maks. 10MB)</span></label>
             <div class="file-zone" id="drop-zone" ondragover="event.preventDefault();this.classList.add('drag')" ondragleave="this.classList.remove('drag')" ondrop="handleDrop(event)">
               <input type="file" id="f-file" multiple accept=".pdf,.doc,.docx,.xls,.xlsx,.jpg,.png" onchange="handleFiles(this.files)">
               <div class="file-zone-icon">📎</div>
@@ -281,10 +281,10 @@ body{font-family:'Plus Jakarta Sans',-apple-system,sans-serif;background:var(--g
         </div>
       </div>
       <div class="stats-grid">
-        <div class="stat-card"><div class="stat-label">Total</div><div class="stat-val total" id="stat-total">–</div></div>
-        <div class="stat-card"><div class="stat-label">Pending</div><div class="stat-val pending" id="stat-pending">–</div></div>
-        <div class="stat-card"><div class="stat-label">Approved</div><div class="stat-val approved" id="stat-approved">–</div></div>
-        <div class="stat-card"><div class="stat-label">Rejected</div><div class="stat-val rejected" id="stat-rejected">–</div></div>
+        <div class="stat-card"><div class="stat-label">Total</div><div class="stat-val total" id="stat-total">-</div></div>
+        <div class="stat-card"><div class="stat-label">Pending</div><div class="stat-val pending" id="stat-pending">-</div></div>
+        <div class="stat-card"><div class="stat-label">Approved</div><div class="stat-val approved" id="stat-approved">-</div></div>
+        <div class="stat-card"><div class="stat-label">Rejected</div><div class="stat-val rejected" id="stat-rejected">-</div></div>
       </div>
       <div class="filters-bar">
         <input class="filter-input wide" type="text" id="search-input" placeholder="🔍  Cari nomor, company, client..." oninput="renderTable()">
@@ -347,22 +347,22 @@ body{font-family:'Plus Jakarta Sans',-apple-system,sans-serif;background:var(--g
 <div class="toast" id="toast"></div>
 
 <script>
-// ═══════════════════════════════════════════
-// ⚙️  CONFIG — ISI SESUAI DATA ANDA
-// ═══════════════════════════════════════════
+// ===========================================
+//   CONFIG - ISI SESUAI DATA ANDA
+// ===========================================
 const CONFIG = {
-  clientId:      "c87df5fb-eb2f-40bc-8c33-d0c47dedfe10",
-  tenantId:      "c1cc324d-9fda-4a48-97ee-ba6157ba9c67",
-  siteUrl:       "https://gosgroup.sharepoint.com/sites/procurement",
+  clientId:      "ISI_CLIENT_ID_DARI_AZURE",
+  tenantId:      "ISI_TENANT_ID_DARI_AZURE",
+  siteUrl:       "https://DOMAIN.sharepoint.com/sites/NAMA_SITE",
   masterList:    "MasterPengadaan",
   resultList:    "HasilPengajuan",
-  approverEmail: "muhamad.parid@gos.co.id",
+  approverEmail: "approver@gosgroup.com",
   redirectUri:   window.location.origin + window.location.pathname,
 };
 
-// ═══════════════════════════════════════════
+// ===========================================
 // AUTH
-// ═══════════════════════════════════════════
+// ===========================================
 let _msal, currentUser = null, siteId = null;
 const SCOPES = [
   "https://graph.microsoft.com/Sites.ReadWrite.All",
@@ -399,9 +399,9 @@ async function getToken() {
   return r.accessToken;
 }
 
-// ═══════════════════════════════════════════
+// ===========================================
 // GRAPH API
-// ═══════════════════════════════════════════
+// ===========================================
 async function gGet(url) {
   const t = await getToken();
   const r = await fetch(url, { headers: { Authorization: "Bearer " + t } });
@@ -440,9 +440,9 @@ async function patchItem(list, id, fields) {
   return gPatch(`https://graph.microsoft.com/v1.0/sites/${sid}/lists/${list}/items/${id}/fields`, fields);
 }
 
-// ═══════════════════════════════════════════
+// ===========================================
 // MASTER DATA
-// ═══════════════════════════════════════════
+// ===========================================
 let masterData = [];
 const CODES = { "PT. PRIMA RAYA SOLUSINDO":"PRS","PT. OTSINDO PRIMA RAYA":"OPR","PT. DINAMIKA NUANSA ABSOLUTE":"DNA","PT. FAS INDO RAYA":"FAS" };
 const ROMAN = ["","I","II","III","IV","V","VI","VII","VIII","IX","X","XI","XII"];
@@ -455,9 +455,9 @@ const getCompanies = () => [...new Set(masterData.map(i=>i.Company).filter(Boole
 const getClients = (co) => [...new Set(masterData.filter(i=>i.Company===co).map(i=>i.Client).filter(Boolean))].sort();
 const getProjects = (co,cl) => [...new Set(masterData.filter(i=>i.Company===co&&i.Client===cl).map(i=>i.Project).filter(Boolean))].sort();
 
-// ═══════════════════════════════════════════
+// ===========================================
 // FORM
-// ═══════════════════════════════════════════
+// ===========================================
 let uploadedFiles = [];
 
 function initFormDate() {
@@ -559,15 +559,15 @@ function resetForm(){
   uploadedFiles=[];renderFileList();updateReqnum();
 }
 
-// ═══════════════════════════════════════════
+// ===========================================
 // EMAIL
-// ═══════════════════════════════════════════
+// ===========================================
 async function sendEmail(rn,co,cl,pr){
   try{
     await gPost("https://graph.microsoft.com/v1.0/me/sendMail",{
       message:{
         subject:`[Pengajuan Baru] ${rn}`,
-        body:{contentType:"HTML",content:`<h2 style="color:#0B4F7E">Pengajuan Pengadaan Baru – GOS Group</h2>
+        body:{contentType:"HTML",content:`<h2 style="color:#0B4F7E">Pengajuan Pengadaan Baru - GOS Group</h2>
           <table style="border-collapse:collapse;font-size:14px;font-family:Arial">
             <tr><td style="padding:6px 14px;font-weight:bold;color:#666">Nomor Pengajuan</td><td style="padding:6px 14px;font-weight:bold;color:#0B4F7E">${rn}</td></tr>
             <tr style="background:#f8f9fa"><td style="padding:6px 14px;color:#666">Company</td><td style="padding:6px 14px">${co}</td></tr>
@@ -582,9 +582,9 @@ async function sendEmail(rn,co,cl,pr){
   }catch(e){console.warn("Email gagal:",e.message);}
 }
 
-// ═══════════════════════════════════════════
+// ===========================================
 // DASHBOARD
-// ═══════════════════════════════════════════
+// ===========================================
 let allSubmissions=[], currentItemId=null;
 
 async function loadDashboard(){
@@ -644,9 +644,9 @@ function statusBadge(s){
   return `<span class="status-badge ${m[s]||'pending'}"><span class="status-dot"></span>${s||"Pending"}</span>`;
 }
 
-// ═══════════════════════════════════════════
+// ===========================================
 // DETAIL MODAL
-// ═══════════════════════════════════════════
+// ===========================================
 function openDetail(id){
   currentItemId=id;
   const item=allSubmissions.find(i=>i.id===id); if(!item)return;
@@ -685,9 +685,9 @@ async function updateStatus(){
   }catch(e){toast("Gagal update: "+e.message,"error");}
 }
 
-// ═══════════════════════════════════════════
+// ===========================================
 // EXPORT EXCEL
-// ═══════════════════════════════════════════
+// ===========================================
 function exportExcel(){
   if(!allSubmissions.length){toast("Tidak ada data","error");return;}
   const rows=allSubmissions.map(i=>({
@@ -704,9 +704,9 @@ function exportExcel(){
   toast("File Excel berhasil didownload","success");
 }
 
-// ═══════════════════════════════════════════
+// ===========================================
 // UI
-// ═══════════════════════════════════════════
+// ===========================================
 function switchView(v){
   document.querySelectorAll(".view").forEach(x=>x.classList.remove("active"));
   document.getElementById("view-"+v).classList.add("active");
@@ -721,28 +721,18 @@ function toast(msg,type=""){
   toastT=setTimeout(()=>el.classList.remove("show"),3500);
 }
 
-// ═══════════════════════════════════════════
+// ===========================================
 // INIT
-// ═══════════════════════════════════════════
-async function autoSetNomorUrut() {
-  try {
-    const sid = await getSiteId();
-    const url = `https://graph.microsoft.com/v1.0/sites/${sid}/lists/${CONFIG.resultList}/items`
-              + `?$expand=fields($select=NomorUrut)`
-              + `&$orderby=fields/NomorUrut desc`
-              + `&$top=1`;
-    const r = await gGet(url);
-    const last = r.value?.[0]?.fields?.NomorUrut || 0;
-    const next = String(parseInt(last) + 1).padStart(4, "0");
-    document.getElementById("f-seq").value = next;
-  } catch(e) {
-    // Kalau gagal, biarkan default 0001
-    console.warn("Auto nomor urut gagal:", e.message);
-  }
-}
-  initFormDate();
-  await autoSetNomorUrut();
-  updateReqnum();
+// ===========================================
+async function initApp(){
+  try{
+    const me=await gGet("https://graph.microsoft.com/v1.0/me");currentUser=me;
+    const ini=(me.displayName||"?").split(" ").map(w=>w[0]).join("").slice(0,2).toUpperCase();
+    document.getElementById("user-avatar").textContent=ini;
+    document.getElementById("user-name").textContent=me.displayName||me.userPrincipalName;
+  }catch(e){console.warn("Profil gagal:",e);}
+  try{await loadMasterData();populateCompanies();}catch(e){toast("Master data gagal: "+e.message,"error");}
+  initFormDate();updateReqnum();
   document.getElementById("login-screen").style.display="none";
   document.getElementById("app").classList.add("visible");
 }
