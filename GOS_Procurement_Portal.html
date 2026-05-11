@@ -111,7 +111,16 @@ body{font-family:'Plus Jakarta Sans',-apple-system,sans-serif;background:var(--g
 .dh{display:flex;align-items:center;justify-content:space-between;margin-bottom:18px;flex-wrap:wrap;gap:10px}
 .dt{font-size:18px;font-weight:700;color:var(--g900)}
 .da{display:flex;gap:8px}
-.sg{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:18px}
+.sdd{position:relative}
+.sdd-input{width:100%;border:1.5px solid var(--border);border-radius:var(--rsm);padding:8px 11px;font-family:inherit;font-size:13px;color:var(--g900);background:white;outline:none;transition:border-color .15s}
+.sdd-input:focus{border-color:var(--navy);box-shadow:0 0 0 3px rgba(11,79,126,.08)}
+.sdd.open .sdd-input{border-radius:var(--rsm) var(--rsm) 0 0;border-color:var(--navy);border-bottom-color:transparent}
+.sdd-list{display:none;position:absolute;top:100%;left:0;right:0;background:white;border:1.5px solid var(--navy);border-top:none;border-radius:0 0 var(--rsm) var(--rsm);max-height:220px;overflow-y:auto;z-index:200;box-shadow:0 4px 12px rgba(11,79,126,.12)}
+.sdd-item{padding:8px 11px;font-size:13px;cursor:pointer;color:var(--g900);transition:background .1s}
+.sdd-item:hover{background:var(--navy-lt);color:var(--navy)}
+.sdd-none{color:var(--g500);cursor:default;font-style:italic}
+.sdd.disabled .sdd-input{background:var(--g50);color:var(--g500);cursor:not-allowed}
+.sg{display:grid;grid-template-columns:repeat(5,1fr);gap:12px;margin-bottom:18px}
 .sc{background:white;border-radius:var(--radius);border:1px solid var(--border);padding:14px 16px}
 .sl{font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.5px;color:var(--g500);margin-bottom:6px}
 .sv{font-size:26px;font-weight:700}
@@ -130,6 +139,7 @@ body{font-family:'Plus Jakarta Sans',-apple-system,sans-serif;background:var(--g
 .sb{display:inline-flex;align-items:center;gap:4px;padding:3px 9px;border-radius:20px;font-size:11px;font-weight:600}
 .sb.pen{background:var(--amber);color:var(--amber-bd)}
 .sb.app{background:var(--teal-lt);color:var(--teal)}
+.sb.dlv{background:#F0EBF9;color:#7B4FBF}
 .sb.rej{background:var(--red-lt);color:var(--red)}
 .sd{width:5px;height:5px;border-radius:50%;background:currentColor}
 .lr td{text-align:center;padding:32px;color:var(--g500)}
@@ -252,21 +262,32 @@ body{font-family:'Plus Jakarta Sans',-apple-system,sans-serif;background:var(--g
           <div class="fg">
             <div class="fd">
               <label>Company <span class="rq">*</span></label>
-              <select id="f-co" onchange="onCo()">
-                <option value="">-- Pilih Company --</option>
-              </select>
+              <div class="sdd" id="sdd-co">
+                <input type="text" class="sdd-input" id="f-co-txt" placeholder="Ketik untuk mencari..." autocomplete="off"
+                  oninput="filterDD('co')" onfocus="showDD('co')" onblur="hideDD('co')">
+                <input type="hidden" id="f-co">
+                <div class="sdd-list" id="sdd-co-list"></div>
+              </div>
               <div class="fe">Pilih company</div>
             </div>
             <div class="fd">
               <label>Client <span class="rq">*</span></label>
-              <select id="f-cl" onchange="onCl()" disabled>
-                <option value="">-- Pilih Client --</option>
-              </select>
+              <div class="sdd disabled" id="sdd-cl">
+                <input type="text" class="sdd-input" id="f-cl-txt" placeholder="Pilih Company dulu..." autocomplete="off"
+                  oninput="filterDD('cl')" onfocus="showDD('cl')" onblur="hideDD('cl')" disabled>
+                <input type="hidden" id="f-cl">
+                <div class="sdd-list" id="sdd-cl-list"></div>
+              </div>
               <div class="fe">Pilih client</div>
             </div>
             <div class="fd s2">
               <label>Project <span class="rq">*</span></label>
-              <select id="f-pr" disabled><option value="">-- Pilih Project --</option></select>
+              <div class="sdd disabled" id="sdd-pr">
+                <input type="text" class="sdd-input" id="f-pr-txt" placeholder="Pilih Client dulu..." autocomplete="off"
+                  oninput="filterDD('pr')" onfocus="showDD('pr')" onblur="hideDD('pr')" disabled>
+                <input type="hidden" id="f-pr">
+                <div class="sdd-list" id="sdd-pr-list"></div>
+              </div>
               <div class="fe">Pilih project</div>
             </div>
           </div>
@@ -288,7 +309,7 @@ body{font-family:'Plus Jakarta Sans',-apple-system,sans-serif;background:var(--g
             </div>
           </div>
 
-          <div class="stl"><div class="sn" style="background:#B35A1A">4</div>Dokumen Pendukung : Form Permintaan Dana</div>
+          <div class="stl"><div class="sn" style="background:#B35A1A">4</div>Dokumen Pendukung</div>
           <div class="fd">
             <label>Upload Dokumen <span class="rq">*</span></label>
             <div class="fz" id="dz" ondragover="event.preventDefault();this.classList.add('drag')" ondragleave="this.classList.remove('drag')" ondrop="onDrop(event)">
@@ -319,6 +340,7 @@ body{font-family:'Plus Jakarta Sans',-apple-system,sans-serif;background:var(--g
         <div class="sc"><div class="sl">Total</div><div class="sv tot" id="st">-</div></div>
         <div class="sc"><div class="sl">Pending</div><div class="sv pen" id="sp">-</div></div>
         <div class="sc"><div class="sl">Submitted to Finance</div><div class="sv app" id="sa">-</div></div>
+        <div class="sc"><div class="sl">Delivered</div><div class="sv" style="color:#7B4FBF" id="sdl">-</div></div>
         <div class="sc"><div class="sl">Rejected</div><div class="sv rej" id="sr">-</div></div>
       </div>
       <div class="fib">
@@ -327,6 +349,7 @@ body{font-family:'Plus Jakarta Sans',-apple-system,sans-serif;background:var(--g
           <option value="">Semua Status</option>
           <option value="Pending">Pending</option>
           <option value="Submitted to Finance">Submitted to Finance</option>
+          <option value="Delivered">Delivered</option>
           <option value="Rejected">Rejected</option>
         </select>
         <select class="fi2" id="fco" onchange="renderTbl()"><option value="">Semua Company</option></select>
@@ -337,9 +360,9 @@ body{font-family:'Plus Jakarta Sans',-apple-system,sans-serif;background:var(--g
         <table class="dt2">
           <thead><tr>
             <th>#</th><th>Nomor Pengajuan</th><th>Tanggal</th><th>Company</th>
-            <th>Client</th><th>Jenis</th><th>Harga</th><th>Status</th>
+            <th>Client</th><th>Project</th><th>Jenis</th><th>Harga</th><th>Status</th>
           </tr></thead>
-          <tbody id="tbl"><tr class="lr"><td colspan="8">Memuat data...</td></tr></tbody>
+          <tbody id="tbl"><tr class="lr"><td colspan="9">Memuat data...</td></tr></tbody>
         </table>
       </div>
     </div>
@@ -359,14 +382,31 @@ body{font-family:'Plus Jakarta Sans',-apple-system,sans-serif;background:var(--g
         <div class="st2">Update Status</div>
         <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
           <div class="fd"><label>Status</label>
-            <select id="mst">
+            <select id="mst" onchange="onStatusChange()">
               <option value="Pending">Pending</option>
               <option value="Submitted to Finance">Submitted to Finance</option>
+              <option value="Delivered">Delivered</option>
               <option value="Rejected">Rejected</option>
             </select>
           </div>
           <div class="fd"><label>Catatan Approver</label>
             <input type="text" id="mnt" placeholder="Opsional...">
+          </div>
+        </div>
+        <!-- Delivered fields - muncul hanya saat status Delivered -->
+        <div id="delivered-fields" style="display:none;margin-top:10px;padding-top:10px;border-top:1px dashed var(--border)">
+          <div style="font-size:11px;font-weight:700;color:#7B4FBF;text-transform:uppercase;letter-spacing:.5px;margin-bottom:8px">
+            &#128230; Info Penerimaan (wajib diisi)
+          </div>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+            <div class="fd">
+              <label>Nama Penerima <span class="rq">*</span></label>
+              <input type="text" id="m-penerima" placeholder="Nama lengkap penerima...">
+            </div>
+            <div class="fd">
+              <label>Tanggal Terima <span class="rq">*</span></label>
+              <input type="date" id="m-tgl-terima">
+            </div>
           </div>
         </div>
       </div>
@@ -385,12 +425,12 @@ body{font-family:'Plus Jakarta Sans',-apple-system,sans-serif;background:var(--g
 // CONFIG - ISI SESUAI DATA ANDA
 // =============================================
 var CONFIG = {
-  clientId:      "c87df5fb-eb2f-40bc-8c33-d0c47dedfe10",
-  tenantId:      "c1cc324d-9fda-4a48-97ee-ba6157ba9c67",
-  siteUrl:       "https://gosgroup.sharepoint.com/sites/procurement",
+  clientId:      "ISI_CLIENT_ID_DARI_AZURE",
+  tenantId:      "ISI_TENANT_ID_DARI_AZURE",
+  siteUrl:       "https://DOMAIN.sharepoint.com/sites/NAMA_SITE",
   masterList:    "MasterPengadaan",
   resultList:    "HasilPengajuan",
-  approverEmail: "muhamad.parid@gos.co.id",
+  approverEmail: "approver@gosgroup.com",
   redirectUri:   window.location.origin + window.location.pathname
 };
 
@@ -574,47 +614,101 @@ function initDate() {
 
 function pad(n) { return n < 10 ? "0" + n : "" + n; }
 
-function populateCos() {
-  var sel = document.getElementById("f-co");
-  sel.innerHTML = '<option value="">-- Pilih Company --</option>';
-  getCos().forEach(function(c) {
-    var o = document.createElement("option");
-    o.value = c; o.textContent = c; sel.appendChild(o);
-  });
+var ddState = { co: "", cl: "", pr: "" };
+
+function escQ(s) { return s.replace(/\\/g,"\\\\").replace(/'/g,"\\'"); }
+
+function getDDItems(key) {
+  if (key === "co") return getCos();
+  if (key === "cl") return getCls(ddState.co);
+  if (key === "pr") return getPrs(ddState.co, ddState.cl);
+  return [];
 }
 
-function onCo() {
-  var co = document.getElementById("f-co").value;
-  var cs = document.getElementById("f-cl");
-  var ps = document.getElementById("f-pr");
-  cs.innerHTML = '<option value="">-- Pilih Client --</option>';
-  ps.innerHTML = '<option value="">-- Pilih Project --</option>';
-  ps.disabled = true;
-  if (co) {
-    getCls(co).forEach(function(c) {
-      var o = document.createElement("option"); o.value = c; o.textContent = c; cs.appendChild(o);
-    });
-    cs.disabled = false;
-  } else {
-    cs.disabled = true;
-  }
-  updateRn();
+function renderDDList(key, items) {
+  var list = document.getElementById("sdd-" + key + "-list");
+  list.innerHTML = items.length
+    ? items.map(function(i) {
+        return '<div class="sdd-item" onmousedown="selectDD(\'' + key + '\',\'' + escQ(i) + '\')">' + i + '</div>';
+      }).join("")
+    : '<div class="sdd-item sdd-none">Tidak ditemukan</div>';
 }
 
-function onCl() {
-  var co = document.getElementById("f-co").value;
-  var cl = document.getElementById("f-cl").value;
-  var ps = document.getElementById("f-pr");
-  ps.innerHTML = '<option value="">-- Pilih Project --</option>';
-  if (co && cl) {
-    getPrs(co, cl).forEach(function(p) {
-      var o = document.createElement("option"); o.value = p; o.textContent = p; ps.appendChild(o);
-    });
-    ps.disabled = false;
-  } else {
-    ps.disabled = true;
+function filterDD(key) {
+  var txt = document.getElementById("f-" + key + "-txt").value.toLowerCase();
+  var all = getDDItems(key);
+  var filtered = all.filter(function(i) { return i.toLowerCase().indexOf(txt) > -1; });
+  renderDDList(key, filtered);
+  var list = document.getElementById("sdd-" + key + "-list");
+  list.style.display = "block";
+  document.getElementById("sdd-" + key).classList.add("open");
+  if (!txt) {
+    document.getElementById("f-" + key).value = "";
+    ddState[key] = "";
   }
 }
+
+function showDD(key) {
+  var wrap = document.getElementById("sdd-" + key);
+  if (wrap.classList.contains("disabled")) return;
+  filterDD(key);
+}
+
+function hideDD(key) {
+  setTimeout(function() {
+    var list = document.getElementById("sdd-" + key + "-list");
+    list.style.display = "none";
+    document.getElementById("sdd-" + key).classList.remove("open");
+    var txt = document.getElementById("f-" + key + "-txt");
+    txt.value = ddState[key] || "";
+  }, 200);
+}
+
+function selectDD(key, val) {
+  document.getElementById("f-" + key).value = val;
+  document.getElementById("f-" + key + "-txt").value = val;
+  document.getElementById("sdd-" + key + "-list").style.display = "none";
+  document.getElementById("sdd-" + key).classList.remove("open");
+  ddState[key] = val;
+
+  if (key === "co") {
+    ddState.cl = ""; ddState.pr = "";
+    document.getElementById("f-cl").value = "";
+    document.getElementById("f-cl-txt").value = "";
+    document.getElementById("f-pr").value = "";
+    document.getElementById("f-pr-txt").value = "";
+    var clWrap = document.getElementById("sdd-cl");
+    var prWrap = document.getElementById("sdd-pr");
+    var clInput = document.getElementById("f-cl-txt");
+    var prInput = document.getElementById("f-pr-txt");
+    if (val) {
+      clWrap.classList.remove("disabled"); clInput.disabled = false;
+      clInput.placeholder = "Ketik untuk mencari...";
+    } else {
+      clWrap.classList.add("disabled"); clInput.disabled = true;
+      clInput.placeholder = "Pilih Company dulu...";
+      prWrap.classList.add("disabled"); prInput.disabled = true;
+      prInput.placeholder = "Pilih Client dulu...";
+    }
+    updateRn();
+  }
+  if (key === "cl") {
+    ddState.pr = "";
+    document.getElementById("f-pr").value = "";
+    document.getElementById("f-pr-txt").value = "";
+    var prWrap = document.getElementById("sdd-pr");
+    var prInput = document.getElementById("f-pr-txt");
+    if (val) {
+      prWrap.classList.remove("disabled"); prInput.disabled = false;
+      prInput.placeholder = "Ketik untuk mencari...";
+    } else {
+      prWrap.classList.add("disabled"); prInput.disabled = true;
+      prInput.placeholder = "Pilih Client dulu...";
+    }
+  }
+}
+
+function populateCos() { /* data loaded, DD populated on focus */ }
 
 function updateRn() {
   var seq = (document.getElementById("f-seq").value || "").replace(/\D/g,"");
@@ -761,14 +855,21 @@ function submitForm() {
 }
 
 function resetForm() {
-  ["f-jenis","f-co","f-tj","f-hg"].forEach(function(id) {
+  ["f-jenis","f-tj","f-hg"].forEach(function(id) {
     document.getElementById(id).value = "";
   });
   document.querySelectorAll('input[name="jp"]').forEach(function(r) { r.checked = false; });
-  document.getElementById("f-cl").innerHTML = '<option value="">-- Pilih Client --</option>';
-  document.getElementById("f-cl").disabled = true;
-  document.getElementById("f-pr").innerHTML = '<option value="">-- Pilih Project --</option>';
-  document.getElementById("f-pr").disabled = true;
+  ["co","cl","pr"].forEach(function(k) {
+    ddState[k] = "";
+    document.getElementById("f-" + k).value = "";
+    document.getElementById("f-" + k + "-txt").value = "";
+  });
+  document.getElementById("sdd-cl").classList.add("disabled");
+  document.getElementById("f-cl-txt").disabled = true;
+  document.getElementById("f-cl-txt").placeholder = "Pilih Company dulu...";
+  document.getElementById("sdd-pr").classList.add("disabled");
+  document.getElementById("f-pr-txt").disabled = true;
+  document.getElementById("f-pr-txt").placeholder = "Pilih Client dulu...";
   document.querySelectorAll(".fd.err").forEach(function(fd) { fd.classList.remove("err"); });
   uploadedFiles = []; renderFiles(); updateRn();
 }
@@ -879,10 +980,11 @@ function loadDash() {
 }
 
 function updateStats() {
-  document.getElementById("st").textContent = allSubs.length;
-  document.getElementById("sp").textContent = allSubs.filter(function(i) { return i.Status === "Pending"; }).length;
-  document.getElementById("sa").textContent = allSubs.filter(function(i) { return i.Status === "Submitted to Finance"; }).length;
-  document.getElementById("sr").textContent = allSubs.filter(function(i) { return i.Status === "Rejected"; }).length;
+  document.getElementById("st").textContent  = allSubs.length;
+  document.getElementById("sp").textContent  = allSubs.filter(function(i) { return i.Status === "Pending"; }).length;
+  document.getElementById("sa").textContent  = allSubs.filter(function(i) { return i.Status === "Submitted to Finance"; }).length;
+  document.getElementById("sdl").textContent = allSubs.filter(function(i) { return i.Status === "Delivered"; }).length;
+  document.getElementById("sr").textContent  = allSubs.filter(function(i) { return i.Status === "Rejected"; }).length;
 }
 
 function populateCoFilter() {
@@ -917,7 +1019,7 @@ function renderTbl() {
 
   var tb = document.getElementById("tbl");
   if (!f.length) {
-    tb.innerHTML = '<tr><td colspan="8" style="text-align:center;padding:32px;color:var(--g500)">Tidak ada data</td></tr>';
+    tb.innerHTML = '<tr><td colspan="9" style="text-align:center;padding:32px;color:var(--g500)">Tidak ada data</td></tr>';
     return;
   }
   tb.innerHTML = f.map(function(item, idx) {
@@ -926,13 +1028,16 @@ function renderTbl() {
     var jBg = item.JenisPengadaan === "EXT" ? "#E8F2FB" : "#E6F5F0";
     var jCo = item.JenisPengadaan === "EXT" ? "var(--navy)" : "var(--teal)";
     var cl  = (item.Client || "-");
-    var cls = cl.length > 28 ? cl.slice(0, 28) + "..." : cl;
+    var cls = cl.length > 22 ? cl.slice(0, 22) + "..." : cl;
+    var pr  = (item.Project || "-");
+    var prs = pr.length > 25 ? pr.slice(0, 25) + "..." : pr;
     return '<tr onclick="openMo(\'' + item.id + '\')">' +
       '<td style="color:var(--g500)">' + (idx+1) + '</td>' +
       '<td style="font-weight:600;color:var(--navy);font-family:\'Courier New\',monospace;font-size:12px">' + (item.NomorPengajuan||"-") + '</td>' +
       '<td>' + tgl + '</td>' +
       '<td style="font-size:12px">' + (item.Company||"-") + '</td>' +
       '<td style="font-size:12px">' + cls + '</td>' +
+      '<td style="font-size:12px">' + prs + '</td>' +
       '<td><span style="background:' + jBg + ';color:' + jCo + ';padding:2px 7px;border-radius:10px;font-size:11px;font-weight:600">' + (item.JenisPengadaan||"-") + '</span></td>' +
       '<td style="text-align:right;font-weight:500">' + h + '</td>' +
       '<td>' + sBadge(item.Status) + '</td></tr>';
@@ -940,7 +1045,7 @@ function renderTbl() {
 }
 
 function sBadge(s) {
-  var m = { Pending: "pen", "Submitted to Finance": "app", Rejected: "rej" };
+  var m = { Pending: "pen", "Submitted to Finance": "app", Delivered: "dlv", Rejected: "rej" };
   return '<span class="sb ' + (m[s]||"pen") + '"><span class="sd"></span>' + (s||"Pending") + '</span>';
 }
 
@@ -986,9 +1091,16 @@ function openMo(id) {
     '<div class="df"><div class="dl">Diajukan Oleh</div><div class="dv">' + (item.SubmittedBy||"-") + '</div></div>' +
     '<div class="df full"><div class="dl">Dokumen Pendukung</div><div class="dv">' + buildFileLinks(item.DokumenPendukung) + '</div></div>' +
     '<div class="df"><div class="dl">Status</div><div class="dv">' + sBadge(item.Status) + '</div></div>' +
-    '<div class="df"><div class="dl">Catatan Approver</div><div class="dv">' + (item.ApproverNotes||"-") + '</div></div>';
+    '<div class="df"><div class="dl">Catatan Approver</div><div class="dv">' + (item.ApproverNotes||"-") + '</div></div>' +
+    (item.Status === "Delivered" ? (
+      '<div class="df"><div class="dl">Nama Penerima</div><div class="dv" style="font-weight:600;color:#7B4FBF">' + (item.NamaPenerima||"-") + '</div></div>' +
+      '<div class="df"><div class="dl">Tanggal Terima</div><div class="dv" style="font-weight:600;color:#7B4FBF">' + (item.TanggalTerima ? item.TanggalTerima.split("T")[0].split("-").reverse().join("/") : "-") + '</div></div>'
+    ) : '');
   document.getElementById("mst").value = item.Status || "Pending";
   document.getElementById("mnt").value = item.ApproverNotes || "";
+  document.getElementById("m-penerima").value  = item.NamaPenerima  || "";
+  document.getElementById("m-tgl-terima").value = item.TanggalTerima ? item.TanggalTerima.split("T")[0] : "";
+  onStatusChange();
 
   // Tampilkan tombol update status hanya untuk approver
   var ss = document.querySelector(".ss");
@@ -1009,17 +1121,45 @@ function closeMo() {
   curId = null;
 }
 
+function onStatusChange() {
+  var st = document.getElementById("mst").value;
+  var df = document.getElementById("delivered-fields");
+  df.style.display = st === "Delivered" ? "block" : "none";
+  if (st !== "Delivered") {
+    document.getElementById("m-penerima").value = "";
+    document.getElementById("m-tgl-terima").value = "";
+  }
+}
+
 function updStatus() {
   if (!curId) return;
   if (!isApprover()) {
     showToast("Anda tidak memiliki akses untuk mengubah status", "er");
     return;
   }
-  var st = document.getElementById("mst").value;
-  var nt = document.getElementById("mnt").value;
-  patchItem(CONFIG.resultList, curId, { Status: st, ApproverNotes: nt }).then(function() {
+  var st       = document.getElementById("mst").value;
+  var nt       = document.getElementById("mnt").value;
+  var penerima = document.getElementById("m-penerima").value.trim();
+  var tglTrm   = document.getElementById("m-tgl-terima").value;
+
+  if (st === "Delivered") {
+    if (!penerima) { showToast("Nama penerima wajib diisi", "er"); document.getElementById("m-penerima").focus(); return; }
+    if (!tglTrm)   { showToast("Tanggal terima wajib diisi", "er"); document.getElementById("m-tgl-terima").focus(); return; }
+  }
+
+  var fields = { Status: st, ApproverNotes: nt };
+  if (st === "Delivered") {
+    fields.NamaPenerima  = penerima;
+    fields.TanggalTerima = tglTrm;
+  }
+
+  patchItem(CONFIG.resultList, curId, fields).then(function() {
     var item = allSubs.filter(function(i) { return i.id === curId; })[0];
-    if (item) { item.Status = st; item.ApproverNotes = nt; }
+    if (item) {
+      item.Status       = st;
+      item.ApproverNotes = nt;
+      if (st === "Delivered") { item.NamaPenerima = penerima; item.TanggalTerima = tglTrm; }
+    }
     updateStats(); renderTbl(); closeMo();
     showToast("Status diperbarui: " + st, "ok");
   }).catch(function(e) { showToast("Gagal: " + e.message, "er"); });
