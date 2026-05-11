@@ -438,7 +438,11 @@ function getToken() {
   var acc = _msal.getActiveAccount();
   if (!acc) return Promise.reject(new Error("Tidak ada akun aktif"));
   return _msal.acquireTokenSilent({ scopes: SCOPES, account: acc })
-    .then(function(r) { return r.accessToken; });
+    .then(function(r) { return r.accessToken; })
+    .catch(function() {
+      return _msal.acquireTokenPopup({ scopes: SCOPES })
+        .then(function(r) { return r.accessToken; });
+    });
 }
 
 // =============================================
