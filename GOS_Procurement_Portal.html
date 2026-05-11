@@ -290,7 +290,7 @@ body{font-family:'Plus Jakarta Sans',-apple-system,sans-serif;background:var(--g
 
           <div class="stl"><div class="sn" style="background:#B35A1A">4</div>Dokumen Pendukung</div>
           <div class="fd">
-            <label>Upload Dokumen <span style="font-weight:400;color:var(--g500);font-size:11px">(opsional - maks. 10MB)</span></label>
+            <label>Upload Dokumen <span class="rq">*</span></label>
             <div class="fz" id="dz" ondragover="event.preventDefault();this.classList.add('drag')" ondragleave="this.classList.remove('drag')" ondrop="onDrop(event)">
               <input type="file" id="f-fl" multiple onchange="onFiles(this.files)">
               <div class="fz-icon">&#128206;</div>
@@ -385,12 +385,12 @@ body{font-family:'Plus Jakarta Sans',-apple-system,sans-serif;background:var(--g
 // CONFIG - ISI SESUAI DATA ANDA
 // =============================================
 var CONFIG = {
-  clientId:      "c87df5fb-eb2f-40bc-8c33-d0c47dedfe10",
-  tenantId:      "c1cc324d-9fda-4a48-97ee-ba6157ba9c67",
-  siteUrl:       "https://gosgroup.sharepoint.com/sites/procurement",
+  clientId:      "ISI_CLIENT_ID_DARI_AZURE",
+  tenantId:      "ISI_TENANT_ID_DARI_AZURE",
+  siteUrl:       "https://DOMAIN.sharepoint.com/sites/NAMA_SITE",
   masterList:    "MasterPengadaan",
   resultList:    "HasilPengajuan",
-  approverEmail: "muhamad.parid@gos.co.id",
+  approverEmail: "approver@gosgroup.com",
   redirectUri:   window.location.origin + window.location.pathname
 };
 
@@ -691,6 +691,17 @@ function validate() {
     document.querySelector(".rg").closest(".fd").classList.add("err"); ok = false;
   } else {
     document.querySelector(".rg").closest(".fd").classList.remove("err");
+  }
+  if (uploadedFiles.length === 0) {
+    var fz = document.getElementById("dz");
+    fz.style.borderColor = "var(--red)";
+    fz.style.background  = "var(--red-lt)";
+    showToast("Dokumen pendukung wajib dilampirkan", "er");
+    ok = false;
+  } else {
+    var fz = document.getElementById("dz");
+    fz.style.borderColor = "";
+    fz.style.background  = "";
   }
   return ok;
 }
