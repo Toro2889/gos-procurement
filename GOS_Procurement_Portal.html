@@ -292,7 +292,7 @@ body{font-family:'Plus Jakarta Sans',-apple-system,sans-serif;background:var(--g
           <div class="fd">
             <label>Upload Dokumen <span style="font-weight:400;color:var(--g500);font-size:11px">(opsional - maks. 10MB)</span></label>
             <div class="fz" id="dz" ondragover="event.preventDefault();this.classList.add('drag')" ondragleave="this.classList.remove('drag')" ondrop="onDrop(event)">
-              <input type="file" id="f-fl" multiple accept=".pdf,.doc,.docx,.xls,.xlsx,.jpg,.png" onchange="onFiles(this.files)">
+              <input type="file" id="f-fl" multiple onchange="onFiles(this.files)">
               <div class="fz-icon">&#128206;</div>
               <div class="fz-txt">Klik atau drag &amp; drop file di sini</div>
               <div class="fz-sub">PDF, Word, Excel, JPG, PNG</div>
@@ -385,12 +385,12 @@ body{font-family:'Plus Jakarta Sans',-apple-system,sans-serif;background:var(--g
 // CONFIG - ISI SESUAI DATA ANDA
 // =============================================
 var CONFIG = {
-  clientId:      "c87df5fb-eb2f-40bc-8c33-d0c47dedfe10",
-  tenantId:      "c1cc324d-9fda-4a48-97ee-ba6157ba9c67",
-  siteUrl:       "https://gosgroup.sharepoint.com/sites/procurement",
+  clientId:      "ISI_CLIENT_ID_DARI_AZURE",
+  tenantId:      "ISI_TENANT_ID_DARI_AZURE",
+  siteUrl:       "https://DOMAIN.sharepoint.com/sites/NAMA_SITE",
   masterList:    "MasterPengadaan",
   resultList:    "HasilPengajuan",
-  approverEmail: "muhamad.parid@gos.co.id",
+  approverEmail: "approver@gosgroup.com",
   redirectUri:   window.location.origin + window.location.pathname
 };
 
@@ -488,7 +488,7 @@ function gPatch(url, body) {
     });
   }).then(function(r) {
     if (!r.ok) return r.text().then(function(e) { throw new Error("PATCH " + r.status + ": " + e); });
-    return r.status === 204 ? {} : r.json();
+    return (r.status === 204 || r.status === 202) ? {} : r.json();
   });
 }
 
@@ -703,7 +703,7 @@ function submitForm() {
     return;
   }
   var btn = document.getElementById("bsub");
-  btn.innerHTML = '<span class="spin"></span> Mengirim...';
+  btn.innerHTML = '<span class="spin"></span> Mengupload file...';
   btn.disabled = true;
 
   var d   = new Date();
@@ -712,33 +712,36 @@ function submitForm() {
   var hg  = parseInt(hgRaw, 10) || 0;
   var jp  = document.querySelector('input[name="jp"]:checked');
 
-  createItem(CONFIG.resultList, {
-    Title:            rn,
-    NomorPengajuan:   rn,
-    NomorUrut:        parseInt(document.getElementById("f-seq").value, 10) || 1,
-    TanggalPengajuan: d.toISOString().split("T")[0],
-    JenisPengadaan:   document.getElementById("f-jenis").value,
-    Company:          document.getElementById("f-co").value,
-    Client:           document.getElementById("f-cl").value,
-    Project:          document.getElementById("f-pr").value,
-    TujuanPermintaan: document.getElementById("f-tj").value,
-    JenisProduk:      jp ? jp.value : "",
-    EstimasiHarga:    hg,
-    DokumenPendukung: uploadedFiles.map(function(f) { return f.name; }).join(", "),
-    Status:           "Pending",
-    SubmittedBy:      currentUser ? currentUser.displayName : ""
+  uploadAllFiles(uploadedFiles, rn).then(function(fileResults) {
+    btn.innerHTML = '<span class="spin"></span> Menyimpan...';
+    var dokStr = fileResults.length ? JSON.stringify(fileResults) : "";
+    return createItem(CONFIG.resultList, {
+      Title:            rn,
+      NomorPengajuan:   rn,
+      NomorUrut:        parseInt(document.getElementById("f-seq").value, 10) || 1,
+      TanggalPengajuan: d.toISOString().split("T")[0],
+      JenisPengadaan:   document.getElementById("f-jenis").value,
+      Company:          document.getElementById("f-co").value,
+      Client:           document.getElementById("f-cl").value,
+      Project:          document.getElementById("f-pr").value,
+      TujuanPermintaan: document.getElementById("f-tj").value,
+      JenisProduk:      jp ? jp.value : "",
+      EstimasiHarga:    hg,
+      DokumenPendukung: dokStr,
+      Status:           "Pending",
+      SubmittedBy:      currentUser ? currentUser.displayName : ""
+    });
   }).then(function() {
     sendEmail(rn, document.getElementById("f-co").value,
               document.getElementById("f-cl").value,
               document.getElementById("f-pr").value,
               document.getElementById("f-tj").value,
-              jp ? jp.value : "",
-              hg);
+              jp ? jp.value : "", hg);
     showToast("Pengajuan " + rn + " berhasil dikirim!", "ok");
     resetForm();
     return autoSeq();
   }).catch(function(e) {
-    showToast("Gagal mengirim: " + e.message, "er");
+    showToast("Gagal: " + e.message, "er");
     console.error(e);
   }).finally(function() {
     btn.innerHTML = "Kirim Pengajuan";
@@ -760,8 +763,41 @@ function resetForm() {
 }
 
 // =============================================
-// EMAIL
+// FILE UPLOAD TO SHAREPOINT DRIVE
 // =============================================
+function uploadFile(file, nomor) {
+  return getSid().then(function(sid) {
+    var safeName  = file.name.replace(/[#%*:<>?\/\\|]/g, "_");
+    var safeNomor = nomor.replace(/\//g, "-");
+    var path      = "Pengadaan Attachments/" + safeNomor + "/" + safeName;
+    var url       = "https://graph.microsoft.com/v1.0/sites/" + sid +
+                    "/drive/root:/" + encodeURIComponent(path).replace(/%2F/g, "/") + ":/content";
+    return getToken().then(function(t) {
+      return fetch(url, {
+        method: "PUT",
+        headers: {
+          Authorization: "Bearer " + t,
+          "Content-Type": file.type || "application/octet-stream"
+        },
+        body: file
+      });
+    }).then(function(r) {
+      if (!r.ok) return r.text().then(function(e) {
+        throw new Error("Upload gagal (" + file.name + "): " + e);
+      });
+      return r.json();
+    }).then(function(data) {
+      return { name: file.name, url: data.webUrl, size: file.size };
+    });
+  });
+}
+
+function uploadAllFiles(files, nomor) {
+  if (!files || files.length === 0) return Promise.resolve([]);
+  return Promise.all(files.map(function(f) { return uploadFile(f, nomor); }));
+}
+
+
 function buildEmailBody(rn, co, cl, pr, tj, jp, hg, tgl) {
   return "<div style='font-family:Arial,sans-serif;max-width:600px'>" +
     "<div style='background:#0B4F7E;padding:20px 24px;border-radius:8px 8px 0 0'>" +
@@ -900,6 +936,25 @@ function sBadge(s) {
 // =============================================
 // MODAL
 // =============================================
+function buildFileLinks(dokStr) {
+  if (!dokStr) return "-";
+  try {
+    var files = JSON.parse(dokStr);
+    if (!files.length) return "-";
+    return files.map(function(f) {
+      var size = f.size > 1048576 ? (f.size/1048576).toFixed(1)+" MB" : Math.round((f.size||0)/1024)+" KB";
+      return '<a href="' + f.url + '" target="_blank" ' +
+             'style="display:inline-flex;align-items:center;gap:5px;background:#E8F2FB;color:#0B4F7E;' +
+             'padding:4px 10px;border-radius:4px;font-size:12px;font-weight:500;text-decoration:none;' +
+             'margin:2px 4px 2px 0;border:1px solid #BAD4EE">' +
+             '&#128196; ' + f.name + ' <span style="opacity:.6;font-size:10px">(' + size + ')</span>' +
+             '</a>';
+    }).join("");
+  } catch(e) {
+    return dokStr || "-";
+  }
+}
+
 function openMo(id) {
   curId = id;
   var item = allSubs.filter(function(i) { return i.id === id; })[0];
@@ -918,7 +973,7 @@ function openMo(id) {
     '<div class="df full"><div class="dl">Tujuan Permintaan</div><div class="dv">' + (item.TujuanPermintaan||"-") + '</div></div>' +
     '<div class="df"><div class="dl">Estimasi Harga</div><div class="dv" style="font-weight:700;color:var(--navy)">' + h + '</div></div>' +
     '<div class="df"><div class="dl">Diajukan Oleh</div><div class="dv">' + (item.SubmittedBy||"-") + '</div></div>' +
-    '<div class="df full"><div class="dl">Dokumen</div><div class="dv">' + (item.DokumenPendukung||"-") + '</div></div>' +
+    '<div class="df full"><div class="dl">Dokumen Pendukung</div><div class="dv">' + buildFileLinks(item.DokumenPendukung) + '</div></div>' +
     '<div class="df"><div class="dl">Status</div><div class="dv">' + sBadge(item.Status) + '</div></div>' +
     '<div class="df"><div class="dl">Catatan Approver</div><div class="dv">' + (item.ApproverNotes||"-") + '</div></div>';
   document.getElementById("mst").value = item.Status || "Pending";
