@@ -318,7 +318,7 @@ body{font-family:'Plus Jakarta Sans',-apple-system,sans-serif;background:var(--g
       <div class="sg">
         <div class="sc"><div class="sl">Total</div><div class="sv tot" id="st">-</div></div>
         <div class="sc"><div class="sl">Pending</div><div class="sv pen" id="sp">-</div></div>
-        <div class="sc"><div class="sl">Approved</div><div class="sv app" id="sa">-</div></div>
+        <div class="sc"><div class="sl">Submitted to Finance</div><div class="sv app" id="sa">-</div></div>
         <div class="sc"><div class="sl">Rejected</div><div class="sv rej" id="sr">-</div></div>
       </div>
       <div class="fib">
@@ -326,7 +326,7 @@ body{font-family:'Plus Jakarta Sans',-apple-system,sans-serif;background:var(--g
         <select class="fi2" id="fst" onchange="renderTbl()">
           <option value="">Semua Status</option>
           <option value="Pending">Pending</option>
-          <option value="Approved">Approved</option>
+          <option value="Submitted to Finance">Submitted to Finance</option>
           <option value="Rejected">Rejected</option>
         </select>
         <select class="fi2" id="fco" onchange="renderTbl()"><option value="">Semua Company</option></select>
@@ -361,7 +361,7 @@ body{font-family:'Plus Jakarta Sans',-apple-system,sans-serif;background:var(--g
           <div class="fd"><label>Status</label>
             <select id="mst">
               <option value="Pending">Pending</option>
-              <option value="Approved">Approved</option>
+              <option value="Submitted to Finance">Submitted to Finance</option>
               <option value="Rejected">Rejected</option>
             </select>
           </div>
@@ -385,18 +385,27 @@ body{font-family:'Plus Jakarta Sans',-apple-system,sans-serif;background:var(--g
 // CONFIG - ISI SESUAI DATA ANDA
 // =============================================
 var CONFIG = {
-  clientId:      "c87df5fb-eb2f-40bc-8c33-d0c47dedfe10",
-  tenantId:      "c1cc324d-9fda-4a48-97ee-ba6157ba9c67",
-  siteUrl:       "https://gosgroup.sharepoint.com/sites/procurement",
+  clientId:      "ISI_CLIENT_ID_DARI_AZURE",
+  tenantId:      "ISI_TENANT_ID_DARI_AZURE",
+  siteUrl:       "https://DOMAIN.sharepoint.com/sites/NAMA_SITE",
   masterList:    "MasterPengadaan",
   resultList:    "HasilPengajuan",
-  approverEmail: "muhamad.parid@gos.co.id",
+  approverEmail: "approver@gosgroup.com",
   redirectUri:   window.location.origin + window.location.pathname
 };
 
 // =============================================
-// MSAL AUTH
+// APPROVERS - yang boleh update status
 // =============================================
+var APPROVERS = [
+  "muhamad.parid@gos.co.id",
+  "toro.sod@gos.co.id"
+];
+
+function isApprover() {
+  if (!currentUser) return false;
+  return APPROVERS.indexOf(currentUser.userPrincipalName.toLowerCase()) > -1;
+}
 var _msal = null;
 var currentUser = null;
 var siteId = null;
@@ -721,7 +730,10 @@ function submitForm() {
   }).then(function() {
     sendEmail(rn, document.getElementById("f-co").value,
               document.getElementById("f-cl").value,
-              document.getElementById("f-pr").value);
+              document.getElementById("f-pr").value,
+              document.getElementById("f-tj").value,
+              jp ? jp.value : "",
+              hg);
     showToast("Pengajuan " + rn + " berhasil dikirim!", "ok");
     resetForm();
     return autoSeq();
@@ -750,21 +762,48 @@ function resetForm() {
 // =============================================
 // EMAIL
 // =============================================
-function sendEmail(rn, co, cl, pr) {
-  var body = "<h2 style='color:#0B4F7E'>Pengajuan Pengadaan Baru - GOS Group</h2>" +
-    "<table style='border-collapse:collapse;font-size:14px;font-family:Arial'>" +
-    "<tr><td style='padding:6px 14px;font-weight:bold;color:#666'>Nomor</td><td style='padding:6px 14px;font-weight:bold;color:#0B4F7E'>" + rn + "</td></tr>" +
-    "<tr style='background:#f8f9fa'><td style='padding:6px 14px;color:#666'>Company</td><td style='padding:6px 14px'>" + co + "</td></tr>" +
-    "<tr><td style='padding:6px 14px;color:#666'>Client</td><td style='padding:6px 14px'>" + cl + "</td></tr>" +
-    "<tr style='background:#f8f9fa'><td style='padding:6px 14px;color:#666'>Project</td><td style='padding:6px 14px'>" + pr + "</td></tr>" +
-    "<tr><td style='padding:6px 14px;color:#666'>Diajukan Oleh</td><td style='padding:6px 14px'>" + (currentUser ? currentUser.displayName : "-") + "</td></tr>" +
-    "</table><p style='margin-top:16px;color:#666'>Silakan buka portal untuk memperbarui status.</p>";
+function buildEmailBody(rn, co, cl, pr, tj, jp, hg, tgl) {
+  return "<div style='font-family:Arial,sans-serif;max-width:600px'>" +
+    "<div style='background:#0B4F7E;padding:20px 24px;border-radius:8px 8px 0 0'>" +
+    "<h2 style='color:white;margin:0;font-size:18px'>GOS Group - Procurement Portal</h2>" +
+    "<p style='color:rgba(255,255,255,.75);margin:4px 0 0;font-size:13px'>Notifikasi Pengajuan Pengadaan</p></div>" +
+    "<div style='background:#f8f9fa;padding:20px 24px;border:1px solid #e2e6ea;border-top:none;border-radius:0 0 8px 8px'>" +
+    "<table style='width:100%;border-collapse:collapse;font-size:14px'>" +
+    "<tr><td style='padding:8px 12px;font-weight:bold;color:#666;width:40%'>Nomor Pengajuan</td>" +
+    "<td style='padding:8px 12px;font-weight:bold;color:#0B4F7E;font-family:monospace'>" + rn + "</td></tr>" +
+    "<tr style='background:white'><td style='padding:8px 12px;color:#666'>Tanggal</td><td style='padding:8px 12px'>" + tgl + "</td></tr>" +
+    "<tr><td style='padding:8px 12px;color:#666'>Company</td><td style='padding:8px 12px'>" + co + "</td></tr>" +
+    "<tr style='background:white'><td style='padding:8px 12px;color:#666'>Client</td><td style='padding:8px 12px'>" + cl + "</td></tr>" +
+    "<tr><td style='padding:8px 12px;color:#666'>Project</td><td style='padding:8px 12px'>" + pr + "</td></tr>" +
+    "<tr style='background:white'><td style='padding:8px 12px;color:#666'>Jenis Produk</td><td style='padding:8px 12px'>" + jp + "</td></tr>" +
+    "<tr><td style='padding:8px 12px;color:#666'>Tujuan</td><td style='padding:8px 12px'>" + tj + "</td></tr>" +
+    "<tr style='background:white'><td style='padding:8px 12px;color:#666'>Estimasi Harga</td>" +
+    "<td style='padding:8px 12px;font-weight:bold;color:#0B4F7E'>Rp " + parseInt(hg||0).toLocaleString("id-ID") + "</td></tr>" +
+    "<tr><td style='padding:8px 12px;color:#666'>Diajukan Oleh</td><td style='padding:8px 12px'>" + (currentUser ? currentUser.displayName : "-") + "</td></tr>" +
+    "<tr><td style='padding:8px 12px;color:#666'>Status</td>" +
+    "<td style='padding:8px 12px'><span style='background:#FEF9E7;color:#D68910;padding:3px 10px;border-radius:20px;font-size:12px;font-weight:600'>Pending</span></td></tr>" +
+    "</table>" +
+    "<p style='margin-top:16px;color:#666;font-size:13px'>Silakan buka portal untuk memantau status pengajuan ini.</p>" +
+    "<p style='margin-top:4px;color:#aaa;font-size:11px'>Pesan ini dikirim otomatis dari GOS Procurement Portal.</p>" +
+    "</div></div>";
+}
+
+function sendEmail(rn, co, cl, pr, tj, jp, hg) {
+  var d = new Date();
+  var tgl = pad(d.getDate()) + "/" + pad(d.getMonth()+1) + "/" + d.getFullYear();
+  var body = buildEmailBody(rn, co, cl, pr, tj, jp, hg, tgl);
+  var userEmail = currentUser ? currentUser.userPrincipalName : null;
+
+  var recipients = [{ emailAddress: { address: CONFIG.approverEmail } }];
+  if (userEmail && userEmail !== CONFIG.approverEmail) {
+    recipients.push({ emailAddress: { address: userEmail } });
+  }
 
   gPost("https://graph.microsoft.com/v1.0/me/sendMail", {
     message: {
-      subject: "[Pengajuan Baru] " + rn,
+      subject: "[Pengajuan Baru] " + rn + " - " + co,
       body: { contentType: "HTML", content: body },
-      toRecipients: [{ emailAddress: { address: CONFIG.approverEmail } }]
+      toRecipients: recipients
     },
     saveToSentItems: false
   }).catch(function(e) { console.warn("Email gagal:", e.message); });
@@ -795,7 +834,7 @@ function loadDash() {
 function updateStats() {
   document.getElementById("st").textContent = allSubs.length;
   document.getElementById("sp").textContent = allSubs.filter(function(i) { return i.Status === "Pending"; }).length;
-  document.getElementById("sa").textContent = allSubs.filter(function(i) { return i.Status === "Approved"; }).length;
+  document.getElementById("sa").textContent = allSubs.filter(function(i) { return i.Status === "Submitted to Finance"; }).length;
   document.getElementById("sr").textContent = allSubs.filter(function(i) { return i.Status === "Rejected"; }).length;
 }
 
@@ -854,7 +893,7 @@ function renderTbl() {
 }
 
 function sBadge(s) {
-  var m = { Pending: "pen", Approved: "app", Rejected: "rej" };
+  var m = { Pending: "pen", "Submitted to Finance": "app", Rejected: "rej" };
   return '<span class="sb ' + (m[s]||"pen") + '"><span class="sd"></span>' + (s||"Pending") + '</span>';
 }
 
@@ -884,6 +923,18 @@ function openMo(id) {
     '<div class="df"><div class="dl">Catatan Approver</div><div class="dv">' + (item.ApproverNotes||"-") + '</div></div>';
   document.getElementById("mst").value = item.Status || "Pending";
   document.getElementById("mnt").value = item.ApproverNotes || "";
+
+  // Tampilkan tombol update status hanya untuk approver
+  var ss = document.querySelector(".ss");
+  var updBtn = document.querySelector(".mf .btn-p");
+  if (isApprover()) {
+    ss.style.display = "block";
+    updBtn.style.display = "inline-flex";
+  } else {
+    ss.style.display = "none";
+    updBtn.style.display = "none";
+  }
+
   document.getElementById("modal").classList.add("on");
 }
 
@@ -894,6 +945,10 @@ function closeMo() {
 
 function updStatus() {
   if (!curId) return;
+  if (!isApprover()) {
+    showToast("Anda tidak memiliki akses untuk mengubah status", "er");
+    return;
+  }
   var st = document.getElementById("mst").value;
   var nt = document.getElementById("mnt").value;
   patchItem(CONFIG.resultList, curId, { Status: st, ApproverNotes: nt }).then(function() {
