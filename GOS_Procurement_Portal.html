@@ -475,7 +475,7 @@ function gPost(url, body) {
     });
   }).then(function(r) {
     if (!r.ok) return r.text().then(function(e) { throw new Error("POST " + r.status + ": " + e); });
-    return r.status === 204 ? {} : r.json();
+    return (r.status === 204 || r.status === 202) ? {} : r.json();
   });
 }
 
