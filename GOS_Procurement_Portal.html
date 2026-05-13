@@ -734,9 +734,9 @@ body{font-family:'Plus Jakarta Sans',-apple-system,sans-serif;background:var(--g
 // CONFIG - ISI SESUAI DATA ANDA
 // =============================================
 var CONFIG = {
-  clientId:      "c87df5fb-eb2f-40bc-8c33-d0c47dedfe10",
-  tenantId:      "c1cc324d-9fda-4a48-97ee-ba6157ba9c67",
-  siteUrl:       "https://gosgroup.sharepoint.com/sites/procurement",
+  clientId:      "ISI_CLIENT_ID_DARI_AZURE",
+  tenantId:      "ISI_TENANT_ID_DARI_AZURE",
+  siteUrl:       "https://DOMAIN.sharepoint.com/sites/NAMA_SITE",
   masterList:    "MasterPengadaan",
   resultList:    "HasilPengajuan",
   approverEmail: "approver@gosgroup.com",
@@ -748,26 +748,16 @@ var CONFIG = {
 // =============================================
 var APPROVERS = [
   "muhamad.parid@gos.co.id",
-  "toro.sod@gos.co.id",
-  "yayat.hidayat@gos.co.id"
+  "toro.sod@gos.co.id"
 ];
 
 // =============================================
 // APPROVAL CONFIG - Sesuaikan dengan kebutuhan
 // =============================================
 var APPROVAL_CONFIG = {
-  // Threshold L2 (Rp) - jika estimasi >= nilai ini, wajib L2 approval
   l2Threshold: 5000000,
-
-  // L2 Approver - satu orang untuk semua pengajuan di atas threshold
   l2: { email: "ISI_EMAIL_L2@gos.co.id", name: "ISI_NAMA_L2" },
-
-  // Rules L1: { submitter: "email pengaju", l1Email: "email approver", l1Name: "nama approver" }
-  // Gunakan "*" sebagai default jika pengaju tidak terdaftar
-  rules: [
-    { submitter: "contoh.user@gos.co.id",  l1Email: "manager@gos.co.id",  l1Name: "Nama Manager" },
-    { submitter: "*",                        l1Email: "ISI_DEFAULT_L1@gos.co.id", l1Name: "ISI_NAMA_DEFAULT_L1" }
-  ]
+  rules: []
 };
 
 // =============================================
@@ -1885,11 +1875,10 @@ function loadApprovalConfig() {
     }
 
     apvRules = records.filter(function(r){ return r.TipeKonfigurasi==="ApprovalRule"; });
-    if (apvRules.length) {
-      APPROVAL_CONFIG.rules = apvRules.map(function(r){
-        return { submitter: r.SubmitterEmail||"*", l1Email: r.L1Email||"", l1Name: r.L1Name||"" };
-      });
-    }
+    // Always overwrite from SharePoint - empty list means no submitters allowed
+    APPROVAL_CONFIG.rules = apvRules.map(function(r){
+      return { submitter: r.SubmitterEmail||"*", l1Email: r.L1Email||"", l1Name: r.L1Name||"" };
+    });
   }).catch(function(e){ console.warn("KonfigurasiApproval gagal:", e.message); });
 }
 
