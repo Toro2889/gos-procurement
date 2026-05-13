@@ -1,4 +1,4 @@
-  <!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="id">
 <head>
 <meta charset="UTF-8">
@@ -282,32 +282,23 @@ body{font-family:'Plus Jakarta Sans',-apple-system,sans-serif;background:var(--g
           <div class="fg">
             <div class="fd">
               <label>Company <span class="rq">*</span></label>
-              <div class="sdd" id="sdd-co">
-                <input type="text" class="sdd-input" id="f-co-txt" placeholder="Ketik untuk mencari..." autocomplete="off"
-                  oninput="filterDD('co')" onfocus="showDD('co')" onblur="hideDD('co')">
-                <input type="hidden" id="f-co">
-                <div class="sdd-list" id="sdd-co-list"></div>
-              </div>
+              <select id="f-co" onchange="onCo()">
+                <option value="">-- Pilih Company --</option>
+              </select>
               <div class="fe">Pilih company</div>
             </div>
             <div class="fd">
               <label>Client <span class="rq">*</span></label>
-              <div class="sdd disabled" id="sdd-cl">
-                <input type="text" class="sdd-input" id="f-cl-txt" placeholder="Pilih Company dulu..." autocomplete="off"
-                  oninput="filterDD('cl')" onfocus="showDD('cl')" onblur="hideDD('cl')" disabled>
-                <input type="hidden" id="f-cl">
-                <div class="sdd-list" id="sdd-cl-list"></div>
-              </div>
+              <select id="f-cl" onchange="onCl()" disabled>
+                <option value="">-- Pilih Client --</option>
+              </select>
               <div class="fe">Pilih client</div>
             </div>
             <div class="fd s2">
               <label>Project <span class="rq">*</span></label>
-              <div class="sdd disabled" id="sdd-pr">
-                <input type="text" class="sdd-input" id="f-pr-txt" placeholder="Pilih Client dulu..." autocomplete="off"
-                  oninput="filterDD('pr')" onfocus="showDD('pr')" onblur="hideDD('pr')" disabled>
-                <input type="hidden" id="f-pr">
-                <div class="sdd-list" id="sdd-pr-list"></div>
-              </div>
+              <select id="f-pr" disabled>
+                <option value="">-- Pilih Project --</option>
+              </select>
               <div class="fe">Pilih project</div>
             </div>
           </div>
@@ -501,9 +492,9 @@ body{font-family:'Plus Jakarta Sans',-apple-system,sans-serif;background:var(--g
 // CONFIG - ISI SESUAI DATA ANDA
 // =============================================
 var CONFIG = {
-  clientId:      "c87df5fb-eb2f-40bc-8c33-d0c47dedfe10",
-  tenantId:      "c1cc324d-9fda-4a48-97ee-ba6157ba9c67",
-  siteUrl:       "https://gosgroup.sharepoint.com/sites/procurement",
+  clientId:      "ISI_CLIENT_ID_DARI_AZURE",
+  tenantId:      "ISI_TENANT_ID_DARI_AZURE",
+  siteUrl:       "https://DOMAIN.sharepoint.com/sites/NAMA_SITE",
   masterList:    "MasterPengadaan",
   resultList:    "HasilPengajuan",
   approverEmail: "approver@gosgroup.com",
@@ -690,101 +681,46 @@ function initDate() {
 
 function pad(n) { return n < 10 ? "0" + n : "" + n; }
 
-var ddState = { co: "", cl: "", pr: "" };
-
-function escQ(s) { return s.replace(/\\/g,"\\\\").replace(/'/g,"\\'"); }
-
-function getDDItems(key) {
-  if (key === "co") return getCos();
-  if (key === "cl") return getCls(ddState.co);
-  if (key === "pr") return getPrs(ddState.co, ddState.cl);
-  return [];
+function populateCos() {
+  var sel = document.getElementById("f-co");
+  sel.innerHTML = '<option value="">-- Pilih Company --</option>';
+  getCos().forEach(function(c) {
+    var o = document.createElement("option"); o.value = c; o.textContent = c; sel.appendChild(o);
+  });
 }
 
-function renderDDList(key, items) {
-  var list = document.getElementById("sdd-" + key + "-list");
-  list.innerHTML = items.length
-    ? items.map(function(i) {
-        return '<div class="sdd-item" onmousedown="selectDD(\'' + key + '\',\'' + escQ(i) + '\')">' + i + '</div>';
-      }).join("")
-    : '<div class="sdd-item sdd-none">Tidak ditemukan</div>';
+function onCo() {
+  var co = document.getElementById("f-co").value;
+  var cs = document.getElementById("f-cl");
+  var ps = document.getElementById("f-pr");
+  cs.innerHTML = '<option value="">-- Pilih Client --</option>';
+  ps.innerHTML = '<option value="">-- Pilih Project --</option>';
+  ps.disabled = true;
+  if (co) {
+    getCls(co).forEach(function(c) {
+      var o = document.createElement("option"); o.value = c; o.textContent = c; cs.appendChild(o);
+    });
+    cs.disabled = false;
+  } else {
+    cs.disabled = true;
+  }
+  updateRn();
 }
 
-function filterDD(key) {
-  var txt = document.getElementById("f-" + key + "-txt").value.toLowerCase();
-  var all = getDDItems(key);
-  var filtered = all.filter(function(i) { return i.toLowerCase().indexOf(txt) > -1; });
-  renderDDList(key, filtered);
-  var list = document.getElementById("sdd-" + key + "-list");
-  list.style.display = "block";
-  document.getElementById("sdd-" + key).classList.add("open");
-  if (!txt) {
-    document.getElementById("f-" + key).value = "";
-    ddState[key] = "";
+function onCl() {
+  var co = document.getElementById("f-co").value;
+  var cl = document.getElementById("f-cl").value;
+  var ps = document.getElementById("f-pr");
+  ps.innerHTML = '<option value="">-- Pilih Project --</option>';
+  if (co && cl) {
+    getPrs(co, cl).forEach(function(p) {
+      var o = document.createElement("option"); o.value = p; o.textContent = p; ps.appendChild(o);
+    });
+    ps.disabled = false;
+  } else {
+    ps.disabled = true;
   }
 }
-
-function showDD(key) {
-  var wrap = document.getElementById("sdd-" + key);
-  if (wrap.classList.contains("disabled")) return;
-  filterDD(key);
-}
-
-function hideDD(key) {
-  setTimeout(function() {
-    var list = document.getElementById("sdd-" + key + "-list");
-    list.style.display = "none";
-    document.getElementById("sdd-" + key).classList.remove("open");
-    var txt = document.getElementById("f-" + key + "-txt");
-    txt.value = ddState[key] || "";
-  }, 200);
-}
-
-function selectDD(key, val) {
-  document.getElementById("f-" + key).value = val;
-  document.getElementById("f-" + key + "-txt").value = val;
-  document.getElementById("sdd-" + key + "-list").style.display = "none";
-  document.getElementById("sdd-" + key).classList.remove("open");
-  ddState[key] = val;
-
-  if (key === "co") {
-    ddState.cl = ""; ddState.pr = "";
-    document.getElementById("f-cl").value = "";
-    document.getElementById("f-cl-txt").value = "";
-    document.getElementById("f-pr").value = "";
-    document.getElementById("f-pr-txt").value = "";
-    var clWrap = document.getElementById("sdd-cl");
-    var prWrap = document.getElementById("sdd-pr");
-    var clInput = document.getElementById("f-cl-txt");
-    var prInput = document.getElementById("f-pr-txt");
-    if (val) {
-      clWrap.classList.remove("disabled"); clInput.disabled = false;
-      clInput.placeholder = "Ketik untuk mencari...";
-    } else {
-      clWrap.classList.add("disabled"); clInput.disabled = true;
-      clInput.placeholder = "Pilih Company dulu...";
-      prWrap.classList.add("disabled"); prInput.disabled = true;
-      prInput.placeholder = "Pilih Client dulu...";
-    }
-    updateRn();
-  }
-  if (key === "cl") {
-    ddState.pr = "";
-    document.getElementById("f-pr").value = "";
-    document.getElementById("f-pr-txt").value = "";
-    var prWrap = document.getElementById("sdd-pr");
-    var prInput = document.getElementById("f-pr-txt");
-    if (val) {
-      prWrap.classList.remove("disabled"); prInput.disabled = false;
-      prInput.placeholder = "Ketik untuk mencari...";
-    } else {
-      prWrap.classList.add("disabled"); prInput.disabled = true;
-      prInput.placeholder = "Pilih Client dulu...";
-    }
-  }
-}
-
-function populateCos() { /* data loaded, DD populated on focus */ }
 
 function updateRn() {
   var seq = (document.getElementById("f-seq").value || "").replace(/\D/g,"");
@@ -947,17 +883,11 @@ function resetForm() {
     document.getElementById(id).value = "";
   });
   document.querySelectorAll('input[name="jp"]').forEach(function(r) { r.checked = false; });
-  ["co","cl","pr"].forEach(function(k) {
-    ddState[k] = "";
-    document.getElementById("f-" + k).value = "";
-    document.getElementById("f-" + k + "-txt").value = "";
-  });
-  document.getElementById("sdd-cl").classList.add("disabled");
-  document.getElementById("f-cl-txt").disabled = true;
-  document.getElementById("f-cl-txt").placeholder = "Pilih Company dulu...";
-  document.getElementById("sdd-pr").classList.add("disabled");
-  document.getElementById("f-pr-txt").disabled = true;
-  document.getElementById("f-pr-txt").placeholder = "Pilih Client dulu...";
+  document.getElementById("f-co").value = "";
+  document.getElementById("f-cl").innerHTML = '<option value="">-- Pilih Client --</option>';
+  document.getElementById("f-cl").disabled = true;
+  document.getElementById("f-pr").innerHTML = '<option value="">-- Pilih Project --</option>';
+  document.getElementById("f-pr").disabled = true;
   document.querySelectorAll(".fd.err").forEach(function(fd) { fd.classList.remove("err"); });
   rBarang = []; rJasa = [];
   document.getElementById("rows-barang").innerHTML = "";
