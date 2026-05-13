@@ -492,9 +492,9 @@ body{font-family:'Plus Jakarta Sans',-apple-system,sans-serif;background:var(--g
 // CONFIG - ISI SESUAI DATA ANDA
 // =============================================
 var CONFIG = {
-  clientId:      "c87df5fb-eb2f-40bc-8c33-d0c47dedfe10",
-  tenantId:      "c1cc324d-9fda-4a48-97ee-ba6157ba9c67",
-  siteUrl:       "https://gosgroup.sharepoint.com/sites/procurement",
+  clientId:      "ISI_CLIENT_ID_DARI_AZURE",
+  tenantId:      "ISI_TENANT_ID_DARI_AZURE",
+  siteUrl:       "https://DOMAIN.sharepoint.com/sites/NAMA_SITE",
   masterList:    "MasterPengadaan",
   resultList:    "HasilPengajuan",
   approverEmail: "approver@gosgroup.com",
@@ -994,7 +994,7 @@ function renderRows(type) {
 function oii(type, i, field, val) {
   var rows = type === "barang" ? rBarang : rJasa;
   rows[i][field] = val;
-  if (field === "nama") {
+  if (field === "nama" || field === "vendor") {
     if (type === "barang") {
       var m = mBarang.filter(function(b){ return b.NamaBarang===val; })[0];
       if (m) {
