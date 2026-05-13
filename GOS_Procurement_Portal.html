@@ -111,7 +111,27 @@ body{font-family:'Plus Jakarta Sans',-apple-system,sans-serif;background:var(--g
 .dh{display:flex;align-items:center;justify-content:space-between;margin-bottom:18px;flex-wrap:wrap;gap:10px}
 .dt{font-size:18px;font-weight:700;color:var(--g900)}
 .da{display:flex;gap:8px}
-.sdd{position:relative}
+.itw{overflow-x:auto;margin-top:8px;border:1px solid var(--border);border-radius:var(--rsm)}
+.it{width:100%;border-collapse:collapse;font-size:12px;min-width:700px}
+.it th{background:var(--navy);color:white;padding:8px 10px;text-align:left;font-weight:600;font-size:11px;white-space:nowrap}
+.it td{padding:4px 6px;border-bottom:1px solid var(--g100);vertical-align:middle}
+.it tr:last-child td{border-bottom:none}
+.it tr:hover td{background:var(--g50)}
+.ti{border:1px solid var(--border);border-radius:4px;padding:5px 7px;font-family:inherit;font-size:12px;width:100%;outline:none;background:white;min-width:0}
+.ti:focus{border-color:var(--navy);box-shadow:0 0 0 2px rgba(11,79,126,.08)}
+.ti.tr{text-align:right}
+.ti-sel{padding:5px 7px}
+.td-idx{text-align:center;color:var(--g500);width:28px;font-size:11px}
+.td-sub{text-align:right;font-weight:600;color:var(--navy);white-space:nowrap;font-size:12px}
+.td-del{text-align:center;width:28px}
+.del-r{background:none;border:none;color:var(--red);cursor:pointer;font-size:15px;font-weight:700;padding:0 3px;line-height:1}
+.it-foot{display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px;margin-top:10px}
+.add-r{display:inline-flex;align-items:center;gap:5px;background:var(--teal-lt);color:var(--teal);border:1.5px solid var(--teal);border-radius:var(--rsm);padding:6px 14px;font-size:12px;font-weight:600;cursor:pointer;font-family:inherit;transition:all .15s}
+.add-r:hover{background:var(--teal);color:white}
+.it-tot{display:flex;align-items:center;gap:8px}
+.it-tot-lbl{font-size:12px;font-weight:600;color:var(--g700)}
+.it-tot-val{font-size:15px;font-weight:700;color:var(--navy)}
+
 .sdd-input{width:100%;border:1.5px solid var(--border);border-radius:var(--rsm);padding:8px 11px;font-family:inherit;font-size:13px;color:var(--g900);background:white;outline:none;transition:border-color .15s}
 .sdd-input:focus{border-color:var(--navy);box-shadow:0 0 0 3px rgba(11,79,126,.08)}
 .sdd.open .sdd-input{border-radius:var(--rsm) var(--rsm) 0 0;border-color:var(--navy);border-bottom-color:transparent}
@@ -251,8 +271,8 @@ body{font-family:'Plus Jakarta Sans',-apple-system,sans-serif;background:var(--g
             <div class="fd">
               <label>Jenis Produk <span class="rq">*</span></label>
               <div class="rg">
-                <label class="rc"><input type="radio" name="jp" value="Barang"> Barang</label>
-                <label class="rc"><input type="radio" name="jp" value="Jasa"> Jasa</label>
+                <label class="rc"><input type="radio" name="jp" value="Barang" onchange="onJP()"> Barang</label>
+                <label class="rc"><input type="radio" name="jp" value="Jasa" onchange="onJP()"> Jasa</label>
               </div>
               <div class="fe">Pilih jenis produk</div>
             </div>
@@ -309,7 +329,59 @@ body{font-family:'Plus Jakarta Sans',-apple-system,sans-serif;background:var(--g
             </div>
           </div>
 
-          <div class="stl"><div class="sn" style="background:#B35A1A">4</div>Dokumen Pendukung</div>
+          <!-- SECTION 5 BARANG -->
+          <div id="sec-barang" style="display:none">
+            <div class="stl"><div class="sn" style="background:#E67E22">5</div>Detail Barang yang Dibutuhkan</div>
+            <datalist id="dl-barang"></datalist>
+            <div class="itw">
+              <table class="it">
+                <thead><tr>
+                  <th style="width:28px">No</th>
+                  <th style="min-width:180px">Nama Barang *</th>
+                  <th style="min-width:120px">Kategori</th>
+                  <th style="min-width:110px">Subkategori</th>
+                  <th style="width:80px">Satuan</th>
+                  <th style="min-width:120px">Harga Estimasi</th>
+                  <th style="width:70px">Jumlah *</th>
+                  <th style="min-width:130px">Estimasi Harga Beli</th>
+                  <th style="width:28px"></th>
+                </tr></thead>
+                <tbody id="rows-barang"></tbody>
+              </table>
+            </div>
+            <div class="it-foot">
+              <button type="button" class="add-r" onclick="addRow('barang')">+ Tambah Barang</button>
+              <div class="it-tot"><span class="it-tot-lbl">Total:</span><span class="it-tot-val" id="tot-barang">Rp 0</span></div>
+            </div>
+          </div>
+
+          <!-- SECTION 5 JASA -->
+          <div id="sec-jasa" style="display:none">
+            <div class="stl"><div class="sn" style="background:#E67E22">5</div>Detail Jasa yang Dibutuhkan</div>
+            <datalist id="dl-jasa"></datalist>
+            <div class="itw">
+              <table class="it">
+                <thead><tr>
+                  <th style="width:28px">No</th>
+                  <th style="min-width:170px">Nama Pekerjaan *</th>
+                  <th style="min-width:150px">Deskripsi</th>
+                  <th style="min-width:100px">Lokasi/Area</th>
+                  <th style="width:55px">Qty *</th>
+                  <th style="width:90px">Satuan</th>
+                  <th style="min-width:110px">Harga Satuan</th>
+                  <th style="min-width:110px">Subtotal</th>
+                  <th style="width:28px"></th>
+                </tr></thead>
+                <tbody id="rows-jasa"></tbody>
+              </table>
+            </div>
+            <div class="it-foot">
+              <button type="button" class="add-r" onclick="addRow('jasa')">+ Tambah Jasa</button>
+              <div class="it-tot"><span class="it-tot-lbl">Total:</span><span class="it-tot-val" id="tot-jasa">Rp 0</span></div>
+            </div>
+          </div>
+
+
           <div class="fd">
             <label>Upload Dokumen <span class="rq">*</span></label>
             <div class="fz" id="dz" ondragover="event.preventDefault();this.classList.add('drag')" ondragleave="this.classList.remove('drag')" ondrop="onDrop(event)">
@@ -425,12 +497,12 @@ body{font-family:'Plus Jakarta Sans',-apple-system,sans-serif;background:var(--g
 // CONFIG - ISI SESUAI DATA ANDA
 // =============================================
 var CONFIG = {
-  clientId:      "c87df5fb-eb2f-40bc-8c33-d0c47dedfe10",
-  tenantId:      "c1cc324d-9fda-4a48-97ee-ba6157ba9c67",
-  siteUrl:       "https://gosgroup.sharepoint.com/sites/procurement",
+  clientId:      "ISI_CLIENT_ID_DARI_AZURE",
+  tenantId:      "ISI_TENANT_ID_DARI_AZURE",
+  siteUrl:       "https://DOMAIN.sharepoint.com/sites/NAMA_SITE",
   masterList:    "MasterPengadaan",
   resultList:    "HasilPengajuan",
-  approverEmail: "muhamad.parid@gos.co.id",
+  approverEmail: "approver@gosgroup.com",
   redirectUri:   window.location.origin + window.location.pathname
 };
 
@@ -797,6 +869,15 @@ function validate() {
     fz.style.borderColor = "";
     fz.style.background  = "";
   }
+  var jp = document.querySelector('input[name="jp"]:checked');
+  if (jp && jp.value === "Barang") {
+    var filledB = rBarang.filter(function(r) { return r.nama && r.jumlah; });
+    if (!filledB.length) { showToast("Tambahkan minimal 1 barang dengan nama dan jumlah", "er"); ok = false; }
+  }
+  if (jp && jp.value === "Jasa") {
+    var filledJ = rJasa.filter(function(r) { return r.nama && r.qty; });
+    if (!filledJ.length) { showToast("Tambahkan minimal 1 jasa dengan nama dan qty", "er"); ok = false; }
+  }
   return ok;
 }
 
@@ -833,6 +914,7 @@ function submitForm() {
       JenisProduk:      jp ? jp.value : "",
       EstimasiHarga:    hg,
       DokumenPendukung: dokStr,
+      DetailItem:       getItemsJSON(),
       Status:           "Pending",
       SubmittedBy:      currentUser ? currentUser.displayName : ""
     });
@@ -871,12 +953,218 @@ function resetForm() {
   document.getElementById("f-pr-txt").disabled = true;
   document.getElementById("f-pr-txt").placeholder = "Pilih Client dulu...";
   document.querySelectorAll(".fd.err").forEach(function(fd) { fd.classList.remove("err"); });
+  rBarang = []; rJasa = [];
+  document.getElementById("rows-barang").innerHTML = "";
+  document.getElementById("rows-jasa").innerHTML   = "";
+  document.getElementById("tot-barang").textContent = "Rp 0";
+  document.getElementById("tot-jasa").textContent   = "Rp 0";
+  document.getElementById("sec-barang").style.display = "none";
+  document.getElementById("sec-jasa").style.display   = "none";
   uploadedFiles = []; renderFiles(); updateRn();
 }
 
 // =============================================
-// FILE UPLOAD TO SHAREPOINT DRIVE
+// ITEM TABLES - BARANG & JASA
 // =============================================
+var mBarang = [], mJasa = [];
+var rBarang = [], rJasa = [];
+var SB = ["pcs","unit","box","set","lusin","kodi","rim","rol","meter","kg","liter","buah","pasang","lembar"];
+var SJ = ["paket","hari","minggu","bulan","tahun","unit","kali","jam","orang","lot","lokasi"];
+
+function loadMasterBarang() {
+  return getItems("MasterBarang").then(function(items) {
+    mBarang = items.map(function(i) { return i.fields; });
+    var dl = document.getElementById("dl-barang");
+    if (dl) dl.innerHTML = mBarang.map(function(b) {
+      return '<option value="' + eA(b.NamaBarang||"") + '">';
+    }).join("");
+  }).catch(function(e) { console.warn("MasterBarang gagal:", e.message); });
+}
+function loadMasterJasa() {
+  return getItems("MasterJasa").then(function(items) {
+    mJasa = items.map(function(i) { return i.fields; });
+    var dl = document.getElementById("dl-jasa");
+    if (dl) dl.innerHTML = mJasa.map(function(j) {
+      return '<option value="' + eA(j.NamaJasa||"") + '">';
+    }).join("");
+  }).catch(function(e) { console.warn("MasterJasa gagal:", e.message); });
+}
+
+function eA(s) { return (s||"").replace(/"/g,"&quot;").replace(/'/g,"&#39;"); }
+function eQ(s) { return (s||"").replace(/\\/g,"\\\\").replace(/'/g,"\\'"); }
+
+function onJP() {
+  var jp = document.querySelector('input[name="jp"]:checked');
+  var v  = jp ? jp.value : "";
+  document.getElementById("sec-barang").style.display = v === "Barang" ? "block" : "none";
+  document.getElementById("sec-jasa").style.display   = v === "Jasa"   ? "block" : "none";
+  if (v === "Barang" && rBarang.length === 0) addRow("barang");
+  if (v === "Jasa"   && rJasa.length   === 0) addRow("jasa");
+}
+
+function addRow(type) {
+  if (type === "barang") { rBarang.push({ nama:"", kategori:"", subkat:"", satuan:"", hargaEst:0, jumlah:"", total:0 }); renderRows("barang"); }
+  else                   { rJasa.push({ nama:"",desk:"",lokasi:"",qty:"",satuan:"paket",harga:0,sub:0 }); renderRows("jasa"); }
+}
+
+function delRow(type, i) {
+  if (type === "barang") rBarang.splice(i,1); else rJasa.splice(i,1);
+  renderRows(type); calcTot(type);
+}
+
+function sopts(list, sel) {
+  return list.map(function(s) { return '<option value="'+s+'"'+(s===sel?' selected':'')+'>'+s+'</option>'; }).join("");
+}
+
+function renderRows(type) {
+  var rows  = type === "barang" ? rBarang : rJasa;
+  var tbody = document.getElementById("rows-" + type);
+  if (!rows.length) { tbody.innerHTML = '<tr><td colspan="'+(type==="barang"?11:9)+'" style="text-align:center;padding:16px;color:var(--g500);font-style:italic">Belum ada item. Klik "+ Tambah" untuk menambahkan.</td></tr>'; calcTot(type); return; }
+
+  tbody.innerHTML = rows.map(function(r, i) {
+    var sub = r.total ? "Rp "+r.total.toLocaleString("id-ID") : "-";
+    var hEst = r.hargaEst ? "Rp "+r.hargaEst.toLocaleString("id-ID") : "-";
+    if (type === "barang") {
+      return '<tr>'+
+        '<td class="td-idx">'+(i+1)+'</td>'+
+        '<td><input list="dl-barang" class="ti" value="'+eA(r.nama)+'" placeholder="Cari nama barang..." oninput="oii(\'barang\','+i+',\'nama\',this.value)"></td>'+
+        '<td><input class="ti" value="'+eA(r.kategori)+'" readonly style="background:var(--g50);color:var(--g700)" placeholder="-"></td>'+
+        '<td><input class="ti" value="'+eA(r.subkat)+'" readonly style="background:var(--g50);color:var(--g700)" placeholder="-"></td>'+
+        '<td><input class="ti" value="'+eA(r.satuan)+'" readonly style="background:var(--g50);color:var(--g700)" placeholder="-"></td>'+
+        '<td><input class="ti tr" value="'+hEst+'" readonly style="background:var(--g50);color:var(--navy);font-weight:600" placeholder="-"></td>'+
+        '<td><input class="ti tr" type="number" min="1" value="'+(r.jumlah||"")+'" placeholder="0" oninput="oiq(\'barang\','+i+',this.value)"></td>'+
+        '<td class="td-sub">'+sub+'</td>'+
+        '<td class="td-del"><button class="del-r" onclick="delRow(\'barang\','+i+')" title="Hapus">x</button></td>'+
+        '</tr>';
+    } else {
+      return '<tr>'+
+        '<td class="td-idx">'+(i+1)+'</td>'+
+        '<td><input list="dl-jasa" class="ti" value="'+eA(r.nama)+'" placeholder="Cari pekerjaan..." oninput="oii(\'jasa\','+i+',\'nama\',this.value)"></td>'+
+        '<td><input class="ti" value="'+eA(r.desk)+'" placeholder="Deskripsi pekerjaan..." oninput="oii(\'jasa\','+i+',\'desk\',this.value)"></td>'+
+        '<td><input class="ti" value="'+eA(r.lokasi)+'" placeholder="Lokasi/Area..." oninput="oii(\'jasa\','+i+',\'lokasi\',this.value)"></td>'+
+        '<td><input class="ti tr" type="number" min="1" value="'+(r.qty||"")+'" placeholder="0" oninput="oiq(\'jasa\','+i+',this.value)"></td>'+
+        '<td><select class="ti ti-sel" onchange="oii(\'jasa\','+i+',\'satuan\',this.value)">'+sopts(SJ,r.satuan)+'</select></td>'+
+        '<td><input class="ti tr" type="text" value="'+(r.harga?r.harga.toLocaleString("id-ID"):"")+'" placeholder="0" onblur="oih(\'jasa\','+i+',this.value)"></td>'+
+        '<td class="td-sub">'+sub+'</td>'+
+        '<td class="td-del"><button class="del-r" onclick="delRow(\'jasa\','+i+')" title="Hapus">x</button></td>'+
+        '</tr>';
+    }
+  }).join("");
+}
+
+function oii(type, i, field, val) {
+  var rows = type === "barang" ? rBarang : rJasa;
+  rows[i][field] = val;
+  if (field === "nama") {
+    if (type === "barang") {
+      var m = mBarang.filter(function(b){ return b.NamaBarang===val; })[0];
+      if (m) {
+        rows[i].kategori = m.KategoriBarang || "";
+        rows[i].subkat   = m.Subkategori    || "";
+        rows[i].satuan   = m.Satuan         || "";
+        rows[i].hargaEst = parseInt(m.HargaEstimasi) || 0;
+        rows[i].total    = rows[i].hargaEst * (parseInt(rows[i].jumlah) || 0);
+        renderRows("barang");
+        calcTot("barang");
+      }
+    } else {
+      var m = mJasa.filter(function(j){ return j.NamaJasa===val; })[0];
+      if (m) { rows[i].satuan=m.SatuanDefault||rows[i].satuan; renderRows("jasa"); }
+    }
+  }
+}
+
+function oiq(type, i, val) {
+  var rows = type === "barang" ? rBarang : rJasa;
+  if (type === "barang") {
+    rows[i].jumlah = val;
+    rows[i].total  = (parseInt(val)||0) * (rows[i].hargaEst||0);
+    var sub = rows[i].total ? "Rp "+rows[i].total.toLocaleString("id-ID") : "-";
+  } else {
+    rows[i].qty = val;
+    rows[i].sub = (parseInt(val)||0) * (rows[i].harga||0);
+    var sub = rows[i].sub ? "Rp "+rows[i].sub.toLocaleString("id-ID") : "-";
+  }
+  var tr = document.getElementById("rows-"+type).querySelectorAll("tr")[i];
+  if (tr) { var cells=tr.querySelectorAll("td"); cells[cells.length-2].textContent=sub; }
+  calcTot(type);
+}
+
+function oih(type, i, val) {
+  var rows  = type === "barang" ? rBarang : rJasa;
+  var clean = parseInt((val||"").replace(/\D/g,"")) || 0;
+  rows[i].harga = clean;
+  rows[i].sub   = (parseInt(rows[i].qty)||0) * clean;
+  var sub = rows[i].sub ? "Rp "+rows[i].sub.toLocaleString("id-ID") : "-";
+  var tr  = document.getElementById("rows-"+type).querySelectorAll("tr")[i];
+  if (tr) {
+    var cells = tr.querySelectorAll("td");
+    cells[cells.length-2].textContent = sub;
+    var hInput = tr.querySelectorAll(".ti.tr");
+    if (hInput.length >= 2) hInput[hInput.length-1].value = clean ? clean.toLocaleString("id-ID") : "";
+  }
+  calcTot(type);
+}
+
+function calcTot(type) {
+  var rows  = type === "barang" ? rBarang : rJasa;
+  var total = rows.reduce(function(s,r){ return s+(type==="barang"?(r.total||0):(r.sub||0)); },0);
+  document.getElementById("tot-"+type).textContent = "Rp "+total.toLocaleString("id-ID");
+  var grand = rBarang.reduce(function(s,r){return s+(r.total||0);},0) +
+              rJasa.reduce(function(s,r){return s+(r.sub||0);},0);
+  if (grand > 0) document.getElementById("f-hg").value = grand.toLocaleString("id-ID");
+}
+
+function getItemsJSON() {
+  var jp = document.querySelector('input[name="jp"]:checked');
+  var v  = jp ? jp.value : "";
+  if (v === "Barang") return JSON.stringify(rBarang);
+  if (v === "Jasa")   return JSON.stringify(rJasa);
+  return "";
+}
+
+function buildItemDetail(jsonStr, type) {
+  if (!jsonStr) return "-";
+  try {
+    var rows = JSON.parse(jsonStr);
+    if (!rows.length) return "-";
+    if (type === "Barang") {
+      return '<table style="width:100%;border-collapse:collapse;font-size:12px;margin-top:6px">' +
+        '<tr style="background:var(--navy);color:white">'+
+        '<th style="padding:5px 8px;text-align:left">Nama Barang</th>'+
+        '<th style="padding:5px 8px">Kategori</th>'+
+        '<th style="padding:5px 8px">Subkategori</th>'+
+        '<th style="padding:5px 8px">Satuan</th>'+
+        '<th style="padding:5px 8px;text-align:right">Harga Estimasi</th>'+
+        '<th style="padding:5px 8px;text-align:right">Jumlah</th>'+
+        '<th style="padding:5px 8px;text-align:right">Est. Harga Beli</th></tr>' +
+        rows.map(function(r,i) {
+          var bg  = i%2===0 ? "white" : "var(--g50)";
+          var hEst  = r.hargaEst ? "Rp "+parseInt(r.hargaEst).toLocaleString("id-ID") : "-";
+          var total = r.total ? "Rp "+parseInt(r.total).toLocaleString("id-ID") : "-";
+          return '<tr style="background:'+bg+'">'+
+            '<td style="padding:5px 8px">'+(r.nama||"-")+'</td>'+
+            '<td style="padding:5px 8px;text-align:center">'+(r.kategori||"-")+'</td>'+
+            '<td style="padding:5px 8px;text-align:center">'+(r.subkat||"-")+'</td>'+
+            '<td style="padding:5px 8px;text-align:center">'+(r.satuan||"-")+'</td>'+
+            '<td style="padding:5px 8px;text-align:right">'+(hEst)+'</td>'+
+            '<td style="padding:5px 8px;text-align:right">'+(r.jumlah||0)+'</td>'+
+            '<td style="padding:5px 8px;text-align:right;font-weight:600;color:var(--navy)">'+total+'</td>'+
+            '</tr>';
+        }).join("")+'</table>';
+    } else {
+      return '<table style="width:100%;border-collapse:collapse;font-size:12px;margin-top:6px">' +
+        '<tr style="background:var(--navy);color:white"><th style="padding:5px 8px;text-align:left">Nama Pekerjaan</th><th style="padding:5px 8px">Deskripsi</th><th style="padding:5px 8px">Lokasi</th><th style="padding:5px 8px;text-align:right">Qty</th><th style="padding:5px 8px">Satuan</th><th style="padding:5px 8px;text-align:right">Subtotal</th></tr>' +
+        rows.map(function(r,i) {
+          var bg = i%2===0 ? "white" : "var(--g50)";
+          var sub = r.sub ? "Rp "+parseInt(r.sub).toLocaleString("id-ID") : "-";
+          return '<tr style="background:'+bg+'"><td style="padding:5px 8px">'+(r.nama||"-")+'</td><td style="padding:5px 8px">'+(r.desk||"-")+'</td><td style="padding:5px 8px">'+(r.lokasi||"-")+'</td><td style="padding:5px 8px;text-align:right">'+(r.qty||0)+'</td><td style="padding:5px 8px;text-align:center">'+(r.satuan||"-")+'</td><td style="padding:5px 8px;text-align:right;font-weight:600;color:var(--navy)">'+sub+'</td></tr>';
+        }).join("")+'</table>';
+    }
+  } catch(e) { return jsonStr || "-"; }
+}
+
+
 function uploadFile(file, nomor) {
   return getSid().then(function(sid) {
     var safeName  = file.name.replace(/[#%*:<>?\/\\|]/g, "_");
@@ -1086,6 +1374,7 @@ function openMo(id) {
     '<div class="df"><div class="dl">Company</div><div class="dv">' + (item.Company||"-") + '</div></div>' +
     '<div class="df"><div class="dl">Client</div><div class="dv">' + (item.Client||"-") + '</div></div>' +
     '<div class="df full"><div class="dl">Project</div><div class="dv">' + (item.Project||"-") + '</div></div>' +
+    '<div class="df full"><div class="dl">Detail Item</div><div class="dv">' + buildItemDetail(item.DetailItem, item.JenisProduk) + '</div></div>' +
     '<div class="df full"><div class="dl">Tujuan Permintaan</div><div class="dv">' + (item.TujuanPermintaan||"-") + '</div></div>' +
     '<div class="df"><div class="dl">Estimasi Harga</div><div class="dv" style="font-weight:700;color:var(--navy)">' + h + '</div></div>' +
     '<div class="df"><div class="dl">Diajukan Oleh</div><div class="dv">' + (item.SubmittedBy||"-") + '</div></div>' +
@@ -1228,6 +1517,8 @@ function initApp() {
 
   loadMaster().then(function() {
     populateCos();
+    loadMasterBarang();
+    loadMasterJasa();
     return autoSeq();
   }).catch(function(e) { showToast("Master data gagal: " + e.message, "er"); });
 
