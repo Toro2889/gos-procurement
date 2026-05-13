@@ -111,20 +111,20 @@ body{font-family:'Plus Jakarta Sans',-apple-system,sans-serif;background:var(--g
 .dh{display:flex;align-items:center;justify-content:space-between;margin-bottom:18px;flex-wrap:wrap;gap:10px}
 .dt{font-size:18px;font-weight:700;color:var(--g900)}
 .da{display:flex;gap:8px}
-.itw{overflow-x:auto;margin-top:8px;border:1px solid var(--border);border-radius:var(--rsm)}
-.it{width:100%;border-collapse:collapse;font-size:12px;min-width:700px}
-.it th{background:var(--navy);color:white;padding:8px 10px;text-align:left;font-weight:600;font-size:11px;white-space:nowrap}
-.it td{padding:4px 6px;border-bottom:1px solid var(--g100);vertical-align:middle}
+.itw{margin-top:8px;border:1px solid var(--border);border-radius:var(--rsm)}
+.it{width:100%;border-collapse:collapse;font-size:12px;table-layout:fixed}
+.it th{background:var(--navy);color:white;padding:7px 8px;text-align:left;font-weight:600;font-size:11px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.it td{padding:3px 5px;border-bottom:1px solid var(--g100);vertical-align:middle}
 .it tr:last-child td{border-bottom:none}
 .it tr:hover td{background:var(--g50)}
-.ti{border:1px solid var(--border);border-radius:4px;padding:5px 7px;font-family:inherit;font-size:12px;width:100%;outline:none;background:white;min-width:0}
+.ti{border:1px solid var(--border);border-radius:4px;padding:5px 6px;font-family:inherit;font-size:11px;width:100%;outline:none;background:white;min-width:0;box-sizing:border-box}
 .ti:focus{border-color:var(--navy);box-shadow:0 0 0 2px rgba(11,79,126,.08)}
 .ti.tr{text-align:right}
-.ti-sel{padding:5px 7px}
-.td-idx{text-align:center;color:var(--g500);width:28px;font-size:11px}
-.td-sub{text-align:right;font-weight:600;color:var(--navy);white-space:nowrap;font-size:12px}
-.td-del{text-align:center;width:28px}
-.del-r{background:none;border:none;color:var(--red);cursor:pointer;font-size:15px;font-weight:700;padding:0 3px;line-height:1}
+.ti-sel{padding:5px 4px;font-size:11px}
+.td-idx{text-align:center;color:var(--g500);font-size:11px}
+.td-sub{text-align:right;font-weight:600;color:var(--navy);white-space:nowrap;font-size:11px}
+.td-del{text-align:center}
+.del-r{background:none;border:none;color:var(--red);cursor:pointer;font-size:14px;font-weight:700;padding:0 2px;line-height:1}
 .it-foot{display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px;margin-top:10px}
 .add-r{display:inline-flex;align-items:center;gap:5px;background:var(--teal-lt);color:var(--teal);border:1.5px solid var(--teal);border-radius:var(--rsm);padding:6px 14px;font-size:12px;font-weight:600;cursor:pointer;font-family:inherit;transition:all .15s}
 .add-r:hover{background:var(--teal);color:white}
@@ -336,15 +336,15 @@ body{font-family:'Plus Jakarta Sans',-apple-system,sans-serif;background:var(--g
             <div class="itw">
               <table class="it">
                 <thead><tr>
-                  <th style="width:28px">No</th>
-                  <th style="min-width:180px">Nama Barang *</th>
-                  <th style="min-width:120px">Kategori</th>
-                  <th style="min-width:110px">Subkategori</th>
-                  <th style="width:80px">Satuan</th>
-                  <th style="min-width:120px">Harga Estimasi</th>
-                  <th style="width:70px">Jumlah *</th>
-                  <th style="min-width:130px">Estimasi Harga Beli</th>
-                  <th style="width:28px"></th>
+                  <th style="width:3%">No</th>
+                  <th style="width:22%">Nama Barang *</th>
+                  <th style="width:14%">Kategori</th>
+                  <th style="width:13%">Subkategori</th>
+                  <th style="width:7%">Satuan</th>
+                  <th style="width:14%">Harga Estimasi</th>
+                  <th style="width:7%">Jumlah *</th>
+                  <th style="width:16%">Est. Harga Beli</th>
+                  <th style="width:4%"></th>
                 </tr></thead>
                 <tbody id="rows-barang"></tbody>
               </table>
@@ -362,15 +362,15 @@ body{font-family:'Plus Jakarta Sans',-apple-system,sans-serif;background:var(--g
             <div class="itw">
               <table class="it">
                 <thead><tr>
-                  <th style="width:28px">No</th>
-                  <th style="min-width:170px">Nama Pekerjaan *</th>
-                  <th style="min-width:150px">Deskripsi</th>
-                  <th style="min-width:100px">Lokasi/Area</th>
-                  <th style="width:55px">Qty *</th>
-                  <th style="width:90px">Satuan</th>
-                  <th style="min-width:110px">Harga Satuan</th>
-                  <th style="min-width:110px">Subtotal</th>
-                  <th style="width:28px"></th>
+                  <th style="width:3%">No</th>
+                  <th style="width:24%">Nama Pekerjaan *</th>
+                  <th style="width:27%">Deskripsi</th>
+                  <th style="width:16%">Lokasi/Area</th>
+                  <th style="width:7%">Qty *</th>
+                  <th style="width:10%">Satuan</th>
+                  <th style="width:13%">Harga Satuan</th>
+                  <th style="width:13%">Subtotal</th>
+                  <th style="width:4%"></th>
                 </tr></thead>
                 <tbody id="rows-jasa"></tbody>
               </table>
@@ -497,12 +497,12 @@ body{font-family:'Plus Jakarta Sans',-apple-system,sans-serif;background:var(--g
 // CONFIG - ISI SESUAI DATA ANDA
 // =============================================
 var CONFIG = {
-  clientId:      "c87df5fb-eb2f-40bc-8c33-d0c47dedfe10",
-  tenantId:      "c1cc324d-9fda-4a48-97ee-ba6157ba9c67",
-  siteUrl:       "https://gosgroup.sharepoint.com/sites/procurement",
+  clientId:      "ISI_CLIENT_ID_DARI_AZURE",
+  tenantId:      "ISI_TENANT_ID_DARI_AZURE",
+  siteUrl:       "https://DOMAIN.sharepoint.com/sites/NAMA_SITE",
   masterList:    "MasterPengadaan",
   resultList:    "HasilPengajuan",
-  approverEmail: "muhamad.parid@gos.co.id",
+  approverEmail: "approver@gosgroup.com",
   redirectUri:   window.location.origin + window.location.pathname
 };
 
