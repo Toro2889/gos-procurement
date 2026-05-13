@@ -734,9 +734,9 @@ body{font-family:'Plus Jakarta Sans',-apple-system,sans-serif;background:var(--g
 // CONFIG - ISI SESUAI DATA ANDA
 // =============================================
 var CONFIG = {
-  clientId:      "c87df5fb-eb2f-40bc-8c33-d0c47dedfe10",
-  tenantId:      "c1cc324d-9fda-4a48-97ee-ba6157ba9c67",
-  siteUrl:       "https://gosgroup.sharepoint.com/sites/procurement",
+  clientId:      "ISI_CLIENT_ID_DARI_AZURE",
+  tenantId:      "ISI_TENANT_ID_DARI_AZURE",
+  siteUrl:       "https://DOMAIN.sharepoint.com/sites/NAMA_SITE",
   masterList:    "MasterPengadaan",
   resultList:    "HasilPengajuan",
   approverEmail: "approver@gosgroup.com",
@@ -748,8 +748,7 @@ var CONFIG = {
 // =============================================
 var APPROVERS = [
   "muhamad.parid@gos.co.id",
-  "toro.sod@gos.co.id",
-  "yayat.hidayat@gos.co.id"
+  "toro.sod@gos.co.id"
 ];
 
 // =============================================
@@ -2233,18 +2232,28 @@ function initApp() {
     currentUser = me;
     return loadApprovalConfig();
   }).then(function() {
-    if (!hasAccess()) { showAccessDenied(); return; }
     var me = currentUser;
     var ini = (me.displayName||"?").split(" ").map(function(w){ return w[0]; }).join("").slice(0,2).toUpperCase();
     document.getElementById("av").textContent = ini;
     document.getElementById("un").textContent  = me.displayName || me.userPrincipalName;
+
+    // Master Data hanya GA
     if (amGA()) document.getElementById("nav-master").style.display = "inline-flex";
+
+    // Pengajuan Baru hanya untuk yang terdaftar
+    if (!hasAccess()) {
+      document.getElementById("nav-form").style.display = "none";
+      // Default ke Dashboard
+      switchView("dash");
+    }
+
     loadMaster().then(function() {
       populateCos();
       loadMasterBarang();
       loadMasterJasa();
       return autoSeq();
     }).catch(function(e){ showToast("Master data gagal: "+e.message,"er"); });
+
     initDate(); updateRn();
     document.getElementById("ls").style.display = "none";
     document.getElementById("app").classList.add("on");
