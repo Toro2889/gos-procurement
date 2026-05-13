@@ -55,7 +55,7 @@ body{font-family:'Plus Jakarta Sans',-apple-system,sans-serif;background:var(--g
 .view.on{display:block}
 
 /* FORM CARD */
-.fc{max-width:780px;margin:0 auto;background:white;border-radius:var(--radius);border:1px solid var(--border);overflow:hidden}
+.fc{max-width:1100px;margin:0 auto;background:white;border-radius:var(--radius);border:1px solid var(--border);overflow:hidden}
 .fch{background:linear-gradient(135deg,var(--navy-dk),var(--navy) 60%,#1565A8);padding:24px 32px;color:white}
 .fct{font-size:18px;font-weight:700;margin-bottom:4px}
 .fcs{font-size:12px;opacity:.75}
@@ -319,14 +319,6 @@ body{font-family:'Plus Jakarta Sans',-apple-system,sans-serif;background:var(--g
               <textarea id="f-tj" rows="3" placeholder="Jelaskan tujuan dan kebutuhan pengadaan ini..."></textarea>
               <div class="fe">Wajib diisi</div>
             </div>
-            <div class="fd s2">
-              <label>Estimasi Harga <span class="rq">*</span></label>
-              <div class="hw">
-                <span class="hp">Rp</span>
-                <input type="text" id="f-hg" class="hi" placeholder="0" oninput="fmtHg(this)">
-              </div>
-              <div class="fe">Wajib diisi</div>
-            </div>
           </div>
 
           <!-- SECTION 5 BARANG -->
@@ -337,13 +329,14 @@ body{font-family:'Plus Jakarta Sans',-apple-system,sans-serif;background:var(--g
               <table class="it">
                 <thead><tr>
                   <th style="width:3%">No</th>
-                  <th style="width:22%">Nama Barang *</th>
-                  <th style="width:14%">Kategori</th>
-                  <th style="width:13%">Subkategori</th>
-                  <th style="width:7%">Satuan</th>
-                  <th style="width:14%">Harga Estimasi</th>
-                  <th style="width:7%">Jumlah *</th>
-                  <th style="width:16%">Est. Harga Beli</th>
+                  <th style="width:20%">Nama Barang *</th>
+                  <th style="width:11%">Kategori</th>
+                  <th style="width:11%">Subkategori</th>
+                  <th style="width:6%">Satuan</th>
+                  <th style="width:11%">Harga Estimasi</th>
+                  <th style="width:6%">Jumlah *</th>
+                  <th style="width:12%">Est. Harga Beli</th>
+                  <th style="width:16%">Keterangan</th>
                   <th style="width:4%"></th>
                 </tr></thead>
                 <tbody id="rows-barang"></tbody>
@@ -363,20 +356,20 @@ body{font-family:'Plus Jakarta Sans',-apple-system,sans-serif;background:var(--g
               <table class="it">
                 <thead><tr>
                   <th style="width:3%">No</th>
-                  <th style="width:24%">Nama Pekerjaan *</th>
-                  <th style="width:27%">Deskripsi</th>
-                  <th style="width:16%">Lokasi/Area</th>
-                  <th style="width:7%">Qty *</th>
-                  <th style="width:10%">Satuan</th>
-                  <th style="width:13%">Harga Satuan</th>
-                  <th style="width:13%">Subtotal</th>
+                  <th style="width:18%">Nama Vendor *</th>
+                  <th style="width:10%">Kategori</th>
+                  <th style="width:9%">Domisili</th>
+                  <th style="width:11%">PIC Vendor</th>
+                  <th style="width:10%">No. Telpon</th>
+                  <th style="width:13%">Nominal (Rp) *</th>
+                  <th style="width:18%">Keterangan</th>
                   <th style="width:4%"></th>
                 </tr></thead>
                 <tbody id="rows-jasa"></tbody>
               </table>
             </div>
             <div class="it-foot">
-              <button type="button" class="add-r" onclick="addRow('jasa')">+ Tambah Jasa</button>
+              <button type="button" class="add-r" onclick="addRow('jasa')">+ Tambah Vendor</button>
               <div class="it-tot"><span class="it-tot-lbl">Total:</span><span class="it-tot-val" id="tot-jasa">Rp 0</span></div>
             </div>
           </div>
@@ -391,6 +384,17 @@ body{font-family:'Plus Jakarta Sans',-apple-system,sans-serif;background:var(--g
               <div class="fz-sub">PDF, Word, Excel, JPG, PNG</div>
             </div>
             <div class="fl" id="flist"></div>
+          </div>
+
+          <!-- Estimasi Harga - paling bawah -->
+          <div class="stl" style="margin-top:24px"><div class="sn" style="background:var(--navy)">6</div>Estimasi Total Harga</div>
+          <div class="fd">
+            <label>Estimasi Harga <span class="rq">*</span> <span style="font-weight:400;color:var(--g500);font-size:11px">(otomatis dari tabel item, atau isi manual)</span></label>
+            <div class="hw">
+              <span class="hp">Rp</span>
+              <input type="text" id="f-hg" class="hi" placeholder="0" oninput="fmtHg(this)">
+            </div>
+            <div class="fe">Wajib diisi</div>
           </div>
         </div>
         <div class="ff">
@@ -497,12 +501,12 @@ body{font-family:'Plus Jakarta Sans',-apple-system,sans-serif;background:var(--g
 // CONFIG - ISI SESUAI DATA ANDA
 // =============================================
 var CONFIG = {
-  clientId:      "c87df5fb-eb2f-40bc-8c33-d0c47dedfe10",
-  tenantId:      "c1cc324d-9fda-4a48-97ee-ba6157ba9c67",
-  siteUrl:       "https://gosgroup.sharepoint.com/sites/procurement",
+  clientId:      "ISI_CLIENT_ID_DARI_AZURE",
+  tenantId:      "ISI_TENANT_ID_DARI_AZURE",
+  siteUrl:       "https://DOMAIN.sharepoint.com/sites/NAMA_SITE",
   masterList:    "MasterPengadaan",
   resultList:    "HasilPengajuan",
-  approverEmail: "muhamad.parid@gos.co.id",
+  approverEmail: "approver@gosgroup.com",
   redirectUri:   window.location.origin + window.location.pathname
 };
 
@@ -875,8 +879,8 @@ function validate() {
     if (!filledB.length) { showToast("Tambahkan minimal 1 barang dengan nama dan jumlah", "er"); ok = false; }
   }
   if (jp && jp.value === "Jasa") {
-    var filledJ = rJasa.filter(function(r) { return r.nama && r.qty; });
-    if (!filledJ.length) { showToast("Tambahkan minimal 1 jasa dengan nama dan qty", "er"); ok = false; }
+    var filledJ = rJasa.filter(function(r) { return r.vendor && r.nominal; });
+    if (!filledJ.length) { showToast("Tambahkan minimal 1 vendor dengan nama dan nominal", "er"); ok = false; }
   }
   return ok;
 }
@@ -901,7 +905,7 @@ function submitForm() {
   uploadAllFiles(uploadedFiles, rn).then(function(fileResults) {
     btn.innerHTML = '<span class="spin"></span> Menyimpan...';
     var dokStr = fileResults.length ? JSON.stringify(fileResults) : "";
-    return createItem(CONFIG.resultList, {
+    var fields = {
       Title:            rn,
       NomorPengajuan:   rn,
       NomorUrut:        parseInt(document.getElementById("f-seq").value, 10) || 1,
@@ -914,10 +918,12 @@ function submitForm() {
       JenisProduk:      jp ? jp.value : "",
       EstimasiHarga:    hg,
       DokumenPendukung: dokStr,
-      DetailItem:       getItemsJSON(),
       Status:           "Pending",
       SubmittedBy:      currentUser ? currentUser.displayName : ""
-    });
+    };
+    var itemJson = getItemsJSON();
+    if (itemJson) fields.DetailItem = itemJson;
+    return createItem(CONFIG.resultList, fields);
   }).then(function() {
     sendEmail(rn, document.getElementById("f-co").value,
               document.getElementById("f-cl").value,
@@ -985,7 +991,7 @@ function loadMasterJasa() {
     mJasa = items.map(function(i) { return i.fields; });
     var dl = document.getElementById("dl-jasa");
     if (dl) dl.innerHTML = mJasa.map(function(j) {
-      return '<option value="' + eA(j.NamaJasa||"") + '">';
+      return '<option value="' + eA(j.NamaVendor||"") + '">';
     }).join("");
   }).catch(function(e) { console.warn("MasterJasa gagal:", e.message); });
 }
@@ -1004,7 +1010,7 @@ function onJP() {
 
 function addRow(type) {
   if (type === "barang") { rBarang.push({ nama:"", kategori:"", subkat:"", satuan:"", hargaEst:0, jumlah:"", total:0 }); renderRows("barang"); }
-  else                   { rJasa.push({ nama:"",desk:"",lokasi:"",qty:"",satuan:"paket",harga:0,sub:0 }); renderRows("jasa"); }
+  else { rJasa.push({ vendor:"", kategori:"", domisili:"", pic:"", telp:"", nominal:0, keterangan:"" }); renderRows("jasa"); }
 }
 
 function delRow(type, i) {
@@ -1022,9 +1028,10 @@ function renderRows(type) {
   if (!rows.length) { tbody.innerHTML = '<tr><td colspan="'+(type==="barang"?11:9)+'" style="text-align:center;padding:16px;color:var(--g500);font-style:italic">Belum ada item. Klik "+ Tambah" untuk menambahkan.</td></tr>'; calcTot(type); return; }
 
   tbody.innerHTML = rows.map(function(r, i) {
-    var sub = r.total ? "Rp "+r.total.toLocaleString("id-ID") : "-";
+    var sub  = "";
     var hEst = r.hargaEst ? "Rp "+r.hargaEst.toLocaleString("id-ID") : "-";
     if (type === "barang") {
+      sub = r.total ? "Rp "+r.total.toLocaleString("id-ID") : "-";
       return '<tr>'+
         '<td class="td-idx">'+(i+1)+'</td>'+
         '<td><input list="dl-barang" class="ti" value="'+eA(r.nama)+'" placeholder="Cari nama barang..." oninput="oii(\'barang\','+i+',\'nama\',this.value)"></td>'+
@@ -1034,18 +1041,20 @@ function renderRows(type) {
         '<td><input class="ti tr" value="'+hEst+'" readonly style="background:var(--g50);color:var(--navy);font-weight:600" placeholder="-"></td>'+
         '<td><input class="ti tr" type="number" min="1" value="'+(r.jumlah||"")+'" placeholder="0" oninput="oiq(\'barang\','+i+',this.value)"></td>'+
         '<td class="td-sub">'+sub+'</td>'+
+        '<td><input class="ti" value="'+eA(r.keterangan||"")+'" placeholder="Keterangan..." oninput="oii(\'barang\','+i+',\'keterangan\',this.value)"></td>'+
         '<td class="td-del"><button class="del-r" onclick="delRow(\'barang\','+i+')" title="Hapus">x</button></td>'+
         '</tr>';
     } else {
+      var nom = r.nominal ? "Rp "+r.nominal.toLocaleString("id-ID") : "";
       return '<tr>'+
         '<td class="td-idx">'+(i+1)+'</td>'+
-        '<td><input list="dl-jasa" class="ti" value="'+eA(r.nama)+'" placeholder="Cari pekerjaan..." oninput="oii(\'jasa\','+i+',\'nama\',this.value)"></td>'+
-        '<td><input class="ti" value="'+eA(r.desk)+'" placeholder="Deskripsi pekerjaan..." oninput="oii(\'jasa\','+i+',\'desk\',this.value)"></td>'+
-        '<td><input class="ti" value="'+eA(r.lokasi)+'" placeholder="Lokasi/Area..." oninput="oii(\'jasa\','+i+',\'lokasi\',this.value)"></td>'+
-        '<td><input class="ti tr" type="number" min="1" value="'+(r.qty||"")+'" placeholder="0" oninput="oiq(\'jasa\','+i+',this.value)"></td>'+
-        '<td><select class="ti ti-sel" onchange="oii(\'jasa\','+i+',\'satuan\',this.value)">'+sopts(SJ,r.satuan)+'</select></td>'+
-        '<td><input class="ti tr" type="text" value="'+(r.harga?r.harga.toLocaleString("id-ID"):"")+'" placeholder="0" onblur="oih(\'jasa\','+i+',this.value)"></td>'+
-        '<td class="td-sub">'+sub+'</td>'+
+        '<td><input list="dl-jasa" class="ti" value="'+eA(r.vendor)+'" placeholder="Cari vendor..." oninput="oii(\'jasa\','+i+',\'vendor\',this.value)"></td>'+
+        '<td><input class="ti" value="'+eA(r.kategori)+'" readonly style="background:var(--g50);color:var(--g700)" placeholder="-"></td>'+
+        '<td><input class="ti" value="'+eA(r.domisili)+'" readonly style="background:var(--g50);color:var(--g700)" placeholder="-"></td>'+
+        '<td><input class="ti" value="'+eA(r.pic)+'" readonly style="background:var(--g50);color:var(--g700)" placeholder="-"></td>'+
+        '<td><input class="ti" value="'+eA(r.telp)+'" readonly style="background:var(--g50);color:var(--g700)" placeholder="-"></td>'+
+        '<td><input class="ti tr" type="text" value="'+nom+'" placeholder="0" onblur="oih(\'jasa\','+i+',this.value)"></td>'+
+        '<td><input class="ti" value="'+eA(r.keterangan||"")+'" placeholder="Keterangan..." oninput="oii(\'jasa\','+i+',\'keterangan\',this.value)"></td>'+
         '<td class="td-del"><button class="del-r" onclick="delRow(\'jasa\','+i+')" title="Hapus">x</button></td>'+
         '</tr>';
     }
@@ -1068,50 +1077,64 @@ function oii(type, i, field, val) {
         calcTot("barang");
       }
     } else {
-      var m = mJasa.filter(function(j){ return j.NamaJasa===val; })[0];
-      if (m) { rows[i].satuan=m.SatuanDefault||rows[i].satuan; renderRows("jasa"); }
+      var m = mJasa.filter(function(j){ return j.NamaVendor===val; })[0];
+      if (m) {
+        rows[i].kategori = m.Kategori       || "";
+        rows[i].domisili = m.DomisiliVendor || "";
+        rows[i].pic      = m.PICVendor      || "";
+        rows[i].telp     = m.NoTelpon       || "";
+        renderRows("jasa");
+      }
     }
   }
 }
 
 function oiq(type, i, val) {
   var rows = type === "barang" ? rBarang : rJasa;
-  if (type === "barang") {
-    rows[i].jumlah = val;
-    rows[i].total  = (parseInt(val)||0) * (rows[i].hargaEst||0);
-    var sub = rows[i].total ? "Rp "+rows[i].total.toLocaleString("id-ID") : "-";
-  } else {
-    rows[i].qty = val;
-    rows[i].sub = (parseInt(val)||0) * (rows[i].harga||0);
-    var sub = rows[i].sub ? "Rp "+rows[i].sub.toLocaleString("id-ID") : "-";
-  }
-  var tr = document.getElementById("rows-"+type).querySelectorAll("tr")[i];
-  if (tr) { var cells=tr.querySelectorAll("td"); cells[cells.length-2].textContent=sub; }
-  calcTot(type);
+  rows[i].jumlah = val;
+  rows[i].total  = (parseInt(val)||0) * (rows[i].hargaEst||0);
+  var sub = rows[i].total ? "Rp "+rows[i].total.toLocaleString("id-ID") : "-";
+  var tr  = document.getElementById("rows-barang").querySelectorAll("tr")[i];
+  if (tr) { var cells=tr.querySelectorAll("td"); cells[cells.length-3].textContent=sub; }
+  calcTot("barang");
 }
 
 function oih(type, i, val) {
   var rows  = type === "barang" ? rBarang : rJasa;
   var clean = parseInt((val||"").replace(/\D/g,"")) || 0;
-  rows[i].harga = clean;
-  rows[i].sub   = (parseInt(rows[i].qty)||0) * clean;
-  var sub = rows[i].sub ? "Rp "+rows[i].sub.toLocaleString("id-ID") : "-";
-  var tr  = document.getElementById("rows-"+type).querySelectorAll("tr")[i];
-  if (tr) {
-    var cells = tr.querySelectorAll("td");
-    cells[cells.length-2].textContent = sub;
-    var hInput = tr.querySelectorAll(".ti.tr");
-    if (hInput.length >= 2) hInput[hInput.length-1].value = clean ? clean.toLocaleString("id-ID") : "";
+  if (type === "jasa") {
+    rows[i].nominal = clean;
+    var tr = document.getElementById("rows-jasa").querySelectorAll("tr")[i];
+    if (tr) {
+      var nomInput = tr.querySelectorAll(".ti.tr");
+      if (nomInput[0]) nomInput[0].value = clean ? clean.toLocaleString("id-ID") : "";
+    }
+    calcTot("jasa");
+  } else {
+    rows[i].harga = clean;
+    rows[i].total = (parseInt(rows[i].jumlah)||0) * clean;
+    var sub = rows[i].total ? "Rp "+rows[i].total.toLocaleString("id-ID") : "-";
+    var tr  = document.getElementById("rows-barang").querySelectorAll("tr")[i];
+    if (tr) {
+      var cells = tr.querySelectorAll("td");
+      cells[cells.length-3].textContent = sub;
+      var hInput = tr.querySelectorAll(".ti.tr");
+      if (hInput[0]) hInput[0].value = clean ? clean.toLocaleString("id-ID") : "";
+    }
+    calcTot("barang");
   }
-  calcTot(type);
 }
 
 function calcTot(type) {
-  var rows  = type === "barang" ? rBarang : rJasa;
-  var total = rows.reduce(function(s,r){ return s+(type==="barang"?(r.total||0):(r.sub||0)); },0);
+  var total = 0;
+  if (type === "barang") {
+    total = rBarang.reduce(function(s,r){ return s+(r.total||0); }, 0);
+  } else {
+    total = rJasa.reduce(function(s,r){ return s+(r.nominal||0); }, 0);
+  }
   document.getElementById("tot-"+type).textContent = "Rp "+total.toLocaleString("id-ID");
   var grand = rBarang.reduce(function(s,r){return s+(r.total||0);},0) +
-              rJasa.reduce(function(s,r){return s+(r.sub||0);},0);
+              rJasa.reduce(function(s,r){return s+(r.nominal||0);},0);
   if (grand > 0) document.getElementById("f-hg").value = grand.toLocaleString("id-ID");
 }
 
@@ -1137,9 +1160,10 @@ function buildItemDetail(jsonStr, type) {
         '<th style="padding:5px 8px">Satuan</th>'+
         '<th style="padding:5px 8px;text-align:right">Harga Estimasi</th>'+
         '<th style="padding:5px 8px;text-align:right">Jumlah</th>'+
-        '<th style="padding:5px 8px;text-align:right">Est. Harga Beli</th></tr>' +
+        '<th style="padding:5px 8px;text-align:right">Est. Harga Beli</th>'+
+        '<th style="padding:5px 8px">Keterangan</th></tr>' +
         rows.map(function(r,i) {
-          var bg  = i%2===0 ? "white" : "var(--g50)";
+          var bg    = i%2===0 ? "white" : "var(--g50)";
           var hEst  = r.hargaEst ? "Rp "+parseInt(r.hargaEst).toLocaleString("id-ID") : "-";
           var total = r.total ? "Rp "+parseInt(r.total).toLocaleString("id-ID") : "-";
           return '<tr style="background:'+bg+'">'+
@@ -1150,15 +1174,31 @@ function buildItemDetail(jsonStr, type) {
             '<td style="padding:5px 8px;text-align:right">'+(hEst)+'</td>'+
             '<td style="padding:5px 8px;text-align:right">'+(r.jumlah||0)+'</td>'+
             '<td style="padding:5px 8px;text-align:right;font-weight:600;color:var(--navy)">'+total+'</td>'+
+            '<td style="padding:5px 8px">'+(r.keterangan||"-")+'</td>'+
             '</tr>';
         }).join("")+'</table>';
     } else {
       return '<table style="width:100%;border-collapse:collapse;font-size:12px;margin-top:6px">' +
-        '<tr style="background:var(--navy);color:white"><th style="padding:5px 8px;text-align:left">Nama Pekerjaan</th><th style="padding:5px 8px">Deskripsi</th><th style="padding:5px 8px">Lokasi</th><th style="padding:5px 8px;text-align:right">Qty</th><th style="padding:5px 8px">Satuan</th><th style="padding:5px 8px;text-align:right">Subtotal</th></tr>' +
+        '<tr style="background:var(--navy);color:white">'+
+        '<th style="padding:5px 8px;text-align:left">Nama Vendor</th>'+
+        '<th style="padding:5px 8px">Kategori</th>'+
+        '<th style="padding:5px 8px">Domisili</th>'+
+        '<th style="padding:5px 8px">PIC Vendor</th>'+
+        '<th style="padding:5px 8px">No. Telpon</th>'+
+        '<th style="padding:5px 8px;text-align:right">Nominal</th>'+
+        '<th style="padding:5px 8px">Keterangan</th></tr>' +
         rows.map(function(r,i) {
-          var bg = i%2===0 ? "white" : "var(--g50)";
-          var sub = r.sub ? "Rp "+parseInt(r.sub).toLocaleString("id-ID") : "-";
-          return '<tr style="background:'+bg+'"><td style="padding:5px 8px">'+(r.nama||"-")+'</td><td style="padding:5px 8px">'+(r.desk||"-")+'</td><td style="padding:5px 8px">'+(r.lokasi||"-")+'</td><td style="padding:5px 8px;text-align:right">'+(r.qty||0)+'</td><td style="padding:5px 8px;text-align:center">'+(r.satuan||"-")+'</td><td style="padding:5px 8px;text-align:right;font-weight:600;color:var(--navy)">'+sub+'</td></tr>';
+          var bg  = i%2===0 ? "white" : "var(--g50)";
+          var nom = r.nominal ? "Rp "+parseInt(r.nominal).toLocaleString("id-ID") : "-";
+          return '<tr style="background:'+bg+'">'+
+            '<td style="padding:5px 8px">'+(r.vendor||"-")+'</td>'+
+            '<td style="padding:5px 8px;text-align:center">'+(r.kategori||"-")+'</td>'+
+            '<td style="padding:5px 8px;text-align:center">'+(r.domisili||"-")+'</td>'+
+            '<td style="padding:5px 8px">'+(r.pic||"-")+'</td>'+
+            '<td style="padding:5px 8px">'+(r.telp||"-")+'</td>'+
+            '<td style="padding:5px 8px;text-align:right;font-weight:600;color:var(--navy)">'+nom+'</td>'+
+            '<td style="padding:5px 8px">'+(r.keterangan||"-")+'</td>'+
+            '</tr>';
         }).join("")+'</table>';
     }
   } catch(e) { return jsonStr || "-"; }
