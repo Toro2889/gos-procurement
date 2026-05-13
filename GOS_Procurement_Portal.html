@@ -111,6 +111,37 @@ body{font-family:'Plus Jakarta Sans',-apple-system,sans-serif;background:var(--g
 .dh{display:flex;align-items:center;justify-content:space-between;margin-bottom:18px;flex-wrap:wrap;gap:10px}
 .dt{font-size:18px;font-weight:700;color:var(--g900)}
 .da{display:flex;gap:8px}
+.mtabs{display:flex;gap:4px;margin-bottom:16px;background:white;border:1px solid var(--border);border-radius:var(--radius);padding:6px}
+.mtab{padding:7px 18px;border-radius:var(--rsm);border:none;background:transparent;font-size:13px;font-weight:500;cursor:pointer;font-family:inherit;color:var(--g700);transition:all .15s}
+.mtab.on{background:var(--navy);color:white}
+.mtab:hover:not(.on){background:var(--g100)}
+.mbar{display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px;margin-bottom:12px}
+.mtbl{width:100%;border-collapse:collapse;font-size:13px}
+.mtbl th{background:var(--navy);color:white;padding:9px 12px;text-align:left;font-weight:600;font-size:11px;text-transform:uppercase;letter-spacing:.5px}
+.mtbl td{padding:9px 12px;border-bottom:1px solid var(--g100);vertical-align:middle}
+.mtbl tr:last-child td{border-bottom:none}
+.mtbl tr:hover td{background:var(--g50)}
+.mfield{display:flex;flex-direction:column;gap:4px}
+.mfield label{font-size:12px;font-weight:600;color:var(--g700)}
+.mfield input,.mfield select{border:1.5px solid var(--border);border-radius:var(--rsm);padding:8px 11px;font-family:inherit;font-size:13px;outline:none;width:100%}
+.mfield input:focus,.mfield select:focus{border-color:var(--navy)}
+.btn-outline{background:white;border-color:var(--border);color:var(--g700)}
+.btn-outline:hover{border-color:var(--g500)}
+;color:white;border-color:#1A8C6E}.btn-ok:hover{background:#107856}
+.btn-ng{background:#C0392B;color:white;border-color:#C0392B}.btn-ng:hover{background:#a93226}
+.apv-wrap{background:var(--g50);border-radius:var(--rsm);border:1px solid var(--border);padding:14px;margin-top:12px}
+.apv-lbl{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;margin-bottom:10px}
+.apv-l1{border-left:3px solid var(--amber-bd)}.apv-l1 .apv-lbl{color:var(--amber-bd)}
+.apv-l2{border-left:3px solid #7B4FBF}.apv-l2 .apv-lbl{color:#7B4FBF}
+.apv-ga{border-left:3px solid var(--teal)}.apv-ga .apv-lbl{color:var(--teal)}
+.apv-btns{display:flex;gap:8px;margin-top:10px}
+.apv-hist{font-size:12px;margin-top:8px;padding:10px;background:white;border-radius:var(--rsm);border:1px solid var(--border)}
+.apv-hist-row{display:flex;gap:8px;margin-bottom:3px;align-items:flex-start}
+.apv-hist-row:last-child{margin-bottom:0}
+.apv-key{font-weight:600;color:var(--g500);font-size:11px;min-width:55px}
+.sb.pl1{background:#FEF9E7;color:var(--amber-bd)}
+.sb.pl2{background:#F0EBF9;color:#7B4FBF}
+.sb.apv{background:var(--teal-lt);color:var(--teal)}
 .itw{margin-top:8px;border:1px solid var(--border);border-radius:var(--rsm)}
 .it{width:100%;border-collapse:collapse;font-size:12px;table-layout:fixed}
 .it th{background:var(--navy);color:white;padding:7px 8px;text-align:left;font-weight:600;font-size:11px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
@@ -221,6 +252,7 @@ body{font-family:'Plus Jakarta Sans',-apple-system,sans-serif;background:var(--g
     <nav class="nav">
       <button class="nb on" onclick="switchView('form')" id="nav-form">+ Pengajuan Baru</button>
       <button class="nb" onclick="switchView('dash')" id="nav-dash">Dashboard</button>
+      <button class="nb" onclick="switchView('master')" id="nav-master" style="display:none">&#128193; Master Data</button>
     </nav>
     <div class="hu">
       <div class="av" id="av">?</div>
@@ -399,22 +431,25 @@ body{font-family:'Plus Jakarta Sans',-apple-system,sans-serif;background:var(--g
       <div class="dh">
         <div class="dt">Dashboard Pengajuan</div>
         <div class="da">
+          <button class="btn btn-outline btn-sm" id="btn-my-apv" onclick="toggleMyApv()">&#128338; Perlu Saya Approve</button>
           <button class="btn btn-o bsm" onclick="expXls()">Export Excel</button>
           <button class="btn btn-o bsm" onclick="loadDash()">Refresh</button>
         </div>
       </div>
       <div class="sg">
         <div class="sc"><div class="sl">Total</div><div class="sv tot" id="st">-</div></div>
-        <div class="sc"><div class="sl">Pending</div><div class="sv pen" id="sp">-</div></div>
-        <div class="sc"><div class="sl">Submitted to Finance</div><div class="sv app" id="sa">-</div></div>
-        <div class="sc"><div class="sl">Delivered</div><div class="sv" style="color:#7B4FBF" id="sdl">-</div></div>
+        <div class="sc"><div class="sl">Pending L1</div><div class="sv" style="color:var(--amber-bd)" id="sp">-</div></div>
+        <div class="sc"><div class="sl">Pending L2</div><div class="sv" style="color:#7B4FBF" id="sp2">-</div></div>
+        <div class="sc"><div class="sl">Approved</div><div class="sv app" id="sa">-</div></div>
         <div class="sc"><div class="sl">Rejected</div><div class="sv rej" id="sr">-</div></div>
       </div>
       <div class="fib">
         <input class="fi2 wide" type="text" id="srch" placeholder="Cari nomor, company, client..." oninput="renderTbl()">
         <select class="fi2" id="fst" onchange="renderTbl()">
           <option value="">Semua Status</option>
-          <option value="Pending">Pending</option>
+          <option value="Pending L1">Pending L1</option>
+          <option value="Pending L2">Pending L2</option>
+          <option value="Approved">Approved</option>
           <option value="Submitted to Finance">Submitted to Finance</option>
           <option value="Delivered">Delivered</option>
           <option value="Rejected">Rejected</option>
@@ -434,6 +469,66 @@ body{font-family:'Plus Jakarta Sans',-apple-system,sans-serif;background:var(--g
       </div>
     </div>
 
+    <!-- MASTER DATA VIEW -->
+    <div class="view" id="view-master">
+      <div class="mtabs">
+        <button class="mtab on" onclick="switchMTab('entitas')" id="mt-entitas">&#127970; Entitas (Company/Client/Project)</button>
+        <button class="mtab" onclick="switchMTab('barang')" id="mt-barang">&#128230; Master Barang</button>
+        <button class="mtab" onclick="switchMTab('jasa')" id="mt-jasa">&#128101; Master Vendor/Jasa</button>
+      </div>
+
+      <!-- Entitas -->
+      <div id="msub-entitas">
+        <div class="mbar">
+          <div style="display:flex;gap:8px;flex-wrap:wrap">
+            <input class="fi2" style="width:260px" type="text" id="ms-entitas-search" placeholder="&#128269; Cari company, client, project..." oninput="renderMT('entitas')">
+            <select class="fi2" id="ms-entitas-aktif" onchange="renderMT('entitas')">
+              <option value="">Semua Status</option><option value="1">Aktif</option><option value="0">Nonaktif</option>
+            </select>
+          </div>
+          <button class="btn btn-p btn-sm" onclick="openMM('entitas',null)">+ Tambah Entitas</button>
+        </div>
+        <div class="tw"><table class="mtbl">
+          <thead><tr><th style="width:3%">#</th><th>Company</th><th style="width:8%">Kode</th><th>Client</th><th>Project</th><th style="width:9%">Status</th><th style="width:13%">Aksi</th></tr></thead>
+          <tbody id="mt-entitas-tbody"><tr><td colspan="7" style="text-align:center;padding:24px;color:var(--g500)">Klik tab untuk memuat data</td></tr></tbody>
+        </table></div>
+      </div>
+
+      <!-- Barang -->
+      <div id="msub-barang" style="display:none">
+        <div class="mbar">
+          <div style="display:flex;gap:8px;flex-wrap:wrap">
+            <input class="fi2" style="width:260px" type="text" id="ms-barang-search" placeholder="&#128269; Cari nama barang, kategori..." oninput="renderMT('barang')">
+            <select class="fi2" id="ms-barang-aktif" onchange="renderMT('barang')">
+              <option value="">Semua Status</option><option value="1">Aktif</option><option value="0">Nonaktif</option>
+            </select>
+          </div>
+          <button class="btn btn-p btn-sm" onclick="openMM('barang',null)">+ Tambah Barang</button>
+        </div>
+        <div class="tw"><table class="mtbl">
+          <thead><tr><th style="width:3%">#</th><th>Nama Barang</th><th>Kategori</th><th>Subkategori</th><th style="width:8%">Satuan</th><th style="width:12%">Harga Est.</th><th style="width:9%">Status</th><th style="width:13%">Aksi</th></tr></thead>
+          <tbody id="mt-barang-tbody"><tr><td colspan="8" style="text-align:center;padding:24px;color:var(--g500)">–</td></tr></tbody>
+        </table></div>
+      </div>
+
+      <!-- Jasa/Vendor -->
+      <div id="msub-jasa" style="display:none">
+        <div class="mbar">
+          <div style="display:flex;gap:8px;flex-wrap:wrap">
+            <input class="fi2" style="width:260px" type="text" id="ms-jasa-search" placeholder="&#128269; Cari nama vendor, kategori..." oninput="renderMT('jasa')">
+            <select class="fi2" id="ms-jasa-aktif" onchange="renderMT('jasa')">
+              <option value="">Semua Status</option><option value="1">Aktif</option><option value="0">Nonaktif</option>
+            </select>
+          </div>
+          <button class="btn btn-p btn-sm" onclick="openMM('jasa',null)">+ Tambah Vendor</button>
+        </div>
+        <div class="tw"><table class="mtbl">
+          <thead><tr><th style="width:3%">#</th><th>Nama Vendor</th><th>Kategori</th><th>Domisili</th><th>PIC Vendor</th><th>No. Telpon</th><th style="width:9%">Status</th><th style="width:13%">Aksi</th></tr></thead>
+          <tbody id="mt-jasa-tbody"><tr><td colspan="8" style="text-align:center;padding:24px;color:var(--g500)">–</td></tr></tbody>
+        </table></div>
+      </div>
+    </div>
+
   </main>
 </div>
 
@@ -445,26 +540,50 @@ body{font-family:'Plus Jakarta Sans',-apple-system,sans-serif;background:var(--g
     </div>
     <div class="mb">
       <div class="dg" id="mcnt"></div>
-      <div class="ss">
-        <div class="st2">Update Status</div>
+      <!-- L1 Approval Action -->
+      <div id="m-l1" style="display:none" class="apv-wrap apv-l1">
+        <div class="apv-lbl">Tindakan Approval L1</div>
+        <div class="fd">
+          <label>Catatan</label>
+          <textarea id="m-l1-notes" rows="2" style="border:1.5px solid var(--border);border-radius:var(--rsm);padding:7px 10px;font-family:inherit;font-size:13px;width:100%;outline:none;resize:none" placeholder="Catatan approval (opsional)..."></textarea>
+        </div>
+        <div class="apv-btns">
+          <button class="btn btn-ok btn-sm" onclick="doApprove('l1')">&#10003; Approve</button>
+          <button class="btn btn-ng btn-sm" onclick="doReject('l1')">&#10007; Reject</button>
+        </div>
+      </div>
+
+      <!-- L2 Approval Action -->
+      <div id="m-l2" style="display:none" class="apv-wrap apv-l2">
+        <div class="apv-lbl">Tindakan Approval L2 (Final)</div>
+        <div class="fd">
+          <label>Catatan</label>
+          <textarea id="m-l2-notes" rows="2" style="border:1.5px solid var(--border);border-radius:var(--rsm);padding:7px 10px;font-family:inherit;font-size:13px;width:100%;outline:none;resize:none" placeholder="Catatan approval (opsional)..."></textarea>
+        </div>
+        <div class="apv-btns">
+          <button class="btn btn-ok btn-sm" onclick="doApprove('l2')">&#10003; Approve</button>
+          <button class="btn btn-ng btn-sm" onclick="doReject('l2')">&#10007; Reject</button>
+        </div>
+      </div>
+
+      <!-- GA Action -->
+      <div id="m-ga" style="display:none" class="apv-wrap apv-ga">
+        <div class="apv-lbl">Update Status (GA)</div>
         <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
           <div class="fd"><label>Status</label>
             <select id="mst" onchange="onStatusChange()">
-              <option value="Pending">Pending</option>
+              <option value="Approved">Approved</option>
               <option value="Submitted to Finance">Submitted to Finance</option>
               <option value="Delivered">Delivered</option>
               <option value="Rejected">Rejected</option>
             </select>
           </div>
-          <div class="fd"><label>Catatan Approver</label>
+          <div class="fd"><label>Catatan</label>
             <input type="text" id="mnt" placeholder="Opsional...">
           </div>
         </div>
-        <!-- Delivered fields - muncul hanya saat status Delivered -->
         <div id="delivered-fields" style="display:none;margin-top:10px;padding-top:10px;border-top:1px dashed var(--border)">
-          <div style="font-size:11px;font-weight:700;color:#7B4FBF;text-transform:uppercase;letter-spacing:.5px;margin-bottom:8px">
-            &#128230; Info Penerimaan (wajib diisi)
-          </div>
+          <div style="font-size:11px;font-weight:700;color:#7B4FBF;text-transform:uppercase;letter-spacing:.5px;margin-bottom:8px">&#128230; Info Penerimaan (wajib diisi)</div>
           <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
             <div class="fd">
               <label>Nama Penerima <span class="rq">*</span></label>
@@ -480,24 +599,39 @@ body{font-family:'Plus Jakarta Sans',-apple-system,sans-serif;background:var(--g
     </div>
     <div class="mf">
       <button class="btn btn-o bsm" onclick="closeMo()">Tutup</button>
-      <button class="btn btn-p bsm" onclick="updStatus()">Simpan Status</button>
+      <button class="btn btn-p bsm" id="m-save-btn" style="display:none" onclick="updStatus()">Simpan Status</button>
     </div>
   </div>
 </div>
 
 <div class="toast" id="toast"></div>
 
+<!-- MASTER DATA MODAL -->
+<div class="mo" id="mm-overlay">
+  <div class="md" style="max-width:560px">
+    <div class="mh">
+      <div class="mtt" id="mm-title">Tambah Data</div>
+      <button class="mc" onclick="closeMM()">x</button>
+    </div>
+    <div class="mb" id="mm-body" style="display:grid;grid-template-columns:1fr 1fr;gap:12px"></div>
+    <div class="mf">
+      <button class="btn btn-o bsm" onclick="closeMM()">Batal</button>
+      <button class="btn btn-p bsm" onclick="saveMM()">&#10003; Simpan</button>
+    </div>
+  </div>
+</div>
+
 <script>
 // =============================================
 // CONFIG - ISI SESUAI DATA ANDA
 // =============================================
 var CONFIG = {
-  clientId:      "c87df5fb-eb2f-40bc-8c33-d0c47dedfe10",
-  tenantId:      "c1cc324d-9fda-4a48-97ee-ba6157ba9c67",
-  siteUrl:       "https://gosgroup.sharepoint.com/sites/procurement",
+  clientId:      "ISI_CLIENT_ID_DARI_AZURE",
+  tenantId:      "ISI_TENANT_ID_DARI_AZURE",
+  siteUrl:       "https://DOMAIN.sharepoint.com/sites/NAMA_SITE",
   masterList:    "MasterPengadaan",
   resultList:    "HasilPengajuan",
-  approverEmail: "muhamad.parid@gos.co.id",
+  approverEmail: "approver@gosgroup.com",
   redirectUri:   window.location.origin + window.location.pathname
 };
 
@@ -508,6 +642,51 @@ var APPROVERS = [
   "muhamad.parid@gos.co.id",
   "toro.sod@gos.co.id"
 ];
+
+// =============================================
+// APPROVAL CONFIG - Sesuaikan dengan kebutuhan
+// =============================================
+var APPROVAL_CONFIG = {
+  // Threshold L2 (Rp) - jika estimasi >= nilai ini, wajib L2 approval
+  l2Threshold: 5000000,
+
+  // L2 Approver - satu orang untuk semua pengajuan di atas threshold
+  l2: { email: "ISI_EMAIL_L2@gos.co.id", name: "ISI_NAMA_L2" },
+
+  // Rules L1: { submitter: "email pengaju", l1Email: "email approver", l1Name: "nama approver" }
+  // Gunakan "*" sebagai default jika pengaju tidak terdaftar
+  rules: [
+    { submitter: "contoh.user@gos.co.id",  l1Email: "manager@gos.co.id",  l1Name: "Nama Manager" },
+    { submitter: "*",                        l1Email: "ISI_DEFAULT_L1@gos.co.id", l1Name: "ISI_NAMA_DEFAULT_L1" }
+  ]
+};
+
+// =============================================
+// APPROVAL HELPERS
+// =============================================
+function myEmail() { return currentUser ? currentUser.userPrincipalName.toLowerCase() : ""; }
+function amGA()    { return APPROVERS.indexOf(myEmail()) > -1; }
+function amL2()    { return myEmail() === APPROVAL_CONFIG.l2.email.toLowerCase(); }
+function amL1()    {
+  return APPROVAL_CONFIG.rules.some(function(r) {
+    return r.l1Email.toLowerCase() === myEmail();
+  });
+}
+function getL1(submitterEmail) {
+  var e = (submitterEmail||"").toLowerCase();
+  var r = APPROVAL_CONFIG.rules.filter(function(x){ return x.submitter.toLowerCase()===e; })[0];
+  if (!r) r = APPROVAL_CONFIG.rules.filter(function(x){ return x.submitter==="*"; })[0];
+  return r || null;
+}
+function needsL2(amount) { return (parseInt(amount)||0) >= APPROVAL_CONFIG.l2Threshold; }
+function canApproveL1(item) {
+  return amL1() && item.Status==="Pending L1" &&
+         (item.L1ApproverEmail||"").toLowerCase()===myEmail();
+}
+function canApproveL2(item) { return amL2() && item.Status==="Pending L2"; }
+function canUpdateGA(item)  {
+  return amGA() && ["Approved","Submitted to Finance","Delivered","Rejected"].indexOf(item.Status)>-1;
+}
 
 function isApprover() {
   if (!currentUser) return false;
@@ -646,7 +825,8 @@ var ROMAN = ["","I","II","III","IV","V","VI","VII","VIII","IX","X","XI","XII"];
 
 function loadMaster() {
   return getItems(CONFIG.masterList).then(function(items) {
-    masterData = items.map(function(i) { return i.fields; });
+    masterData = items.map(function(i) { return i.fields; })
+                      .filter(function(r) { return r.Aktif !== false && r.Aktif !== 0; });
   });
 }
 
@@ -841,6 +1021,7 @@ function submitForm() {
   uploadAllFiles(uploadedFiles, rn).then(function(fileResults) {
     btn.innerHTML = '<span class="spin"></span> Menyimpan...';
     var dokStr = fileResults.length ? JSON.stringify(fileResults) : "";
+    var l1rule = getL1(currentUser ? currentUser.userPrincipalName : "");
     var fields = {
       Title:            rn,
       NomorPengajuan:   rn,
@@ -854,18 +1035,25 @@ function submitForm() {
       JenisProduk:      jp ? jp.value : "",
       EstimasiHarga:    hg,
       DokumenPendukung: dokStr,
-      Status:           "Pending",
-      SubmittedBy:      currentUser ? currentUser.displayName : ""
+      Status:           "Pending L1",
+      SubmittedBy:      currentUser ? currentUser.displayName : "",
+      L1ApproverEmail:  l1rule ? l1rule.l1Email : "",
+      L1ApproverName:   l1rule ? l1rule.l1Name  : ""
     };
     var itemJson = getItemsJSON();
     if (itemJson) fields.DetailItem = itemJson;
     return createItem(CONFIG.resultList, fields);
   }).then(function() {
-    sendEmail(rn, document.getElementById("f-co").value,
-              document.getElementById("f-cl").value,
-              document.getElementById("f-pr").value,
-              document.getElementById("f-tj").value,
-              jp ? jp.value : "", hg);
+    var l1Email = l1rule ? l1rule.l1Email : CONFIG.approverEmail;
+    sendNotif("new", rn, {
+      co: document.getElementById("f-co").value,
+      cl: document.getElementById("f-cl").value,
+      pr: document.getElementById("f-pr").value,
+      tj: document.getElementById("f-tj").value,
+      jp: jp ? jp.value : "",
+      hg: hg, to: l1Email,
+      submitter: currentUser ? currentUser.displayName : ""
+    });
     showToast("Pengajuan " + rn + " berhasil dikirim!", "ok");
     resetForm();
     return autoSeq();
@@ -909,7 +1097,8 @@ var SJ = ["paket","hari","minggu","bulan","tahun","unit","kali","jam","orang","l
 
 function loadMasterBarang() {
   return getItems("MasterBarang").then(function(items) {
-    mBarang = items.map(function(i) { return i.fields; });
+    mBarang = items.map(function(i) { return i.fields; })
+                   .filter(function(b) { return b.Aktif !== false && b.Aktif !== 0; });
     var dl = document.getElementById("dl-barang");
     if (dl) dl.innerHTML = mBarang.map(function(b) {
       return '<option value="' + eA(b.NamaBarang||"") + '">';
@@ -918,7 +1107,8 @@ function loadMasterBarang() {
 }
 function loadMasterJasa() {
   return getItems("MasterJasa").then(function(items) {
-    mJasa = items.map(function(i) { return i.fields; });
+    mJasa = items.map(function(i) { return i.fields; })
+                 .filter(function(j) { return j.Aktif !== false && j.Aktif !== 0; });
     var dl = document.getElementById("dl-jasa");
     if (dl) dl.innerHTML = mJasa.map(function(j) {
       return '<option value="' + eA(j.NamaVendor||"") + '">';
@@ -1167,58 +1357,72 @@ function uploadAllFiles(files, nomor) {
   return Promise.all(files.map(function(f) { return uploadFile(f, nomor); }));
 }
 
-
-function buildEmailBody(rn, co, cl, pr, tj, jp, hg, tgl) {
-  return "<div style='font-family:Arial,sans-serif;max-width:600px'>" +
-    "<div style='background:#0B4F7E;padding:20px 24px;border-radius:8px 8px 0 0'>" +
-    "<h2 style='color:white;margin:0;font-size:18px'>GOS Group - Procurement Portal</h2>" +
-    "<p style='color:rgba(255,255,255,.75);margin:4px 0 0;font-size:13px'>Notifikasi Pengajuan Pengadaan</p></div>" +
-    "<div style='background:#f8f9fa;padding:20px 24px;border:1px solid #e2e6ea;border-top:none;border-radius:0 0 8px 8px'>" +
-    "<table style='width:100%;border-collapse:collapse;font-size:14px'>" +
-    "<tr><td style='padding:8px 12px;font-weight:bold;color:#666;width:40%'>Nomor Pengajuan</td>" +
-    "<td style='padding:8px 12px;font-weight:bold;color:#0B4F7E;font-family:monospace'>" + rn + "</td></tr>" +
-    "<tr style='background:white'><td style='padding:8px 12px;color:#666'>Tanggal</td><td style='padding:8px 12px'>" + tgl + "</td></tr>" +
-    "<tr><td style='padding:8px 12px;color:#666'>Company</td><td style='padding:8px 12px'>" + co + "</td></tr>" +
-    "<tr style='background:white'><td style='padding:8px 12px;color:#666'>Client</td><td style='padding:8px 12px'>" + cl + "</td></tr>" +
-    "<tr><td style='padding:8px 12px;color:#666'>Project</td><td style='padding:8px 12px'>" + pr + "</td></tr>" +
-    "<tr style='background:white'><td style='padding:8px 12px;color:#666'>Jenis Produk</td><td style='padding:8px 12px'>" + jp + "</td></tr>" +
-    "<tr><td style='padding:8px 12px;color:#666'>Tujuan</td><td style='padding:8px 12px'>" + tj + "</td></tr>" +
-    "<tr style='background:white'><td style='padding:8px 12px;color:#666'>Estimasi Harga</td>" +
-    "<td style='padding:8px 12px;font-weight:bold;color:#0B4F7E'>Rp " + parseInt(hg||0).toLocaleString("id-ID") + "</td></tr>" +
-    "<tr><td style='padding:8px 12px;color:#666'>Diajukan Oleh</td><td style='padding:8px 12px'>" + (currentUser ? currentUser.displayName : "-") + "</td></tr>" +
-    "<tr><td style='padding:8px 12px;color:#666'>Status</td>" +
-    "<td style='padding:8px 12px'><span style='background:#FEF9E7;color:#D68910;padding:3px 10px;border-radius:20px;font-size:12px;font-weight:600'>Pending</span></td></tr>" +
-    "</table>" +
-    "<p style='margin-top:16px;color:#666;font-size:13px'>Silakan buka portal untuk memantau status pengajuan ini.</p>" +
-    "<p style='margin-top:4px;color:#aaa;font-size:11px'>Pesan ini dikirim otomatis dari GOS Procurement Portal.</p>" +
-    "</div></div>";
+function onStatusChange() {
+  var st = document.getElementById("mst").value;
+  document.getElementById("delivered-fields").style.display = st === "Delivered" ? "block" : "none";
+  if (st !== "Delivered") {
+    document.getElementById("m-penerima").value = "";
+    document.getElementById("m-tgl-terima").value = "";
+  }
 }
 
-function sendEmail(rn, co, cl, pr, tj, jp, hg) {
-  var d = new Date();
-  var tgl = pad(d.getDate()) + "/" + pad(d.getMonth()+1) + "/" + d.getFullYear();
-  var body = buildEmailBody(rn, co, cl, pr, tj, jp, hg, tgl);
-  var userEmail = currentUser ? currentUser.userPrincipalName : null;
+// =============================================
+// EMAIL NOTIFICATIONS
+// =============================================
+function sendNotif(type, rn, data) {
+  var to   = data.to || CONFIG.approverEmail;
+  var item = data.item || {};
+  var hgFmt = "Rp " + (parseInt(data.hg||item.EstimasiHarga||0)).toLocaleString("id-ID");
+  var subject = "", body = "";
 
-  var recipients = [{ emailAddress: { address: CONFIG.approverEmail } }];
-  if (userEmail && userEmail !== CONFIG.approverEmail) {
-    recipients.push({ emailAddress: { address: userEmail } });
+  if (type === "new") {
+    subject = "[Pengajuan Baru] " + rn + " - Menunggu Approval Anda";
+    body = "<h3 style='color:#D68910'>Pengajuan Baru Menunggu Approval L1</h3>" +
+      "<table style='border-collapse:collapse;font-size:14px;font-family:Arial'>" +
+      "<tr><td style='padding:6px 12px;color:#666'>Nomor</td><td style='padding:6px 12px;font-weight:bold;color:#0B4F7E'>" + rn + "</td></tr>" +
+      "<tr><td style='padding:6px 12px;color:#666'>Company</td><td>" + (data.co||"") + "</td></tr>" +
+      "<tr><td style='padding:6px 12px;color:#666'>Estimasi</td><td style='font-weight:bold'>" + hgFmt + "</td></tr>" +
+      "<tr><td style='padding:6px 12px;color:#666'>Diajukan</td><td>" + (data.submitter||"") + "</td></tr></table>" +
+      "<p style='color:#666;margin-top:12px'>Buka portal untuk mereview dan memberikan approval.</p>";
+    // Also notify submitter
+    var uEmail = currentUser ? currentUser.userPrincipalName : null;
+    if (uEmail) gPost("https://graph.microsoft.com/v1.0/me/sendMail",{message:{subject:"[Terkirim] Pengajuan "+rn+" menunggu approval",body:{contentType:"HTML",content:"<p>Pengajuan <strong>"+rn+"</strong> Anda telah dikirim dan sedang menunggu approval dari <strong>"+(data.l1Name||"atasan")+"</strong>.</p>"},toRecipients:[{emailAddress:{address:uEmail}}]},saveToSentItems:false}).catch(function(){});
+  } else if (type === "l2-needed") {
+    subject = "[Approval L2] " + rn + " - Menunggu Persetujuan Anda";
+    body = "<h3 style='color:#7B4FBF'>Pengajuan Memerlukan Approval Final L2</h3>" +
+      "<p>Pengajuan <strong>" + rn + "</strong> telah disetujui L1 dan memerlukan approval L2 karena estimasi melebihi Rp " + APPROVAL_CONFIG.l2Threshold.toLocaleString("id-ID") + ".</p>" +
+      "<p style='font-weight:bold;color:#0B4F7E'>Estimasi: " + "Rp " + (parseInt(item.EstimasiHarga||0)).toLocaleString("id-ID") + "</p>" +
+      "<p style='color:#666;margin-top:12px'>Buka portal untuk memberikan approval.</p>";
+  } else if (type === "ready-ga") {
+    subject = "[Siap Diproses] " + rn;
+    body = "<h3 style='color:#1A8C6E'>Pengajuan Siap Diproses GA</h3>" +
+      "<p>Pengajuan <strong>" + rn + "</strong> telah mendapat semua approval dan siap diproses.</p>";
+  } else if (type === "rejected") {
+    subject = "[Ditolak] Pengajuan " + rn;
+    body = "<h3 style='color:#C0392B'>Pengajuan Anda Ditolak</h3>" +
+      "<p>Pengajuan <strong>" + rn + "</strong> ditolak oleh Approver " + (data.level||"").toUpperCase() + ".</p>" +
+      (data.notes ? "<p style='background:#fdedec;padding:10px;border-radius:6px;color:#C0392B'><strong>Catatan:</strong> " + data.notes + "</p>" : "");
   }
 
   gPost("https://graph.microsoft.com/v1.0/me/sendMail", {
-    message: {
-      subject: "[Pengajuan Baru] " + rn + " - " + co,
-      body: { contentType: "HTML", content: body },
-      toRecipients: recipients
-    },
+    message: { subject: subject, body: { contentType: "HTML", content: body },
+               toRecipients: [{ emailAddress: { address: to } }] },
     saveToSentItems: false
-  }).catch(function(e) { console.warn("Email gagal:", e.message); });
+  }).catch(function(e){ console.warn("Email gagal:", e.message); });
 }
+
 
 // =============================================
 // DASHBOARD
 // =============================================
-var allSubs = [];
+var allSubs = [], filterMyApv = false;
+function toggleMyApv(){
+  filterMyApv=!filterMyApv;
+  var b=document.getElementById("btn-my-apv");
+  b.style.background=filterMyApv?"var(--amber-bd)":"";
+  b.style.color=filterMyApv?"white":"";
+  renderTbl();
+}
 var curId   = null;
 
 function loadDash() {
@@ -1239,10 +1443,10 @@ function loadDash() {
 
 function updateStats() {
   document.getElementById("st").textContent  = allSubs.length;
-  document.getElementById("sp").textContent  = allSubs.filter(function(i) { return i.Status === "Pending"; }).length;
-  document.getElementById("sa").textContent  = allSubs.filter(function(i) { return i.Status === "Submitted to Finance"; }).length;
-  document.getElementById("sdl").textContent = allSubs.filter(function(i) { return i.Status === "Delivered"; }).length;
-  document.getElementById("sr").textContent  = allSubs.filter(function(i) { return i.Status === "Rejected"; }).length;
+  document.getElementById("sp").textContent  = allSubs.filter(function(i){ return i.Status==="Pending L1"; }).length;
+  document.getElementById("sp2").textContent = allSubs.filter(function(i){ return i.Status==="Pending L2"; }).length;
+  document.getElementById("sa").textContent  = allSubs.filter(function(i){ return ["Approved","Submitted to Finance","Delivered"].indexOf(i.Status)>-1; }).length;
+  document.getElementById("sr").textContent  = allSubs.filter(function(i){ return i.Status==="Rejected"; }).length;
 }
 
 function populateCoFilter() {
@@ -1272,6 +1476,9 @@ function renderTbl() {
     if (co && i.Company !== co) return false;
     if (fr && (i.TanggalPengajuan || "") < fr) return false;
     if (to && (i.TanggalPengajuan || "") > to) return false;
+    if (filterMyApv) {
+      if (!(canApproveL1(i) || canApproveL2(i))) return false;
+    }
     return true;
   }).sort(function(a,b) { return (b.TanggalPengajuan||"").localeCompare(a.TanggalPengajuan||""); });
 
@@ -1303,8 +1510,15 @@ function renderTbl() {
 }
 
 function sBadge(s) {
-  var m = { Pending: "pen", "Submitted to Finance": "app", Delivered: "dlv", Rejected: "rej" };
-  return '<span class="sb ' + (m[s]||"pen") + '"><span class="sd"></span>' + (s||"Pending") + '</span>';
+  var m = {
+    "Pending L1":          "pl1",
+    "Pending L2":          "pl2",
+    "Approved":            "apv",
+    "Submitted to Finance":"app",
+    "Delivered":           "dlv",
+    "Rejected":            "rej"
+  };
+  return '<span class="sb '+(m[s]||"pl1")+'"><span class="sd"></span>'+(s||"Pending L1")+'</span>';
 }
 
 // =============================================
@@ -1350,27 +1564,27 @@ function openMo(id) {
     '<div class="df"><div class="dl">Diajukan Oleh</div><div class="dv">' + (item.SubmittedBy||"-") + '</div></div>' +
     '<div class="df full"><div class="dl">Dokumen Pendukung</div><div class="dv">' + buildFileLinks(item.DokumenPendukung) + '</div></div>' +
     '<div class="df"><div class="dl">Status</div><div class="dv">' + sBadge(item.Status) + '</div></div>' +
-    '<div class="df"><div class="dl">Catatan Approver</div><div class="dv">' + (item.ApproverNotes||"-") + '</div></div>' +
+    '<div class="df"><div class="dl">Catatan GA</div><div class="dv">' + (item.ApproverNotes||"-") + '</div></div>' +
     (item.Status === "Delivered" ? (
       '<div class="df"><div class="dl">Nama Penerima</div><div class="dv" style="font-weight:600;color:#7B4FBF">' + (item.NamaPenerima||"-") + '</div></div>' +
       '<div class="df"><div class="dl">Tanggal Terima</div><div class="dv" style="font-weight:600;color:#7B4FBF">' + (item.TanggalTerima ? item.TanggalTerima.split("T")[0].split("-").reverse().join("/") : "-") + '</div></div>'
-    ) : '');
-  document.getElementById("mst").value = item.Status || "Pending";
-  document.getElementById("mnt").value = item.ApproverNotes || "";
-  document.getElementById("m-penerima").value  = item.NamaPenerima  || "";
+    ) : '') +
+    '<div class="df full"><div class="dl">Riwayat Approval</div><div class="dv">' + buildApvHistory(item) + '</div></div>';
+  document.getElementById("mst").value  = item.Status || "Pending L1";
+  document.getElementById("mnt").value  = item.ApproverNotes || "";
+  document.getElementById("m-penerima").value   = item.NamaPenerima  || "";
   document.getElementById("m-tgl-terima").value = item.TanggalTerima ? item.TanggalTerima.split("T")[0] : "";
   onStatusChange();
 
-  // Tampilkan tombol update status hanya untuk approver
-  var ss = document.querySelector(".ss");
-  var updBtn = document.querySelector(".mf .btn-p");
-  if (isApprover()) {
-    ss.style.display = "block";
-    updBtn.style.display = "inline-flex";
-  } else {
-    ss.style.display = "none";
-    updBtn.style.display = "none";
-  }
+  // Show/hide action sections
+  document.getElementById("m-l1").style.display   = canApproveL1(item) ? "block" : "none";
+  document.getElementById("m-l2").style.display   = canApproveL2(item) ? "block" : "none";
+  document.getElementById("m-ga").style.display   = canUpdateGA(item)  ? "block" : "none";
+  document.getElementById("m-save-btn").style.display = canUpdateGA(item) ? "inline-flex" : "none";
+
+  // Reset notes
+  document.getElementById("m-l1-notes").value = "";
+  document.getElementById("m-l2-notes").value = "";
 
   document.getElementById("modal").classList.add("on");
 }
@@ -1380,48 +1594,116 @@ function closeMo() {
   curId = null;
 }
 
-function onStatusChange() {
-  var st = document.getElementById("mst").value;
-  var df = document.getElementById("delivered-fields");
-  df.style.display = st === "Delivered" ? "block" : "none";
-  if (st !== "Delivered") {
-    document.getElementById("m-penerima").value = "";
-    document.getElementById("m-tgl-terima").value = "";
+function buildApvHistory(item) {
+  var html = '<div class="apv-hist">';
+  var hasHistory = false;
+
+  if (item.L1ApproverName || item.L1ApproverEmail) {
+    hasHistory = true;
+    var l1Status = item.Status === "Pending L1" ? "Menunggu" :
+                   item.Status === "Rejected" && !item.L1ApprovalDate ? "Menunggu" :
+                   item.L1ApprovalDate ? "Approved" : "Menunggu";
+    if (item.Status === "Rejected" && !item.L2ApprovalDate && !item.L2Notes) l1Status = "Rejected";
+    html += '<div class="apv-hist-row"><span class="apv-key">L1 :</span><span>' +
+            (item.L1ApproverName||item.L1ApproverEmail||"-") + ' — ' + l1Status +
+            (item.L1ApprovalDate ? " (" + item.L1ApprovalDate.split("T")[0].split("-").reverse().join("/") + ")" : "") +
+            (item.L1Notes ? "<br><em style='color:var(--g500)'>" + item.L1Notes + "</em>" : "") + '</span></div>';
   }
+  if (item.L2Notes || ["Pending L2","Approved","Submitted to Finance","Delivered"].indexOf(item.Status)>-1) {
+    hasHistory = true;
+    var l2s = item.Status === "Pending L2" ? "Menunggu" : item.L2ApprovalDate ? "Approved" : "-";
+    if (item.Status === "Rejected" && item.L2Notes) l2s = "Rejected";
+    html += '<div class="apv-hist-row"><span class="apv-key">L2 :</span><span>' +
+            APPROVAL_CONFIG.l2.name + ' — ' + l2s +
+            (item.L2ApprovalDate ? " (" + item.L2ApprovalDate.split("T")[0].split("-").reverse().join("/") + ")" : "") +
+            (item.L2Notes ? "<br><em style='color:var(--g500)'>" + item.L2Notes + "</em>" : "") + '</span></div>';
+  }
+  if (!hasHistory) html += '<span style="color:var(--g500);font-size:11px">Belum ada riwayat approval</span>';
+  html += '</div>';
+  return html;
+}
+
+function doApprove(level) {
+  if (!curId) return;
+  var item    = allSubs.filter(function(i){ return i.id===curId; })[0];
+  if (!item) return;
+  var notes   = document.getElementById("m-"+level+"-notes").value;
+  var today   = new Date().toISOString().split("T")[0];
+  var fields  = {};
+  var submitterEmail = "";
+
+  if (level === "l1") {
+    var req2 = needsL2(item.EstimasiHarga);
+    fields.Status         = req2 ? "Pending L2" : "Approved";
+    fields.L1Notes        = notes;
+    fields.L1ApprovalDate = today;
+    submitterEmail = item.SubmittedBy;
+    if (req2) {
+      sendNotif("l2-needed", item.NomorPengajuan, { to: APPROVAL_CONFIG.l2.email, item: item });
+    } else {
+      APPROVERS.forEach(function(ga) {
+        sendNotif("ready-ga", item.NomorPengajuan, { to: ga, item: item });
+      });
+    }
+  } else {
+    fields.Status         = "Approved";
+    fields.L2Notes        = notes;
+    fields.L2ApprovalDate = today;
+    APPROVERS.forEach(function(ga) {
+      sendNotif("ready-ga", item.NomorPengajuan, { to: ga, item: item });
+    });
+  }
+
+  patchItem(CONFIG.resultList, curId, fields).then(function() {
+    Object.assign(item, fields);
+    updateStats(); renderTbl(); closeMo();
+    showToast("Pengajuan berhasil di-Approve!", "ok");
+  }).catch(function(e){ showToast("Gagal: "+e.message,"er"); });
+}
+
+function doReject(level) {
+  if (!curId) return;
+  var item  = allSubs.filter(function(i){ return i.id===curId; })[0];
+  if (!item) return;
+  var notes = document.getElementById("m-"+level+"-notes").value;
+  var today = new Date().toISOString().split("T")[0];
+  var fields = { Status: "Rejected" };
+  if (level === "l1") { fields.L1Notes = notes; fields.L1ApprovalDate = today; }
+  else                { fields.L2Notes = notes; fields.L2ApprovalDate = today; }
+
+  // Notify submitter
+  sendNotif("rejected", item.NomorPengajuan, {
+    to: item.SubmittedByEmail || CONFIG.approverEmail,
+    item: item, notes: notes, level: level
+  });
+
+  patchItem(CONFIG.resultList, curId, fields).then(function() {
+    Object.assign(item, fields);
+    updateStats(); renderTbl(); closeMo();
+    showToast("Pengajuan ditolak.", "er");
+  }).catch(function(e){ showToast("Gagal: "+e.message,"er"); });
 }
 
 function updStatus() {
   if (!curId) return;
-  if (!isApprover()) {
-    showToast("Anda tidak memiliki akses untuk mengubah status", "er");
-    return;
-  }
-  var st       = document.getElementById("mst").value;
-  var nt       = document.getElementById("mnt").value;
+  if (!amGA()) { showToast("Tidak ada akses", "er"); return; }
+  var item = allSubs.filter(function(i){ return i.id===curId; })[0];
+  if (!item) return;
+  var st = document.getElementById("mst").value;
+  var nt = document.getElementById("mnt").value;
   var penerima = document.getElementById("m-penerima").value.trim();
   var tglTrm   = document.getElementById("m-tgl-terima").value;
-
   if (st === "Delivered") {
-    if (!penerima) { showToast("Nama penerima wajib diisi", "er"); document.getElementById("m-penerima").focus(); return; }
-    if (!tglTrm)   { showToast("Tanggal terima wajib diisi", "er"); document.getElementById("m-tgl-terima").focus(); return; }
+    if (!penerima){ showToast("Nama penerima wajib diisi","er"); return; }
+    if (!tglTrm)  { showToast("Tanggal terima wajib diisi","er"); return; }
   }
-
   var fields = { Status: st, ApproverNotes: nt };
-  if (st === "Delivered") {
-    fields.NamaPenerima  = penerima;
-    fields.TanggalTerima = tglTrm;
-  }
-
+  if (st === "Delivered") { fields.NamaPenerima = penerima; fields.TanggalTerima = tglTrm; }
   patchItem(CONFIG.resultList, curId, fields).then(function() {
-    var item = allSubs.filter(function(i) { return i.id === curId; })[0];
-    if (item) {
-      item.Status       = st;
-      item.ApproverNotes = nt;
-      if (st === "Delivered") { item.NamaPenerima = penerima; item.TanggalTerima = tglTrm; }
-    }
+    Object.assign(item, fields);
     updateStats(); renderTbl(); closeMo();
-    showToast("Status diperbarui: " + st, "ok");
-  }).catch(function(e) { showToast("Gagal: " + e.message, "er"); });
+    showToast("Status diperbarui: "+st,"ok");
+  }).catch(function(e){ showToast("Gagal: "+e.message,"er"); });
 }
 
 // =============================================
@@ -1462,7 +1744,8 @@ function switchView(v) {
   document.getElementById("view-" + v).classList.add("on");
   document.querySelectorAll(".nb").forEach(function(x) { x.classList.remove("on"); });
   document.getElementById("nav-" + v).classList.add("on");
-  if (v === "dash") loadDash();
+  if (v === "dash")   loadDash();
+  if (v === "master") { switchMTab("entitas"); loadMT("entitas"); }
 }
 
 var toastT = null;
@@ -1475,8 +1758,195 @@ function showToast(msg, type) {
 }
 
 // =============================================
-// INIT
+// MASTER DATA MANAGEMENT
 // =============================================
+var mData = { entitas: [], barang: [], jasa: [] };
+var mmTab = "entitas";
+var mmEditId = null;
+
+var ML = {
+  entitas: "MasterPengadaan",
+  barang:  "MasterBarang",
+  jasa:    "MasterJasa"
+};
+
+function switchMTab(tab) {
+  mmTab = tab;
+  ["entitas","barang","jasa"].forEach(function(t) {
+    document.getElementById("msub-"+t).style.display = t===tab ? "block" : "none";
+    document.getElementById("mt-"+t).classList.toggle("on", t===tab);
+  });
+  if (!mData[tab].length) loadMT(tab);
+}
+
+function loadMT(tab) {
+  var tbody = document.getElementById("mt-"+tab+"-tbody");
+  var cols  = tab==="entitas" ? 7 : 8;
+  tbody.innerHTML = '<tr><td colspan="'+cols+'" style="text-align:center;padding:20px;color:var(--g500)">Memuat...</td></tr>';
+  getItems(ML[tab]).then(function(items) {
+    mData[tab] = items.map(function(i){ return Object.assign({id:i.id}, i.fields); });
+    renderMT(tab);
+  }).catch(function(e){
+    tbody.innerHTML = '<tr><td colspan="'+cols+'" style="text-align:center;padding:20px;color:var(--red)">'+e.message+'</td></tr>';
+  });
+}
+
+function isAktif(r) { return r.Aktif !== false && r.Aktif !== 0 && r.Aktif !== "0"; }
+
+function renderMT(tab) {
+  var data   = mData[tab];
+  var search = (document.getElementById("ms-"+tab+"-search")||{}).value || "";
+  var fAktif = (document.getElementById("ms-"+tab+"-aktif")||{}).value || "";
+  var q = search.toLowerCase();
+
+  var f = data.filter(function(r) {
+    var ak = isAktif(r);
+    if (fAktif === "1" && !ak) return false;
+    if (fAktif === "0" &&  ak) return false;
+    if (q) {
+      var str = [r.Company,r.Client,r.Project,r.NamaBarang,r.KategoriBarang,r.Subkategori,r.NamaVendor,r.Kategori,r.DomisiliVendor,r.PICVendor].join(" ").toLowerCase();
+      if (str.indexOf(q) < 0) return false;
+    }
+    return true;
+  });
+
+  var tbody = document.getElementById("mt-"+tab+"-tbody");
+  if (!f.length) { tbody.innerHTML = '<tr><td colspan="8" style="text-align:center;padding:24px;color:var(--g500)">Tidak ada data</td></tr>'; return; }
+
+  var rows = f.map(function(r, i) {
+    var ak  = isAktif(r);
+    var badge = ak
+      ? '<span class="sb apv"><span class="sd"></span>Aktif</span>'
+      : '<span class="sb rej"><span class="sd"></span>Nonaktif</span>';
+    var editBtn = '<button onclick="openMM(\''+tab+'\',\''+r.id+'\')" class="btn btn-o bsm" style="font-size:11px">Edit</button>';
+    var togBtn  = ak
+      ? '<button onclick="toggleAktif(\''+tab+'\',\''+r.id+'\',true)" class="btn bsm" style="font-size:11px;color:var(--red);border:1.5px solid var(--red);background:white;border-radius:var(--rsm);cursor:pointer;font-family:inherit">Nonaktifkan</button>'
+      : '<button onclick="toggleAktif(\''+tab+'\',\''+r.id+'\',false)" class="btn bsm" style="font-size:11px;color:var(--teal);border:1.5px solid var(--teal);background:white;border-radius:var(--rsm);cursor:pointer;font-family:inherit">Aktifkan</button>';
+    var acts = '<div style="display:flex;gap:4px">'+editBtn+togBtn+'</div>';
+
+    if (tab === "entitas") {
+      return '<tr><td style="color:var(--g500)">'+(i+1)+'</td><td>'+eA(r.Company||"")+'</td><td style="text-align:center">'+eA(r.CompanyCode||"")+'</td><td>'+eA(r.Client||"")+'</td><td style="font-size:12px">'+eA((r.Project||"").slice(0,35))+((r.Project||"").length>35?"...":"")+'</td><td>'+badge+'</td><td>'+acts+'</td></tr>';
+    } else if (tab === "barang") {
+      var hg = r.HargaEstimasi ? "Rp "+parseInt(r.HargaEstimasi).toLocaleString("id-ID") : "-";
+      return '<tr><td style="color:var(--g500)">'+(i+1)+'</td><td>'+eA(r.NamaBarang||"")+'</td><td>'+eA(r.KategoriBarang||"")+'</td><td>'+eA(r.Subkategori||"")+'</td><td style="text-align:center">'+eA(r.Satuan||"")+'</td><td style="text-align:right;font-weight:500">'+hg+'</td><td>'+badge+'</td><td>'+acts+'</td></tr>';
+    } else {
+      return '<tr><td style="color:var(--g500)">'+(i+1)+'</td><td>'+eA(r.NamaVendor||"")+'</td><td>'+eA(r.Kategori||"")+'</td><td>'+eA(r.DomisiliVendor||"")+'</td><td>'+eA(r.PICVendor||"")+'</td><td>'+eA(r.NoTelpon||"")+'</td><td>'+badge+'</td><td>'+acts+'</td></tr>';
+    }
+  });
+  tbody.innerHTML = rows.join("");
+}
+
+function mf2(id, label, val, req, type) {
+  type = type || "text";
+  return '<div class="mfield"><label>'+label+(req?' <span class="rq">*</span>':'')+'</label>'+
+         '<input type="'+type+'" id="'+id+'" value="'+eA(val||"")+'" placeholder="'+label+'..."></div>';
+}
+
+function openMM(tab, id) {
+  mmTab = tab; mmEditId = id || null;
+  var isEdit = !!id;
+  var r = id ? (mData[tab]||[]).filter(function(x){ return x.id===id; })[0] : {};
+  if (!r) r = {};
+
+  document.getElementById("mm-title").textContent = (isEdit?"Edit ":"Tambah ") +
+    (tab==="entitas"?"Entitas":tab==="barang"?"Barang":"Vendor");
+
+  var body = "";
+  if (tab === "entitas") {
+    body = mf2("mm-co","Company",r.Company,true) +
+           mf2("mm-cc","Company Code",r.CompanyCode,true) +
+           mf2("mm-cl","Client",r.Client,true) +
+           '<div class="mfield" style="grid-column:span 2"><label>Project <span class="rq">*</span></label>'+
+           '<input type="text" id="mm-pr" value="'+eA(r.Project||"")+'" placeholder="Nama project..."></div>';
+  } else if (tab === "barang") {
+    body = mf2("mm-nb","Nama Barang",r.NamaBarang,true) +
+           mf2("mm-kb","Kategori",r.KategoriBarang,true) +
+           mf2("mm-sb","Subkategori",r.Subkategori,false) +
+           mf2("mm-st","Satuan",r.Satuan,true) +
+           '<div class="mfield" style="grid-column:span 2"><label>Harga Estimasi (Rp) <span class="rq">*</span></label>'+
+           '<div class="hw"><span class="hp">Rp</span>'+
+           '<input type="text" id="mm-hg" class="hi" value="'+(r.HargaEstimasi?parseInt(r.HargaEstimasi).toLocaleString("id-ID"):"")+'" placeholder="0" oninput="fmtHg(this)"></div></div>';
+  } else {
+    body = mf2("mm-nv","Nama Vendor",r.NamaVendor,true) +
+           mf2("mm-kv","Kategori",r.Kategori,false) +
+           mf2("mm-dv","Domisili Vendor",r.DomisiliVendor,false) +
+           mf2("mm-pv","PIC Vendor",r.PICVendor,false) +
+           mf2("mm-av","Alamat",r.Alamat,false) +
+           mf2("mm-tv","No. Telpon",r.NoTelpon,false);
+  }
+  document.getElementById("mm-body").innerHTML = body;
+  document.getElementById("mm-overlay").classList.add("on");
+}
+
+function closeMM() { document.getElementById("mm-overlay").classList.remove("on"); }
+
+function saveMM() {
+  var fields = {};
+  var tab = mmTab;
+
+  if (tab === "entitas") {
+    fields.Company     = document.getElementById("mm-co").value.trim();
+    fields.CompanyCode = document.getElementById("mm-cc").value.trim();
+    fields.Client      = document.getElementById("mm-cl").value.trim();
+    fields.Project     = document.getElementById("mm-pr").value.trim();
+    if (!fields.Company||!fields.CompanyCode||!fields.Client||!fields.Project) { showToast("Semua field wajib diisi","er"); return; }
+  } else if (tab === "barang") {
+    fields.NamaBarang    = document.getElementById("mm-nb").value.trim();
+    fields.KategoriBarang= document.getElementById("mm-kb").value.trim();
+    fields.Subkategori   = document.getElementById("mm-sb").value.trim();
+    fields.Satuan        = document.getElementById("mm-st").value.trim();
+    fields.HargaEstimasi = parseInt((document.getElementById("mm-hg").value||"").replace(/\D/g,""))||0;
+    if (!fields.NamaBarang||!fields.KategoriBarang||!fields.Satuan) { showToast("Field bertanda * wajib diisi","er"); return; }
+  } else {
+    fields.NamaVendor    = document.getElementById("mm-nv").value.trim();
+    fields.Kategori      = document.getElementById("mm-kv").value.trim();
+    fields.DomisiliVendor= document.getElementById("mm-dv").value.trim();
+    fields.PICVendor     = document.getElementById("mm-pv").value.trim();
+    fields.Alamat        = document.getElementById("mm-av").value.trim();
+    fields.NoTelpon      = document.getElementById("mm-tv").value.trim();
+    if (!fields.NamaVendor) { showToast("Nama Vendor wajib diisi","er"); return; }
+  }
+
+  if (!fields.Title) fields.Title = fields.Company||fields.NamaBarang||fields.NamaVendor||"";
+
+  var promise = mmEditId
+    ? patchItem(ML[tab], mmEditId, fields)
+    : createItem(ML[tab], fields);
+
+  promise.then(function(res) {
+    if (mmEditId) {
+      var idx = mData[tab].findIndex ? mData[tab].findIndex(function(r){ return r.id===mmEditId; }) :
+                mData[tab].map(function(r){ return r.id; }).indexOf(mmEditId);
+      if (idx > -1) Object.assign(mData[tab][idx], fields);
+    } else {
+      var newId = res && res.id ? res.id : "tmp-"+Date.now();
+      var newR  = Object.assign({id: newId, Aktif: true}, fields);
+      mData[tab].push(newR);
+      // Refresh master dropdowns
+      if (tab==="barang") loadMasterBarang();
+      if (tab==="jasa")   loadMasterJasa();
+      if (tab==="entitas") loadMaster().then(populateCos);
+    }
+    renderMT(tab); closeMM();
+    showToast((mmEditId?"Data diperbarui":"Data ditambahkan")+" berhasil!","ok");
+  }).catch(function(e){ showToast("Gagal menyimpan: "+e.message,"er"); });
+}
+
+function toggleAktif(tab, id, currentAktif) {
+  var newVal = !currentAktif;
+  patchItem(ML[tab], id, { Aktif: newVal }).then(function() {
+    var r = (mData[tab]||[]).filter(function(x){ return x.id===id; })[0];
+    if (r) r.Aktif = newVal;
+    renderMT(tab);
+    showToast(newVal ? "Data diaktifkan" : "Data dinonaktifkan", "ok");
+    // Refresh dropdowns
+    if (tab==="barang") loadMasterBarang();
+    if (tab==="jasa")   loadMasterJasa();
+    if (tab==="entitas") loadMaster().then(populateCos);
+  }).catch(function(e){ showToast("Gagal: "+e.message,"er"); });
+}
+
+
 function initApp() {
   gGet("https://graph.microsoft.com/v1.0/me").then(function(me) {
     currentUser = me;
@@ -1494,6 +1964,7 @@ function initApp() {
 
   initDate();
   updateRn();
+  if (amGA()) document.getElementById("nav-master").style.display = "inline-flex";
   document.getElementById("ls").style.display = "none";
   document.getElementById("app").classList.add("on");
 }
