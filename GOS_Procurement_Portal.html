@@ -472,9 +472,10 @@ body{font-family:'Plus Jakarta Sans',-apple-system,sans-serif;background:var(--g
     <!-- MASTER DATA VIEW -->
     <div class="view" id="view-master">
       <div class="mtabs">
-        <button class="mtab on" onclick="switchMTab('entitas')" id="mt-entitas">&#127970; Entitas (Company/Client/Project)</button>
-        <button class="mtab" onclick="switchMTab('barang')" id="mt-barang">&#128230; Master Barang</button>
-        <button class="mtab" onclick="switchMTab('jasa')" id="mt-jasa">&#128101; Master Vendor/Jasa</button>
+        <button class="mtab on" onclick="switchMTab('entitas')" id="mt-entitas">&#127970; Entitas</button>
+        <button class="mtab" onclick="switchMTab('barang')" id="mt-barang">&#128230; Barang</button>
+        <button class="mtab" onclick="switchMTab('jasa')" id="mt-jasa">&#128101; Vendor/Jasa</button>
+        <button class="mtab" onclick="switchMTab('setting')" id="mt-setting">&#9881; Setting Approval</button>
       </div>
 
       <!-- Entitas -->
@@ -527,8 +528,65 @@ body{font-family:'Plus Jakarta Sans',-apple-system,sans-serif;background:var(--g
           <tbody id="mt-jasa-tbody"><tr><td colspan="8" style="text-align:center;padding:24px;color:var(--g500)">–</td></tr></tbody>
         </table></div>
       </div>
-    </div>
+      <!-- Setting Approval -->
+      <div id="msub-setting" style="display:none">
 
+        <!-- L2 Config -->
+        <div style="background:white;border:1px solid var(--border);border-radius:var(--radius);padding:20px 24px;margin-bottom:14px">
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;padding-bottom:10px;border-bottom:1px solid var(--g100)">
+            <div>
+              <div style="font-size:13px;font-weight:600;color:var(--g900)">Konfigurasi L2 Approval</div>
+              <div style="font-size:11px;color:var(--g500);margin-top:2px">Pengajuan di atas nilai threshold wajib mendapat approval L2</div>
+            </div>
+            <button class="btn btn-o bsm" onclick="editL2()">Edit</button>
+          </div>
+          <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:14px" id="l2-display">
+            <div class="fd"><label>Threshold (Rp)</label><input type="text" id="l2-threshold-val" readonly style="background:var(--g50)"></div>
+            <div class="fd"><label>Email L2 Approver</label><input type="text" id="l2-email-val" readonly style="background:var(--g50)"></div>
+            <div class="fd"><label>Nama L2 Approver</label><input type="text" id="l2-name-val" readonly style="background:var(--g50)"></div>
+          </div>
+          <div id="l2-edit" style="display:none;margin-top:12px;padding-top:12px;border-top:1px dashed var(--border)">
+            <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:14px;margin-bottom:12px">
+              <div class="fd"><label>Threshold (Rp) <span class="rq">*</span></label>
+                <div class="hw"><span class="hp">Rp</span><input type="text" id="l2-t-input" class="hi" placeholder="5.000.000" oninput="fmtHg(this)"></div>
+              </div>
+              <div class="fd"><label>Email L2 <span class="rq">*</span></label><input type="text" id="l2-e-input" placeholder="email@gos.co.id"></div>
+              <div class="fd"><label>Nama L2 <span class="rq">*</span></label><input type="text" id="l2-n-input" placeholder="Nama lengkap..."></div>
+            </div>
+            <div style="display:flex;gap:8px;justify-content:flex-end">
+              <button class="btn btn-o bsm" onclick="cancelL2()">Batal</button>
+              <button class="btn btn-p bsm" onclick="saveL2()">Simpan L2</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- L1 Rules -->
+        <div style="background:white;border:1px solid var(--border);border-radius:var(--radius);padding:20px 24px">
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;padding-bottom:10px;border-bottom:1px solid var(--g100)">
+            <div>
+              <div style="font-size:13px;font-weight:600;color:var(--g900)">Rules L1 Approval</div>
+              <div style="font-size:11px;color:var(--g500);margin-top:2px">Tentukan siapa approver untuk setiap pengaju. Gunakan * sebagai default.</div>
+            </div>
+            <button class="btn btn-p bsm" onclick="openRuleModal(null)">+ Tambah Rule</button>
+          </div>
+          <div class="tw">
+            <table class="mtbl">
+              <thead><tr>
+                <th style="width:3%">#</th>
+                <th>Email Pengaju</th>
+                <th>Nama L1 Approver</th>
+                <th>Email L1 Approver</th>
+                <th style="width:9%">Tipe</th>
+                <th style="width:13%">Aksi</th>
+              </tr></thead>
+              <tbody id="rules-tbody">
+                <tr><td colspan="6" style="text-align:center;padding:20px;color:var(--g500)">Memuat...</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
   </main>
 </div>
 
@@ -606,6 +664,37 @@ body{font-family:'Plus Jakarta Sans',-apple-system,sans-serif;background:var(--g
 
 <div class="toast" id="toast"></div>
 
+<!-- RULE MODAL -->
+<div class="mo" id="rule-modal">
+  <div class="md" style="max-width:480px">
+    <div class="mh">
+      <div class="mtt" id="rule-modal-title">Tambah Rule L1</div>
+      <button class="mc" onclick="closeRuleModal()">x</button>
+    </div>
+    <div class="mb">
+      <div style="display:grid;grid-template-columns:1fr;gap:12px">
+        <div class="fd">
+          <label>Email Pengaju <span class="rq">*</span></label>
+          <input type="text" id="rule-submitter" placeholder="email@gos.co.id atau * untuk default">
+          <div style="font-size:11px;color:var(--g500);margin-top:3px">Gunakan <strong>*</strong> sebagai rule default untuk semua pengaju yang tidak terdaftar</div>
+        </div>
+        <div class="fd">
+          <label>Nama L1 Approver <span class="rq">*</span></label>
+          <input type="text" id="rule-l1name" placeholder="Nama lengkap approver...">
+        </div>
+        <div class="fd">
+          <label>Email L1 Approver <span class="rq">*</span></label>
+          <input type="text" id="rule-l1email" placeholder="email.approver@gos.co.id">
+        </div>
+      </div>
+    </div>
+    <div class="mf">
+      <button class="btn btn-o bsm" onclick="closeRuleModal()">Batal</button>
+      <button class="btn btn-p bsm" onclick="saveRule()">Simpan Rule</button>
+    </div>
+  </div>
+</div>
+
 <!-- MASTER DATA MODAL -->
 <div class="mo" id="mm-overlay">
   <div class="md" style="max-width:560px">
@@ -626,9 +715,9 @@ body{font-family:'Plus Jakarta Sans',-apple-system,sans-serif;background:var(--g
 // CONFIG - ISI SESUAI DATA ANDA
 // =============================================
 var CONFIG = {
-  clientId:      "c87df5fb-eb2f-40bc-8c33-d0c47dedfe10",
-  tenantId:      "c1cc324d-9fda-4a48-97ee-ba6157ba9c67",
-  siteUrl:       "https://gosgroup.sharepoint.com/sites/procurement",
+  clientId:      "ISI_CLIENT_ID_DARI_AZURE",
+  tenantId:      "ISI_TENANT_ID_DARI_AZURE",
+  siteUrl:       "https://DOMAIN.sharepoint.com/sites/NAMA_SITE",
   masterList:    "MasterPengadaan",
   resultList:    "HasilPengajuan",
   approverEmail: "approver@gosgroup.com",
@@ -1745,7 +1834,7 @@ function switchView(v) {
   document.querySelectorAll(".nb").forEach(function(x) { x.classList.remove("on"); });
   document.getElementById("nav-" + v).classList.add("on");
   if (v === "dash")   loadDash();
-  if (v === "master") { switchMTab("entitas"); loadMT("entitas"); }
+  if (v === "master") { mmTab="entitas"; switchMTab("entitas"); }
 }
 
 var toastT = null;
@@ -1758,8 +1847,158 @@ function showToast(msg, type) {
 }
 
 // =============================================
-// MASTER DATA MANAGEMENT
+// APPROVAL CONFIG LOADER FROM SHAREPOINT
 // =============================================
+var apvConfigId = null; // ID of L2Setting record
+var apvRules    = [];   // All rule records
+
+function loadApprovalConfig() {
+  getItems("KonfigurasiApproval").then(function(items) {
+    var records = items.map(function(i){ return Object.assign({id:i.id}, i.fields); });
+
+    // Load L2 setting
+    var l2rec = records.filter(function(r){ return r.TipeKonfigurasi==="L2Setting"; })[0];
+    if (l2rec) {
+      apvConfigId = l2rec.id;
+      APPROVAL_CONFIG.l2Threshold  = parseInt(l2rec.L2Threshold)||5000000;
+      APPROVAL_CONFIG.l2.email     = l2rec.L2Email || APPROVAL_CONFIG.l2.email;
+      APPROVAL_CONFIG.l2.name      = l2rec.L2Name  || APPROVAL_CONFIG.l2.name;
+    }
+
+    // Load L1 rules
+    apvRules = records.filter(function(r){ return r.TipeKonfigurasi==="ApprovalRule"; });
+    if (apvRules.length) {
+      APPROVAL_CONFIG.rules = apvRules.map(function(r){
+        return { submitter: r.SubmitterEmail||"*", l1Email: r.L1Email||"", l1Name: r.L1Name||"" };
+      });
+    }
+  }).catch(function(e){ console.warn("KonfigurasiApproval gagal:", e.message); });
+}
+
+// =============================================
+// SETTINGS UI
+// =============================================
+var l2EditId  = null;
+var ruleEditId = null;
+
+function editL2() {
+  var t = APPROVAL_CONFIG.l2Threshold;
+  document.getElementById("l2-t-input").value = t ? t.toLocaleString("id-ID") : "";
+  document.getElementById("l2-e-input").value = APPROVAL_CONFIG.l2.email;
+  document.getElementById("l2-n-input").value = APPROVAL_CONFIG.l2.name;
+  document.getElementById("l2-edit").style.display = "block";
+}
+function cancelL2() { document.getElementById("l2-edit").style.display = "none"; }
+
+function saveL2() {
+  var t = parseInt((document.getElementById("l2-t-input").value||"").replace(/\D/g,""))||0;
+  var e = document.getElementById("l2-e-input").value.trim();
+  var n = document.getElementById("l2-n-input").value.trim();
+  if (!t||!e||!n) { showToast("Semua field wajib diisi","er"); return; }
+
+  var fields = { Title:"L2Setting", TipeKonfigurasi:"L2Setting", L2Threshold:t, L2Email:e, L2Name:n };
+  var promise = apvConfigId ? patchItem("KonfigurasiApproval", apvConfigId, fields)
+                            : createItem("KonfigurasiApproval", fields);
+  promise.then(function(res){
+    if (!apvConfigId && res && res.id) apvConfigId = res.id;
+    APPROVAL_CONFIG.l2Threshold = t;
+    APPROVAL_CONFIG.l2.email    = e;
+    APPROVAL_CONFIG.l2.name     = n;
+    refreshL2Display();
+    cancelL2();
+    showToast("Konfigurasi L2 disimpan!","ok");
+  }).catch(function(e){ showToast("Gagal: "+e.message,"er"); });
+}
+
+function refreshL2Display() {
+  document.getElementById("l2-threshold-val").value = APPROVAL_CONFIG.l2Threshold.toLocaleString("id-ID");
+  document.getElementById("l2-email-val").value      = APPROVAL_CONFIG.l2.email;
+  document.getElementById("l2-name-val").value       = APPROVAL_CONFIG.l2.name;
+}
+
+function renderRules() {
+  var tbody = document.getElementById("rules-tbody");
+  if (!apvRules.length) {
+    tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;padding:20px;color:var(--g500)">Belum ada rule. Klik "+ Tambah Rule" untuk menambahkan.</td></tr>';
+    return;
+  }
+  // Sort: specific rules first, default (*) last
+  var sorted = apvRules.slice().sort(function(a,b){
+    if ((a.SubmitterEmail||"*")==="*") return 1;
+    if ((b.SubmitterEmail||"*")==="*") return -1;
+    return 0;
+  });
+  tbody.innerHTML = sorted.map(function(r,i){
+    var isDefault = (r.SubmitterEmail||"*") === "*";
+    var badge = isDefault
+      ? '<span class="sb pl2" style="font-size:11px">Default</span>'
+      : '<span class="sb apv" style="font-size:11px">Spesifik</span>';
+    var editBtn = '<button class="btn btn-o bsm" style="font-size:11px" onclick="openRuleModal(\''+r.id+'\')">Edit</button>';
+    var delBtn  = !isDefault
+      ? '<button class="btn bsm" style="font-size:11px;color:var(--red);border:1.5px solid var(--red);background:white;border-radius:var(--rsm);cursor:pointer;font-family:inherit" onclick="deleteRule(\''+r.id+'\')">Hapus</button>'
+      : '';
+    return '<tr>'+
+      '<td style="color:var(--g500)">'+(i+1)+'</td>'+
+      '<td style="font-size:12px">'+(isDefault?'<em style="color:var(--g500)">* (semua lainnya)</em>':eA(r.SubmitterEmail||""))+'</td>'+
+      '<td>'+eA(r.L1Name||"")+'</td>'+
+      '<td style="font-size:12px">'+eA(r.L1Email||"")+'</td>'+
+      '<td>'+badge+'</td>'+
+      '<td><div style="display:flex;gap:4px">'+editBtn+delBtn+'</div></td>'+
+      '</tr>';
+  }).join("");
+}
+
+function openRuleModal(id) {
+  ruleEditId = id;
+  var r = id ? apvRules.filter(function(x){ return x.id===id; })[0] : {};
+  if (!r) r = {};
+  document.getElementById("rule-modal-title").textContent = id ? "Edit Rule L1" : "Tambah Rule L1";
+  document.getElementById("rule-submitter").value = r.SubmitterEmail || "";
+  document.getElementById("rule-l1name").value    = r.L1Name         || "";
+  document.getElementById("rule-l1email").value   = r.L1Email        || "";
+  document.getElementById("rule-modal").classList.add("on");
+}
+function closeRuleModal() { document.getElementById("rule-modal").classList.remove("on"); }
+
+function saveRule() {
+  var sub  = document.getElementById("rule-submitter").value.trim();
+  var l1n  = document.getElementById("rule-l1name").value.trim();
+  var l1e  = document.getElementById("rule-l1email").value.trim();
+  if (!sub||!l1n||!l1e) { showToast("Semua field wajib diisi","er"); return; }
+
+  var fields = { Title:sub, TipeKonfigurasi:"ApprovalRule", SubmitterEmail:sub, L1Name:l1n, L1Email:l1e };
+  var promise = ruleEditId ? patchItem("KonfigurasiApproval", ruleEditId, fields)
+                           : createItem("KonfigurasiApproval", fields);
+  promise.then(function(res){
+    if (ruleEditId) {
+      var r = apvRules.filter(function(x){ return x.id===ruleEditId; })[0];
+      if (r) Object.assign(r, fields);
+    } else {
+      var newId = res && res.id ? res.id : "tmp-"+Date.now();
+      apvRules.push(Object.assign({id:newId}, fields));
+    }
+    // Update APPROVAL_CONFIG in memory
+    APPROVAL_CONFIG.rules = apvRules.map(function(r){
+      return { submitter: r.SubmitterEmail||"*", l1Email: r.L1Email||"", l1Name: r.L1Name||"" };
+    });
+    renderRules(); closeRuleModal();
+    showToast((ruleEditId?"Rule diperbarui":"Rule ditambahkan")+"!","ok");
+  }).catch(function(e){ showToast("Gagal: "+e.message,"er"); });
+}
+
+function deleteRule(id) {
+  if (!confirm("Hapus rule ini?")) return;
+  patchItem("KonfigurasiApproval", id, { TipeKonfigurasi:"Deleted" }).then(function(){
+    apvRules = apvRules.filter(function(r){ return r.id!==id; });
+    APPROVAL_CONFIG.rules = apvRules.map(function(r){
+      return { submitter: r.SubmitterEmail||"*", l1Email: r.L1Email||"", l1Name: r.L1Name||"" };
+    });
+    renderRules();
+    showToast("Rule dihapus","ok");
+  }).catch(function(e){ showToast("Gagal: "+e.message,"er"); });
+}
+
+
 var mData = { entitas: [], barang: [], jasa: [] };
 var mmTab = "entitas";
 var mmEditId = null;
@@ -1772,11 +2011,17 @@ var ML = {
 
 function switchMTab(tab) {
   mmTab = tab;
-  ["entitas","barang","jasa"].forEach(function(t) {
+  ["entitas","barang","jasa","setting"].forEach(function(t) {
     document.getElementById("msub-"+t).style.display = t===tab ? "block" : "none";
     document.getElementById("mt-"+t).classList.toggle("on", t===tab);
   });
-  if (!mData[tab].length) loadMT(tab);
+  if (tab === "setting") {
+    refreshL2Display();
+    renderRules();
+    if (!apvRules.length) loadApprovalConfig().then(function(){
+      refreshL2Display(); renderRules();
+    });
+  } else if (!mData[tab].length) loadMT(tab);
 }
 
 function loadMT(tab) {
@@ -1953,6 +2198,8 @@ function initApp() {
     var ini = (me.displayName || "?").split(" ").map(function(w) { return w[0]; }).join("").slice(0,2).toUpperCase();
     document.getElementById("av").textContent = ini;
     document.getElementById("un").textContent = me.displayName || me.userPrincipalName;
+    if (amGA()) document.getElementById("nav-master").style.display = "inline-flex";
+    loadApprovalConfig();
   }).catch(function(e) { console.warn("Profil gagal:", e); });
 
   loadMaster().then(function() {
@@ -1964,7 +2211,6 @@ function initApp() {
 
   initDate();
   updateRn();
-  if (amGA()) document.getElementById("nav-master").style.display = "inline-flex";
   document.getElementById("ls").style.display = "none";
   document.getElementById("app").classList.add("on");
 }
