@@ -734,9 +734,9 @@ body{font-family:'Plus Jakarta Sans',-apple-system,sans-serif;background:var(--g
 // CONFIG - ISI SESUAI DATA ANDA
 // =============================================
 var CONFIG = {
-  clientId:      "c87df5fb-eb2f-40bc-8c33-d0c47dedfe10",
-  tenantId:      "c1cc324d-9fda-4a48-97ee-ba6157ba9c67",
-  siteUrl:       "https://gosgroup.sharepoint.com/sites/procurement",
+  clientId:      "ISI_CLIENT_ID_DARI_AZURE",
+  tenantId:      "ISI_TENANT_ID_DARI_AZURE",
+  siteUrl:       "https://DOMAIN.sharepoint.com/sites/NAMA_SITE",
   masterList:    "MasterPengadaan",
   resultList:    "HasilPengajuan",
   approverEmail: "approver@gosgroup.com",
@@ -748,8 +748,7 @@ var CONFIG = {
 // =============================================
 var APPROVERS = [
   "muhamad.parid@gos.co.id",
-  "toro.sod@gos.co.id",
-  "yayat.hidayat@gos.co.id"
+  "toro.sod@gos.co.id"
 ];
 
 // =============================================
@@ -2203,17 +2202,23 @@ function toggleAktif(tab, id, currentAktif) {
 function hasAccess() {
   var email = myEmail();
   if (!email) return false;
+  // GA selalu bisa masuk
   if (amGA()) return true;
+  // Kalau rules belum di-load / kosong, tolak semua selain GA
+  if (APPROVAL_CONFIG.rules.length === 0) return false;
+  // L2 approver bisa masuk
   if (amL2()) return true;
+  // L1 approver bisa masuk
   if (amL1()) return true;
+  // Cek apakah email terdaftar sebagai submitter
   var explicit = APPROVAL_CONFIG.rules.some(function(r) {
     return r.submitter.toLowerCase() === email;
   });
   if (explicit) return true;
-  var hasDefault = APPROVAL_CONFIG.rules.some(function(r) {
+  // Cek rule default (*)
+  return APPROVAL_CONFIG.rules.some(function(r) {
     return r.submitter === "*";
   });
-  return hasDefault;
 }
 
 function showAccessDenied() {
