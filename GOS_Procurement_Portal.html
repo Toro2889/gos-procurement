@@ -243,6 +243,25 @@ body{font-family:'Plus Jakarta Sans',-apple-system,sans-serif;background:var(--g
   </div>
 </div>
 
+<!-- ACCESS DENIED SCREEN -->
+<div id="no-access" style="display:none;align-items:center;justify-content:center;min-height:100vh;background:linear-gradient(135deg,var(--navy-dk),var(--navy) 50%,#1565A8)">
+  <div class="lc" style="text-align:center">
+    <div style="width:64px;height:64px;background:#FDEDEC;border-radius:50%;display:flex;align-items:center;justify-content:center;margin:0 auto 20px;font-size:28px">&#128274;</div>
+    <div class="lt" style="color:var(--red)">Akses Ditolak</div>
+    <div class="ls2" style="margin-bottom:24px">
+      Akun Anda tidak memiliki akses ke halaman ini.<br>
+      Hubungi Admin untuk mendapatkan akses.
+    </div>
+    <div style="background:var(--g50);border-radius:8px;padding:12px 16px;margin-bottom:20px;font-size:13px;color:var(--g700)">
+      <span id="denied-email" style="font-weight:600"></span>
+    </div>
+    <button class="lb" style="background:var(--red)" onclick="signOut()">
+      Keluar
+    </button>
+    <div class="ln">Jika Anda merasa ini adalah kesalahan,<br>minta Admin untuk menambahkan akun Anda di menu Setting Approval.</div>
+  </div>
+</div>
+
 <div id="app">
   <header class="hd">
     <div class="hb">
@@ -715,9 +734,9 @@ body{font-family:'Plus Jakarta Sans',-apple-system,sans-serif;background:var(--g
 // CONFIG - ISI SESUAI DATA ANDA
 // =============================================
 var CONFIG = {
-  clientId:      "c87df5fb-eb2f-40bc-8c33-d0c47dedfe10",
-  tenantId:      "c1cc324d-9fda-4a48-97ee-ba6157ba9c67",
-  siteUrl:       "https://gosgroup.sharepoint.com/sites/procurement",
+  clientId:      "ISI_CLIENT_ID_DARI_AZURE",
+  tenantId:      "ISI_TENANT_ID_DARI_AZURE",
+  siteUrl:       "https://DOMAIN.sharepoint.com/sites/NAMA_SITE",
   masterList:    "MasterPengadaan",
   resultList:    "HasilPengajuan",
   approverEmail: "approver@gosgroup.com",
@@ -730,7 +749,6 @@ var CONFIG = {
 var APPROVERS = [
   "muhamad.parid@gos.co.id",
   "toro.sod@gos.co.id"
-  "yayat.hidayat@gos.co.id"
 ];
 
 // =============================================
@@ -1854,10 +1872,9 @@ var apvConfigId = null; // ID of L2Setting record
 var apvRules    = [];   // All rule records
 
 function loadApprovalConfig() {
-  getItems("KonfigurasiApproval").then(function(items) {
+  return getItems("KonfigurasiApproval").then(function(items) {
     var records = items.map(function(i){ return Object.assign({id:i.id}, i.fields); });
 
-    // Load L2 setting
     var l2rec = records.filter(function(r){ return r.TipeKonfigurasi==="L2Setting"; })[0];
     if (l2rec) {
       apvConfigId = l2rec.id;
@@ -1866,7 +1883,6 @@ function loadApprovalConfig() {
       APPROVAL_CONFIG.l2.name      = l2rec.L2Name  || APPROVAL_CONFIG.l2.name;
     }
 
-    // Load L1 rules
     apvRules = records.filter(function(r){ return r.TipeKonfigurasi==="ApprovalRule"; });
     if (apvRules.length) {
       APPROVAL_CONFIG.rules = apvRules.map(function(r){
@@ -2193,27 +2209,52 @@ function toggleAktif(tab, id, currentAktif) {
 }
 
 
+function hasAccess() {
+  var email = myEmail();
+  if (!email) return false;
+  if (amGA()) return true;
+  if (amL2()) return true;
+  if (amL1()) return true;
+  var explicit = APPROVAL_CONFIG.rules.some(function(r) {
+    return r.submitter.toLowerCase() === email;
+  });
+  if (explicit) return true;
+  var hasDefault = APPROVAL_CONFIG.rules.some(function(r) {
+    return r.submitter === "*";
+  });
+  return hasDefault;
+}
+
+function showAccessDenied() {
+  document.getElementById("denied-email").textContent = myEmail();
+  document.getElementById("ls").style.display = "none";
+  document.getElementById("no-access").style.display = "flex";
+}
+
 function initApp() {
   gGet("https://graph.microsoft.com/v1.0/me").then(function(me) {
     currentUser = me;
-    var ini = (me.displayName || "?").split(" ").map(function(w) { return w[0]; }).join("").slice(0,2).toUpperCase();
+    return loadApprovalConfig();
+  }).then(function() {
+    if (!hasAccess()) { showAccessDenied(); return; }
+    var me = currentUser;
+    var ini = (me.displayName||"?").split(" ").map(function(w){ return w[0]; }).join("").slice(0,2).toUpperCase();
     document.getElementById("av").textContent = ini;
-    document.getElementById("un").textContent = me.displayName || me.userPrincipalName;
+    document.getElementById("un").textContent  = me.displayName || me.userPrincipalName;
     if (amGA()) document.getElementById("nav-master").style.display = "inline-flex";
-    loadApprovalConfig();
-  }).catch(function(e) { console.warn("Profil gagal:", e); });
-
-  loadMaster().then(function() {
-    populateCos();
-    loadMasterBarang();
-    loadMasterJasa();
-    return autoSeq();
-  }).catch(function(e) { showToast("Master data gagal: " + e.message, "er"); });
-
-  initDate();
-  updateRn();
-  document.getElementById("ls").style.display = "none";
-  document.getElementById("app").classList.add("on");
+    loadMaster().then(function() {
+      populateCos();
+      loadMasterBarang();
+      loadMasterJasa();
+      return autoSeq();
+    }).catch(function(e){ showToast("Master data gagal: "+e.message,"er"); });
+    initDate(); updateRn();
+    document.getElementById("ls").style.display = "none";
+    document.getElementById("app").classList.add("on");
+  }).catch(function(e) {
+    console.warn("Init gagal:", e);
+    showToast("Gagal: "+e.message,"er");
+  });
 }
 
 // Safe init - no async at top level
