@@ -766,12 +766,12 @@ body{font-family:'Plus Jakarta Sans',-apple-system,sans-serif;background:var(--g
 // CONFIG - ISI SESUAI DATA ANDA
 // =============================================
 var CONFIG = {
-  clientId:      "c87df5fb-eb2f-40bc-8c33-d0c47dedfe10",
-  tenantId:      "c1cc324d-9fda-4a48-97ee-ba6157ba9c67",
-  siteUrl:       "https://gosgroup.sharepoint.com/sites/procurement",
+  clientId:      "ISI_CLIENT_ID_DARI_AZURE",
+  tenantId:      "ISI_TENANT_ID_DARI_AZURE",
+  siteUrl:       "https://DOMAIN.sharepoint.com/sites/NAMA_SITE",
   masterList:    "MasterPengadaan",
   resultList:    "HasilPengajuan",
-  approverEmail: "muhamad.parid@gos.co.id",
+  approverEmail: "approver@gosgroup.com",
   redirectUri:   window.location.origin + window.location.pathname
 };
 
@@ -780,8 +780,7 @@ var CONFIG = {
 // =============================================
 var APPROVERS = [
   "muhamad.parid@gos.co.id",
-  "toro.sod@gos.co.id",
-  "yayat.hidayat@gos.co.id"
+  "toro.sod@gos.co.id"
 ];
 
 // =============================================
@@ -861,7 +860,12 @@ function signIn() {
     _msal.setActiveAccount(r.account);
     initApp();
   }).catch(function(e) {
-    showToast("Login gagal: " + (e.message || e), "er");
+    // Fallback ke redirect jika popup diblokir (email iframe, browser setting, dll)
+    if (e.errorCode === "popup_window_error" || e.errorCode === "empty_window_error") {
+      _msal.loginRedirect({ scopes: SCOPES });
+    } else {
+      showToast("Login gagal: " + (e.message || e), "er");
+    }
   });
 }
 
@@ -1661,9 +1665,9 @@ function emailDetail(item, data) {
 
 function actionBtn(url, label, color) {
   return "<div style='margin:20px 0 6px;text-align:center'>" +
-    "<a href='" + url + "' style='display:inline-block;padding:13px 32px;background:" + color + ";color:white;border-radius:8px;text-decoration:none;font-family:Arial;font-size:15px;font-weight:bold;letter-spacing:.3px'>" +
+    "<a href='" + url + "' target='_blank' rel='noopener noreferrer' style='display:inline-block;padding:13px 32px;background:" + color + ";color:white;border-radius:8px;text-decoration:none;font-family:Arial;font-size:15px;font-weight:bold;letter-spacing:.3px'>" +
     label + " &rarr;</a></div>" +
-    "<p style='text-align:center;font-size:11px;color:#bbb;margin:4px 0 0;font-family:Arial'>atau buka: <a href='" + url + "' style='color:#bbb'>" + url + "</a></p>";
+    "<p style='text-align:center;font-size:11px;color:#bbb;margin:4px 0 0;font-family:Arial'>atau buka: <a href='" + url + "' target='_blank' style='color:#bbb'>" + url + "</a></p>";
 }
 
 function emailWrap(accentColor, icon, title, sub, bodyHtml) {
@@ -2518,6 +2522,14 @@ function initApp() {
 // Safe init - no async at top level
 window.onload = function() {
   initMsal().then(function() {
+    // Handle redirect response (fallback dari loginRedirect saat popup diblokir)
+    return _msal.handleRedirectPromise();
+  }).then(function(r) {
+    if (r && r.account) {
+      _msal.setActiveAccount(r.account);
+      initApp();
+      return;
+    }
     var accs = _msal.getAllAccounts();
     if (accs.length > 0) {
       _msal.setActiveAccount(accs[0]);
