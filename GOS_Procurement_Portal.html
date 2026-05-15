@@ -130,7 +130,7 @@ body{font-family:'Plus Jakarta Sans',-apple-system,sans-serif;background:var(--g
 .sdd-input{width:100%;border:1.5px solid var(--border);border-radius:var(--rsm);padding:8px 32px 8px 11px;font-family:inherit;font-size:13px;color:var(--g900);background:white;outline:none;transition:border-color .15s;cursor:pointer}
 .sdd-input:focus{border-color:var(--navy);box-shadow:0 0 0 3px rgba(11,79,126,.08)}
 .sdd-input.open{border-radius:var(--rsm) var(--rsm) 0 0;border-color:var(--navy);border-bottom-color:transparent}
-.sdd-input:disabled{background:var(--g50);color:var(--g500);cursor:not-allowed}
+.sdd-input:disabled{background:white;color:var(--g500);cursor:default;border-color:var(--border)}
 .sdd-list{display:none;position:absolute;top:100%;left:0;right:0;background:white;border:1.5px solid var(--navy);border-top:none;border-radius:0 0 var(--rsm) var(--rsm);max-height:240px;overflow:hidden;z-index:500;box-shadow:0 4px 12px rgba(11,79,126,.12)}
 .sdd-search{width:100%;border:none;border-bottom:1px solid var(--border);padding:7px 11px;font-family:inherit;font-size:12px;outline:none;background:var(--g50)}
 .sdd-options{max-height:195px;overflow-y:auto}
@@ -769,9 +769,9 @@ body{font-family:'Plus Jakarta Sans',-apple-system,sans-serif;background:var(--g
 // CONFIG - ISI SESUAI DATA ANDA
 // =============================================
 var CONFIG = {
-  clientId:      "c87df5fb-eb2f-40bc-8c33-d0c47dedfe10",
-  tenantId:      "c1cc324d-9fda-4a48-97ee-ba6157ba9c67",
-  siteUrl:       "https://gosgroup.sharepoint.com/sites/procurement",
+  clientId:      "ISI_CLIENT_ID_DARI_AZURE",
+  tenantId:      "ISI_TENANT_ID_DARI_AZURE",
+  siteUrl:       "https://DOMAIN.sharepoint.com/sites/NAMA_SITE",
   masterList:    "MasterPengadaan",
   resultList:    "HasilPengajuan",
   approverEmail: "approver@gosgroup.com",
@@ -783,8 +783,7 @@ var CONFIG = {
 // =============================================
 var APPROVERS = [
   "muhamad.parid@gos.co.id",
-  "toro.sod@gos.co.id",
-  "yayat.hidayat@gos.co.id"
+  "toro.sod@gos.co.id"
 ];
 
 // =============================================
@@ -1235,10 +1234,12 @@ function submitForm() {
       Status:           "Pending L1",
       SubmittedBy:      currentUser ? currentUser.displayName : "",
       L1ApproverEmail:  l1rule ? l1rule.l1Email : "",
-      L1ApproverName:   l1rule ? l1rule.l1Name  : "",
-      L2ApproverEmail:  l1rule ? (l1rule.l2Email||"") : "",
-      L2ApproverName:   l1rule ? (l1rule.l2Name||"")  : ""
+      L1ApproverName:   l1rule ? l1rule.l1Name  : ""
     };
+    if (l1rule && l1rule.l2Email) {
+      fields.L2ApproverEmail = l1rule.l2Email;
+      fields.L2ApproverName  = l1rule.l2Name || "";
+    }
     var itemJson = getItemsJSON();
     if (itemJson) fields.DetailItem = itemJson;
     return createItem(CONFIG.resultList, fields);
@@ -1256,7 +1257,9 @@ function submitForm() {
       tj: document.getElementById("f-tj").value,
       jp: jp ? jp.value : "",
       hg: hg, to: l1Email,
-      submitter: currentUser ? currentUser.displayName : ""
+      l1Name: l1rule ? l1rule.l1Name : "",
+      submitter: currentUser ? currentUser.displayName : "",
+      itemId: newItemId
     });
     showToast("Pengajuan " + rn + " berhasil dikirim!", "ok");
     resetForm();
@@ -1618,39 +1621,109 @@ function onStatusChange() {
 // =============================================
 // EMAIL NOTIFICATIONS
 // =============================================
+function deepLink(id) {
+  return (window.location.origin + window.location.pathname) + (id ? "?item=" + id : "");
+}
+
+function emailDocLinks(dokStr) {
+  if (!dokStr) return "";
+  try {
+    var files = JSON.parse(dokStr);
+    if (!files.length) return "";
+    return "<div style='margin:10px 0 0;padding:10px;background:#f8f9fa;border-radius:6px'>" +
+      "<p style='margin:0 0 6px;font-size:12px;color:#666;font-weight:bold'>&#128206; Dokumen Pendukung:</p>" +
+      files.map(function(f){ return "<a href='" + f.url + "' style='display:block;color:#0B4F7E;font-size:13px;margin:2px 0'>&#8594; " + f.name + "</a>"; }).join("") +
+      "</div>";
+  } catch(e) { return ""; }
+}
+
+function emailDetail(item, data) {
+  var hg = "Rp " + (parseInt(item.EstimasiHarga || data.hg || 0)).toLocaleString("id-ID");
+  var rows = [
+    ["Company",        item.Company        || data.co || "-"],
+    ["Client",         item.Client         || data.cl || "-"],
+    ["Project",        item.Project        || data.pr || "-"],
+    ["Jenis",          (item.JenisProduk   || data.jp || "-") + " / " + (item.JenisPengadaan || "")],
+    ["Tujuan",         item.TujuanPermintaan || data.tj || "-"],
+    ["Estimasi Harga", "<strong style='color:#0B4F7E'>" + hg + "</strong>"],
+    ["Diajukan Oleh",  item.SubmittedBy    || data.submitter || "-"],
+    ["Tanggal",        item.TanggalPengajuan ? item.TanggalPengajuan.split("T")[0].split("-").reverse().join("/") : "-"]
+  ];
+  return "<table style='width:100%;border-collapse:collapse;font-size:13px;font-family:Arial;margin-top:10px'>" +
+    rows.map(function(r, i){
+      return "<tr style='background:" + (i%2===0?"white":"#f8f9fa") + "'>" +
+        "<td style='padding:7px 14px;color:#888;width:35%'>" + r[0] + "</td>" +
+        "<td style='padding:7px 14px;color:#333'>" + r[1] + "</td></tr>";
+    }).join("") + "</table>";
+}
+
+function actionBtn(url, label, color) {
+  return "<div style='margin:20px 0 6px;text-align:center'>" +
+    "<a href='" + url + "' style='display:inline-block;padding:13px 32px;background:" + color + ";color:white;border-radius:8px;text-decoration:none;font-family:Arial;font-size:15px;font-weight:bold;letter-spacing:.3px'>" +
+    label + " &rarr;</a></div>" +
+    "<p style='text-align:center;font-size:11px;color:#bbb;margin:4px 0 0;font-family:Arial'>atau buka: <a href='" + url + "' style='color:#bbb'>" + url + "</a></p>";
+}
+
+function emailWrap(accentColor, icon, title, sub, bodyHtml) {
+  return "<div style='max-width:600px;margin:0 auto;font-family:Arial'>" +
+    "<div style='background:" + accentColor + ";padding:18px 24px;border-radius:10px 10px 0 0'>" +
+    "<h2 style='color:white;margin:0;font-size:17px'>&#127970; GOS Group &mdash; Procurement Portal</h2>" +
+    "<p style='color:rgba(255,255,255,.75);margin:3px 0 0;font-size:12px'>Notifikasi Pengajuan Pengadaan</p></div>" +
+    "<div style='background:white;border:1px solid #e2e6ea;border-top:none;border-radius:0 0 10px 10px;padding:24px'>" +
+    "<h3 style='color:" + accentColor + ";margin:0 0 6px;font-size:16px'>" + icon + " " + title + "</h3>" +
+    "<p style='color:#666;font-size:13px;margin:0 0 12px'>" + sub + "</p>" +
+    bodyHtml +
+    "<hr style='border:none;border-top:1px solid #eee;margin:20px 0'>" +
+    "<p style='font-size:11px;color:#bbb;margin:0'>Pesan ini dikirim otomatis dari GOS Procurement Portal. Jangan balas email ini.</p>" +
+    "</div></div>";
+}
+
 function sendNotif(type, rn, data) {
   var to   = data.to || CONFIG.approverEmail;
   var item = data.item || {};
-  var hgFmt = "Rp " + (parseInt(data.hg||item.EstimasiHarga||0)).toLocaleString("id-ID");
+  var id   = data.itemId || item.id || "";
+  var url  = deepLink(id);
+  var docs = emailDocLinks(item.DokumenPendukung || "");
+  var detail = emailDetail(item, data);
   var subject = "", body = "";
 
   if (type === "new") {
-    subject = "[Pengajuan Baru] " + rn + " - Menunggu Approval Anda";
-    body = "<h3 style='color:#D68910'>Pengajuan Baru Menunggu Approval L1</h3>" +
-      "<table style='border-collapse:collapse;font-size:14px;font-family:Arial'>" +
-      "<tr><td style='padding:6px 12px;color:#666'>Nomor</td><td style='padding:6px 12px;font-weight:bold;color:#0B4F7E'>" + rn + "</td></tr>" +
-      "<tr><td style='padding:6px 12px;color:#666'>Company</td><td>" + (data.co||"") + "</td></tr>" +
-      "<tr><td style='padding:6px 12px;color:#666'>Estimasi</td><td style='font-weight:bold'>" + hgFmt + "</td></tr>" +
-      "<tr><td style='padding:6px 12px;color:#666'>Diajukan</td><td>" + (data.submitter||"") + "</td></tr></table>" +
-      "<p style='color:#666;margin-top:12px'>Buka portal untuk mereview dan memberikan approval.</p>";
-    // Also notify submitter
-    var uEmail = currentUser ? currentUser.userPrincipalName : null;
-    if (uEmail) gPost("https://graph.microsoft.com/v1.0/me/sendMail",{message:{subject:"[Terkirim] Pengajuan "+rn+" menunggu approval",body:{contentType:"HTML",content:"<p>Pengajuan <strong>"+rn+"</strong> Anda telah dikirim dan sedang menunggu approval dari <strong>"+(data.l1Name||"atasan")+"</strong>.</p>"},toRecipients:[{emailAddress:{address:uEmail}}]},saveToSentItems:false}).catch(function(){});
+    subject = "[Approval L1] " + rn + " — Menunggu Persetujuan Anda";
+    body = emailWrap("#D68910", "&#9888;", "Pengajuan Baru Perlu Approval L1 Anda",
+      "Pengajuan berikut telah dikirim dan menunggu persetujuan Anda.",
+      "<p style='background:#FEF9E7;border-left:4px solid #D68910;padding:10px 14px;border-radius:4px;font-size:13px;color:#666;margin:0 0 10px'>" +
+      "Nomor: <strong style='color:#0B4F7E;font-family:monospace'>" + rn + "</strong></p>" +
+      detail + docs + actionBtn(url, "Buka &amp; Berikan Approval", "#D68910"));
+
+    var me = currentUser ? currentUser.userPrincipalName : null;
+    if (me) {
+      var bs = emailWrap("#1A8C6E","&#10003;","Pengajuan Berhasil Dikirim",
+        "Pengajuan Anda sedang menunggu approval dari <strong>" + (data.l1Name||"atasan") + "</strong>.",
+        detail + docs);
+      gPost("https://graph.microsoft.com/v1.0/me/sendMail",{
+        message:{subject:"[Terkirim] "+rn,body:{contentType:"HTML",content:bs},
+        toRecipients:[{emailAddress:{address:me}}]},saveToSentItems:false}).catch(function(){});
+    }
+
   } else if (type === "l2-needed") {
-    subject = "[Approval L2] " + rn + " - Menunggu Persetujuan Anda";
-    body = "<h3 style='color:#7B4FBF'>Pengajuan Memerlukan Approval Final L2</h3>" +
-      "<p>Pengajuan <strong>" + rn + "</strong> telah disetujui L1 dan memerlukan approval L2 karena estimasi melebihi Rp " + APPROVAL_CONFIG.l2Threshold.toLocaleString("id-ID") + ".</p>" +
-      "<p style='font-weight:bold;color:#0B4F7E'>Estimasi: " + "Rp " + (parseInt(item.EstimasiHarga||0)).toLocaleString("id-ID") + "</p>" +
-      "<p style='color:#666;margin-top:12px'>Buka portal untuk memberikan approval.</p>";
+    subject = "[Approval L2] " + rn + " — Nilai Melebihi Threshold";
+    body = emailWrap("#7B4FBF","&#128274;","Pengajuan Memerlukan Approval L2 Anda",
+      "Pengajuan telah disetujui L1 dan memerlukan approval final karena nilai melebihi Rp " +
+      APPROVAL_CONFIG.l2Threshold.toLocaleString("id-ID") + ".",
+      detail + docs + actionBtn(url, "Buka &amp; Berikan Approval L2", "#7B4FBF"));
+
   } else if (type === "ready-ga") {
-    subject = "[Siap Diproses] " + rn;
-    body = "<h3 style='color:#1A8C6E'>Pengajuan Siap Diproses GA</h3>" +
-      "<p>Pengajuan <strong>" + rn + "</strong> telah mendapat semua approval dan siap diproses.</p>";
+    subject = "[Siap Diproses] " + rn + " — Semua Approval Selesai";
+    body = emailWrap("#1A8C6E","&#10003;","Pengajuan Siap Diproses GA",
+      "Semua approval telah diberikan. Silakan proses pengajuan berikut.",
+      detail + docs + actionBtn(url, "Buka &amp; Proses di Portal", "#1A8C6E"));
+
   } else if (type === "rejected") {
-    subject = "[Ditolak] Pengajuan " + rn;
-    body = "<h3 style='color:#C0392B'>Pengajuan Anda Ditolak</h3>" +
-      "<p>Pengajuan <strong>" + rn + "</strong> ditolak oleh Approver " + (data.level||"").toUpperCase() + ".</p>" +
-      (data.notes ? "<p style='background:#fdedec;padding:10px;border-radius:6px;color:#C0392B'><strong>Catatan:</strong> " + data.notes + "</p>" : "");
+    subject = "[Ditolak] " + rn;
+    body = emailWrap("#C0392B","&#10007;","Pengajuan Anda Ditolak",
+      "Pengajuan ditolak oleh Approver " + (data.level||"").toUpperCase() + ".",
+      (data.notes ? "<div style='background:#fdedec;border-left:4px solid #C0392B;padding:10px 14px;border-radius:4px;margin-bottom:10px'><strong style='color:#C0392B'>Alasan:</strong> <span style='color:#666'>" + data.notes + "</span></div>" : "") +
+      detail + docs + actionBtn(url, "Lihat Detail di Portal", "#C0392B"));
   }
 
   gPost("https://graph.microsoft.com/v1.0/me/sendMail", {
@@ -2419,6 +2492,16 @@ function initApp() {
     initDate(); updateRn();
     document.getElementById("ls").style.display = "none";
     document.getElementById("app").classList.add("on");
+
+    // Deep link: auto-open item dari URL parameter ?item=ID
+    var urlParams = new URLSearchParams(window.location.search);
+    var deepLinkId = urlParams.get("item");
+    if (deepLinkId) {
+      switchView("dash");
+      loadDash().then ? loadDash().then(function() {
+        setTimeout(function() { openMo(deepLinkId); }, 500);
+      }) : setTimeout(function() { openMo(deepLinkId); }, 1500);
+    }
   }).catch(function(e) {
     console.warn("Init gagal:", e);
     showToast("Gagal: "+e.message,"er");
