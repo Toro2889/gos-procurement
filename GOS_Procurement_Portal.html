@@ -126,6 +126,17 @@ body{font-family:'Plus Jakarta Sans',-apple-system,sans-serif;background:var(--g
 .mfield input,.mfield select{border:1.5px solid var(--border);border-radius:var(--rsm);padding:8px 11px;font-family:inherit;font-size:13px;outline:none;width:100%}
 .mfield input:focus,.mfield select:focus{border-color:var(--navy)}
 .btn-outline{background:white;border-color:var(--border);color:var(--g700)}
+.sdd{position:relative}
+.sdd-input{width:100%;border:1.5px solid var(--border);border-radius:var(--rsm);padding:8px 32px 8px 11px;font-family:inherit;font-size:13px;color:var(--g900);background:white;outline:none;transition:border-color .15s;cursor:pointer}
+.sdd-input:focus{border-color:var(--navy);box-shadow:0 0 0 3px rgba(11,79,126,.08)}
+.sdd-input.open{border-radius:var(--rsm) var(--rsm) 0 0;border-color:var(--navy);border-bottom-color:transparent}
+.sdd-input:disabled{background:var(--g50);color:var(--g500);cursor:not-allowed}
+.sdd-list{display:none;position:absolute;top:100%;left:0;right:0;background:white;border:1.5px solid var(--navy);border-top:none;border-radius:0 0 var(--rsm) var(--rsm);max-height:240px;overflow:hidden;z-index:500;box-shadow:0 4px 12px rgba(11,79,126,.12)}
+.sdd-search{width:100%;border:none;border-bottom:1px solid var(--border);padding:7px 11px;font-family:inherit;font-size:12px;outline:none;background:var(--g50)}
+.sdd-options{max-height:195px;overflow-y:auto}
+.sdd-item{padding:8px 11px;font-size:13px;cursor:pointer;color:var(--g900);transition:background .1s}
+.sdd-item:hover,.sdd-item.ssel{background:var(--navy-lt);color:var(--navy)}
+.sdd-none{padding:8px 11px;font-size:12px;color:var(--g500);font-style:italic}
 .btn-outline:hover{border-color:var(--g500)}
 ;color:white;border-color:#1A8C6E}.btn-ok:hover{background:#107856}
 .btn-ng{background:#C0392B;color:white;border-color:#C0392B}.btn-ng:hover{background:#a93226}
@@ -333,23 +344,38 @@ body{font-family:'Plus Jakarta Sans',-apple-system,sans-serif;background:var(--g
           <div class="fg">
             <div class="fd">
               <label>Company <span class="rq">*</span></label>
-              <select id="f-co" onchange="onCo()">
-                <option value="">-- Pilih Company --</option>
-              </select>
+              <div class="sdd" id="sdd-co">
+                <input type="text" class="sdd-input" id="f-co-txt" placeholder="-- Pilih Company --" autocomplete="off" readonly onclick="openSDD('co')" onkeydown="onSDDKey(event,'co')">
+                <input type="hidden" id="f-co">
+                <div class="sdd-list" id="sdd-co-list">
+                  <input class="sdd-search" id="sdd-co-search" placeholder="&#128269; Ketik untuk cari..." oninput="filterSDD('co')" onclick="event.stopPropagation()">
+                  <div class="sdd-options" id="sdd-co-opts"></div>
+                </div>
+              </div>
               <div class="fe">Pilih company</div>
             </div>
             <div class="fd">
               <label>Client <span class="rq">*</span></label>
-              <select id="f-cl" onchange="onCl()" disabled>
-                <option value="">-- Pilih Client --</option>
-              </select>
+              <div class="sdd" id="sdd-cl">
+                <input type="text" class="sdd-input" id="f-cl-txt" placeholder="-- Pilih Company dulu --" autocomplete="off" readonly onclick="openSDD('cl')" onkeydown="onSDDKey(event,'cl')" disabled>
+                <input type="hidden" id="f-cl">
+                <div class="sdd-list" id="sdd-cl-list">
+                  <input class="sdd-search" id="sdd-cl-search" placeholder="&#128269; Ketik untuk cari..." oninput="filterSDD('cl')" onclick="event.stopPropagation()">
+                  <div class="sdd-options" id="sdd-cl-opts"></div>
+                </div>
+              </div>
               <div class="fe">Pilih client</div>
             </div>
             <div class="fd s2">
               <label>Project <span class="rq">*</span></label>
-              <select id="f-pr" disabled>
-                <option value="">-- Pilih Project --</option>
-              </select>
+              <div class="sdd" id="sdd-pr">
+                <input type="text" class="sdd-input" id="f-pr-txt" placeholder="-- Pilih Client dulu --" autocomplete="off" readonly onclick="openSDD('pr')" onkeydown="onSDDKey(event,'pr')" disabled>
+                <input type="hidden" id="f-pr">
+                <div class="sdd-list" id="sdd-pr-list">
+                  <input class="sdd-search" id="sdd-pr-search" placeholder="&#128269; Ketik untuk cari..." oninput="filterSDD('pr')" onclick="event.stopPropagation()">
+                  <div class="sdd-options" id="sdd-pr-opts"></div>
+                </div>
+              </div>
               <div class="fe">Pilih project</div>
             </div>
           </div>
@@ -593,10 +619,12 @@ body{font-family:'Plus Jakarta Sans',-apple-system,sans-serif;background:var(--g
               <thead><tr>
                 <th style="width:3%">#</th>
                 <th>Email Pengaju</th>
-                <th>Nama L1 Approver</th>
-                <th>Email L1 Approver</th>
-                <th style="width:9%">Tipe</th>
-                <th style="width:13%">Aksi</th>
+                <th>L1 Approver</th>
+                <th>Email L1</th>
+                <th>L2 Approver</th>
+                <th>Email L2</th>
+                <th style="width:8%">Tipe</th>
+                <th style="width:11%">Aksi</th>
               </tr></thead>
               <tbody id="rules-tbody">
                 <tr><td colspan="6" style="text-align:center;padding:20px;color:var(--g500)">Memuat...</td></tr>
@@ -695,15 +723,22 @@ body{font-family:'Plus Jakarta Sans',-apple-system,sans-serif;background:var(--g
         <div class="fd">
           <label>Email Pengaju <span class="rq">*</span></label>
           <input type="text" id="rule-submitter" placeholder="email@gos.co.id atau * untuk default">
-          <div style="font-size:11px;color:var(--g500);margin-top:3px">Gunakan <strong>*</strong> sebagai rule default untuk semua pengaju yang tidak terdaftar</div>
+          <div style="font-size:11px;color:var(--g500);margin-top:3px">Gunakan <strong>*</strong> sebagai rule default</div>
         </div>
-        <div class="fd">
-          <label>Nama L1 Approver <span class="rq">*</span></label>
-          <input type="text" id="rule-l1name" placeholder="Nama lengkap approver...">
+        <div style="background:var(--navy-lt);border-radius:var(--rsm);padding:12px;border:1px solid #BAD4EE">
+          <div style="font-size:11px;font-weight:700;color:var(--navy);text-transform:uppercase;letter-spacing:.5px;margin-bottom:8px">L1 Approver</div>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+            <div class="fd"><label>Nama L1 <span class="rq">*</span></label><input type="text" id="rule-l1name" placeholder="Nama lengkap..."></div>
+            <div class="fd"><label>Email L1 <span class="rq">*</span></label><input type="text" id="rule-l1email" placeholder="email@gos.co.id"></div>
+          </div>
         </div>
-        <div class="fd">
-          <label>Email L1 Approver <span class="rq">*</span></label>
-          <input type="text" id="rule-l1email" placeholder="email.approver@gos.co.id">
+        <div style="background:var(--amber);border-radius:var(--rsm);padding:12px;border:1px solid var(--amber-bd)">
+          <div style="font-size:11px;font-weight:700;color:var(--amber-bd);text-transform:uppercase;letter-spacing:.5px;margin-bottom:4px">L2 Approver <span style="font-weight:400;font-style:italic">(opsional — aktif jika estimasi &ge; threshold)</span></div>
+          <div style="font-size:11px;color:var(--g700);margin-bottom:8px">Jika tidak diisi, pengajuan langsung ke Approved setelah L1.</div>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+            <div class="fd"><label>Nama L2</label><input type="text" id="rule-l2name" placeholder="Nama lengkap..."></div>
+            <div class="fd"><label>Email L2</label><input type="text" id="rule-l2email" placeholder="email@gos.co.id"></div>
+          </div>
         </div>
       </div>
     </div>
@@ -734,9 +769,9 @@ body{font-family:'Plus Jakarta Sans',-apple-system,sans-serif;background:var(--g
 // CONFIG - ISI SESUAI DATA ANDA
 // =============================================
 var CONFIG = {
-  clientId:      "c87df5fb-eb2f-40bc-8c33-d0c47dedfe10",
-  tenantId:      "c1cc324d-9fda-4a48-97ee-ba6157ba9c67",
-  siteUrl:       "https://gosgroup.sharepoint.com/sites/procurement",
+  clientId:      "ISI_CLIENT_ID_DARI_AZURE",
+  tenantId:      "ISI_TENANT_ID_DARI_AZURE",
+  siteUrl:       "https://DOMAIN.sharepoint.com/sites/NAMA_SITE",
   masterList:    "MasterPengadaan",
   resultList:    "HasilPengajuan",
   approverEmail: "approver@gosgroup.com",
@@ -748,15 +783,14 @@ var CONFIG = {
 // =============================================
 var APPROVERS = [
   "muhamad.parid@gos.co.id",
-  "toro.sod@gos.co.id",
-  "yayat.hidayat@gos.co.id"
+  "toro.sod@gos.co.id"
 ];
 
 // =============================================
 // APPROVAL CONFIG - Sesuaikan dengan kebutuhan
 // =============================================
 var APPROVAL_CONFIG = {
-  l2Threshold: 10000000,
+  l2Threshold: 5000000,
   l2: { email: "ISI_EMAIL_L2@gos.co.id", name: "ISI_NAMA_L2" },
   rules: []
 };
@@ -766,7 +800,10 @@ var APPROVAL_CONFIG = {
 // =============================================
 function myEmail() { return currentUser ? currentUser.userPrincipalName.toLowerCase() : ""; }
 function amGA()    { return APPROVERS.indexOf(myEmail()) > -1; }
-function amL2()    { return myEmail() === APPROVAL_CONFIG.l2.email.toLowerCase(); }
+function amL2() {
+  var email = myEmail();
+  return APPROVAL_CONFIG.rules.some(function(r){ return r.l2Email && r.l2Email.toLowerCase()===email; });
+}
 function amL1()    {
   return APPROVAL_CONFIG.rules.some(function(r) {
     return r.l1Email.toLowerCase() === myEmail();
@@ -778,12 +815,19 @@ function getL1(submitterEmail) {
   if (!r) r = APPROVAL_CONFIG.rules.filter(function(x){ return x.submitter==="*"; })[0];
   return r || null;
 }
-function needsL2(amount) { return (parseInt(amount)||0) >= APPROVAL_CONFIG.l2Threshold; }
+function needsL2(amount, rule) {
+  var r = rule || {};
+  if (!r.l2Email) return false;
+  return (parseInt(amount)||0) >= APPROVAL_CONFIG.l2Threshold;
+}
 function canApproveL1(item) {
   return amL1() && item.Status==="Pending L1" &&
          (item.L1ApproverEmail||"").toLowerCase()===myEmail();
 }
-function canApproveL2(item) { return amL2() && item.Status==="Pending L2"; }
+function canApproveL2(item) {
+  return item.Status==="Pending L2" &&
+         (item.L2ApproverEmail||"").toLowerCase()===myEmail();
+}
 function canUpdateGA(item)  {
   return amGA() && ["Approved","Submitted to Finance","Delivered","Rejected"].indexOf(item.Status)>-1;
 }
@@ -961,46 +1005,90 @@ function initDate() {
 
 function pad(n) { return n < 10 ? "0" + n : "" + n; }
 
+// Searchable Dropdown
 function populateCos() {
-  var sel = document.getElementById("f-co");
-  sel.innerHTML = '<option value="">-- Pilih Company --</option>';
-  getCos().forEach(function(c) {
-    var o = document.createElement("option"); o.value = c; o.textContent = c; sel.appendChild(o);
+  renderSDDOpts("co", getCos(), "");
+}
+
+function renderSDDOpts(key, items, q) {
+  var opts = document.getElementById("sdd-" + key + "-opts");
+  if (!opts) return;
+  var f = q ? items.filter(function(i){ return i.toLowerCase().indexOf(q.toLowerCase()) > -1; }) : items;
+  if (!f.length) { opts.innerHTML = '<div class="sdd-none">Tidak ditemukan</div>'; return; }
+  var cur = document.getElementById("f-" + key).value;
+  opts.innerHTML = f.map(function(i) {
+    return '<div class="sdd-item' + (i===cur?' ssel':'') + '" onmousedown="selectSDD(\'' + key + '\',\'' + i.replace(/'/g,"\\'") + '\')">' + i + '</div>';
+  }).join("");
+}
+
+function openSDD(key) {
+  var input = document.getElementById("f-" + key + "-txt");
+  if (input.disabled) return;
+  var list  = document.getElementById("sdd-" + key + "-list");
+  var srch  = document.getElementById("sdd-" + key + "-search");
+  // Close others
+  ["co","cl","pr"].forEach(function(k) {
+    if (k !== key) closeSDD(k);
   });
+  var items = key==="co" ? getCos() : key==="cl" ? getCls(document.getElementById("f-co").value) : getPrs(document.getElementById("f-co").value, document.getElementById("f-cl").value);
+  renderSDDOpts(key, items, "");
+  list.style.display = "block";
+  input.classList.add("open");
+  if (srch) { srch.value = ""; srch.focus(); }
 }
 
-function onCo() {
-  var co = document.getElementById("f-co").value;
-  var cs = document.getElementById("f-cl");
-  var ps = document.getElementById("f-pr");
-  cs.innerHTML = '<option value="">-- Pilih Client --</option>';
-  ps.innerHTML = '<option value="">-- Pilih Project --</option>';
-  ps.disabled = true;
-  if (co) {
-    getCls(co).forEach(function(c) {
-      var o = document.createElement("option"); o.value = c; o.textContent = c; cs.appendChild(o);
-    });
-    cs.disabled = false;
-  } else {
-    cs.disabled = true;
-  }
-  updateRn();
+function closeSDD(key) {
+  var list  = document.getElementById("sdd-" + key + "-list");
+  var input = document.getElementById("f-" + key + "-txt");
+  if (list)  list.style.display = "none";
+  if (input) input.classList.remove("open");
 }
 
-function onCl() {
-  var co = document.getElementById("f-co").value;
-  var cl = document.getElementById("f-cl").value;
-  var ps = document.getElementById("f-pr");
-  ps.innerHTML = '<option value="">-- Pilih Project --</option>';
-  if (co && cl) {
-    getPrs(co, cl).forEach(function(p) {
-      var o = document.createElement("option"); o.value = p; o.textContent = p; ps.appendChild(o);
-    });
-    ps.disabled = false;
-  } else {
-    ps.disabled = true;
+function filterSDD(key) {
+  var q = document.getElementById("sdd-" + key + "-search").value;
+  var items = key==="co" ? getCos() : key==="cl" ? getCls(document.getElementById("f-co").value) : getPrs(document.getElementById("f-co").value, document.getElementById("f-cl").value);
+  renderSDDOpts(key, items, q);
+}
+
+function selectSDD(key, val) {
+  document.getElementById("f-" + key).value     = val;
+  document.getElementById("f-" + key + "-txt").value = val;
+  closeSDD(key);
+  if (key === "co") {
+    document.getElementById("f-cl").value = "";
+    document.getElementById("f-cl-txt").value = "";
+    document.getElementById("f-pr").value = "";
+    document.getElementById("f-pr-txt").value = "";
+    var clInput = document.getElementById("f-cl-txt");
+    var prInput = document.getElementById("f-pr-txt");
+    clInput.disabled = !val; clInput.placeholder = val ? "-- Pilih Client --" : "-- Pilih Company dulu --";
+    prInput.disabled = true;  prInput.placeholder = "-- Pilih Client dulu --";
+    updateRn();
+  }
+  if (key === "cl") {
+    document.getElementById("f-pr").value = "";
+    document.getElementById("f-pr-txt").value = "";
+    var prInput = document.getElementById("f-pr-txt");
+    prInput.disabled = !val; prInput.placeholder = val ? "-- Pilih Project --" : "-- Pilih Client dulu --";
   }
 }
+
+function onSDDKey(e, key) {
+  if (e.key === "Escape") closeSDD(key);
+}
+
+// Close dropdowns when clicking outside
+document.addEventListener("click", function(e) {
+  ["co","cl","pr"].forEach(function(key) {
+    var sdd = document.getElementById("sdd-" + key);
+    if (sdd && !sdd.contains(e.target)) closeSDD(key);
+  });
+});
+
+function onCo() { /* kept for compatibility */ }
+function onCl() { /* kept for compatibility */ }
+
+
 
 function genSuffix() {
   var chars = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
@@ -1125,11 +1213,11 @@ function submitForm() {
   var hgRaw = document.getElementById("f-hg").value.replace(/\./g,"").replace(/,/g,"");
   var hg  = parseInt(hgRaw, 10) || 0;
   var jp  = document.querySelector('input[name="jp"]:checked');
+  var l1rule = getL1(currentUser ? currentUser.userPrincipalName : "");
 
   uploadAllFiles(uploadedFiles, rn).then(function(fileResults) {
     btn.innerHTML = '<span class="spin"></span> Menyimpan...';
     var dokStr = fileResults.length ? JSON.stringify(fileResults) : "";
-    var l1rule = getL1(currentUser ? currentUser.userPrincipalName : "");
     var fields = {
       Title:            rn,
       NomorPengajuan:   rn,
@@ -1146,7 +1234,9 @@ function submitForm() {
       Status:           "Pending L1",
       SubmittedBy:      currentUser ? currentUser.displayName : "",
       L1ApproverEmail:  l1rule ? l1rule.l1Email : "",
-      L1ApproverName:   l1rule ? l1rule.l1Name  : ""
+      L1ApproverName:   l1rule ? l1rule.l1Name  : "",
+      L2ApproverEmail:  l1rule ? (l1rule.l2Email||"") : "",
+      L2ApproverName:   l1rule ? (l1rule.l2Name||"")  : ""
     };
     var itemJson = getItemsJSON();
     if (itemJson) fields.DetailItem = itemJson;
@@ -1230,11 +1320,10 @@ function resetForm() {
     document.getElementById(id).value = "";
   });
   document.querySelectorAll('input[name="jp"]').forEach(function(r) { r.checked = false; });
-  document.getElementById("f-co").value = "";
-  document.getElementById("f-cl").innerHTML = '<option value="">-- Pilih Client --</option>';
-  document.getElementById("f-cl").disabled = true;
-  document.getElementById("f-pr").innerHTML = '<option value="">-- Pilih Project --</option>';
-  document.getElementById("f-pr").disabled = true;
+  document.getElementById("f-co").value = ""; document.getElementById("f-co-txt").value = "";
+  document.getElementById("f-cl").value = ""; document.getElementById("f-cl-txt").value = ""; document.getElementById("f-cl-txt").disabled = true; document.getElementById("f-cl-txt").placeholder = "-- Pilih Company dulu --";
+  document.getElementById("f-pr").value = ""; document.getElementById("f-pr-txt").value = ""; document.getElementById("f-pr-txt").disabled = true; document.getElementById("f-pr-txt").placeholder = "-- Pilih Client dulu --";
+  closeSDD("co"); closeSDD("cl"); closeSDD("pr");
   document.querySelectorAll(".fd.err").forEach(function(fd) { fd.classList.remove("err"); });
   rBarang = []; rJasa = [];
   document.getElementById("rows-barang").innerHTML = "";
@@ -1792,13 +1881,12 @@ function doApprove(level) {
   var submitterEmail = "";
 
   if (level === "l1") {
-    var req2 = needsL2(item.EstimasiHarga);
+    var req2 = needsL2(item.EstimasiHarga, { l2Email: item.L2ApproverEmail });
     fields.Status         = req2 ? "Pending L2" : "Approved";
     fields.L1Notes        = notes;
     fields.L1ApprovalDate = today;
-    submitterEmail = item.SubmittedBy;
-    if (req2) {
-      sendNotif("l2-needed", item.NomorPengajuan, { to: APPROVAL_CONFIG.l2.email, item: item });
+    if (req2 && item.L2ApproverEmail) {
+      sendNotif("l2-needed", item.NomorPengajuan, { to: item.L2ApproverEmail, item: item });
     } else {
       APPROVERS.forEach(function(ga) {
         sendNotif("ready-ga", item.NomorPengajuan, { to: ga, item: item });
@@ -1935,9 +2023,14 @@ function loadApprovalConfig() {
     }
 
     apvRules = records.filter(function(r){ return r.TipeKonfigurasi==="ApprovalRule"; });
-    // Always overwrite from SharePoint - empty list means no submitters allowed
     APPROVAL_CONFIG.rules = apvRules.map(function(r){
-      return { submitter: r.SubmitterEmail||"*", l1Email: r.L1Email||"", l1Name: r.L1Name||"" };
+      return {
+        submitter: r.SubmitterEmail||"*",
+        l1Email:   r.L1Email||"",
+        l1Name:    r.L1Name||"",
+        l2Email:   r.L2Email||"",
+        l2Name:    r.L2Name||""
+      };
     });
   }).catch(function(e){ console.warn("KonfigurasiApproval gagal:", e.message); });
 }
@@ -2007,8 +2100,10 @@ function renderRules() {
     return '<tr>'+
       '<td style="color:var(--g500)">'+(i+1)+'</td>'+
       '<td style="font-size:12px">'+(isDefault?'<em style="color:var(--g500)">* (semua lainnya)</em>':eA(r.SubmitterEmail||""))+'</td>'+
-      '<td>'+eA(r.L1Name||"")+'</td>'+
-      '<td style="font-size:12px">'+eA(r.L1Email||"")+'</td>'+
+      '<td>'+eA(r.L1Name||'-')+'</td>'+
+      '<td style="font-size:12px">'+eA(r.L1Email||'-')+'</td>'+
+      '<td>'+(r.L2Name?eA(r.L2Name):'<span style="color:var(--g500);font-size:11px">-</span>')+'</td>'+
+      '<td style="font-size:12px">'+(r.L2Email?eA(r.L2Email):'<span style="color:var(--g500)">-</span>')+'</td>'+
       '<td>'+badge+'</td>'+
       '<td><div style="display:flex;gap:4px">'+editBtn+delBtn+'</div></td>'+
       '</tr>';
@@ -2023,6 +2118,8 @@ function openRuleModal(id) {
   document.getElementById("rule-submitter").value = r.SubmitterEmail || "";
   document.getElementById("rule-l1name").value    = r.L1Name         || "";
   document.getElementById("rule-l1email").value   = r.L1Email        || "";
+  document.getElementById("rule-l2name").value    = r.L2Name         || "";
+  document.getElementById("rule-l2email").value   = r.L2Email        || "";
   document.getElementById("rule-modal").classList.add("on");
 }
 function closeRuleModal() { document.getElementById("rule-modal").classList.remove("on"); }
@@ -2031,9 +2128,12 @@ function saveRule() {
   var sub  = document.getElementById("rule-submitter").value.trim();
   var l1n  = document.getElementById("rule-l1name").value.trim();
   var l1e  = document.getElementById("rule-l1email").value.trim();
-  if (!sub||!l1n||!l1e) { showToast("Semua field wajib diisi","er"); return; }
+  var l2n  = document.getElementById("rule-l2name").value.trim();
+  var l2e  = document.getElementById("rule-l2email").value.trim();
+  if (!sub||!l1n||!l1e) { showToast("Email pengaju, Nama L1, dan Email L1 wajib diisi","er"); return; }
 
-  var fields = { Title:sub, TipeKonfigurasi:"ApprovalRule", SubmitterEmail:sub, L1Name:l1n, L1Email:l1e };
+  var fields = { Title:sub, TipeKonfigurasi:"ApprovalRule", SubmitterEmail:sub,
+                 L1Name:l1n, L1Email:l1e, L2Name:l2n, L2Email:l2e };
   var promise = ruleEditId ? patchItem("KonfigurasiApproval", ruleEditId, fields)
                            : createItem("KonfigurasiApproval", fields);
   promise.then(function(res){
@@ -2044,9 +2144,9 @@ function saveRule() {
       var newId = res && res.id ? res.id : "tmp-"+Date.now();
       apvRules.push(Object.assign({id:newId}, fields));
     }
-    // Update APPROVAL_CONFIG in memory
     APPROVAL_CONFIG.rules = apvRules.map(function(r){
-      return { submitter: r.SubmitterEmail||"*", l1Email: r.L1Email||"", l1Name: r.L1Name||"" };
+      return { submitter:r.SubmitterEmail||"*", l1Email:r.L1Email||"", l1Name:r.L1Name||"",
+               l2Email:r.L2Email||"", l2Name:r.L2Name||"" };
     });
     renderRules(); closeRuleModal();
     showToast((ruleEditId?"Rule diperbarui":"Rule ditambahkan")+"!","ok");
@@ -2058,7 +2158,8 @@ function deleteRule(id) {
   patchItem("KonfigurasiApproval", id, { TipeKonfigurasi:"Deleted" }).then(function(){
     apvRules = apvRules.filter(function(r){ return r.id!==id; });
     APPROVAL_CONFIG.rules = apvRules.map(function(r){
-      return { submitter: r.SubmitterEmail||"*", l1Email: r.L1Email||"", l1Name: r.L1Name||"" };
+      return { submitter:r.SubmitterEmail||"*", l1Email:r.L1Email||"", l1Name:r.L1Name||"",
+               l2Email:r.L2Email||"", l2Name:r.L2Name||"" };
     });
     renderRules();
     showToast("Rule dihapus","ok");
