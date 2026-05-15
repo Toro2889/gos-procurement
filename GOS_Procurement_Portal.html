@@ -766,12 +766,12 @@ body{font-family:'Plus Jakarta Sans',-apple-system,sans-serif;background:var(--g
 // CONFIG - ISI SESUAI DATA ANDA
 // =============================================
 var CONFIG = {
-  clientId:      "c87df5fb-eb2f-40bc-8c33-d0c47dedfe10",
-  tenantId:      "c1cc324d-9fda-4a48-97ee-ba6157ba9c67",
-  siteUrl:       "https://gosgroup.sharepoint.com/sites/procurement",
+  clientId:      "ISI_CLIENT_ID_DARI_AZURE",
+  tenantId:      "ISI_TENANT_ID_DARI_AZURE",
+  siteUrl:       "https://DOMAIN.sharepoint.com/sites/NAMA_SITE",
   masterList:    "MasterPengadaan",
   resultList:    "HasilPengajuan",
-  approverEmail: "muhamad.parid@gos.co.id",
+  approverEmail: "approver@gosgroup.com",
   redirectUri:   window.location.origin + window.location.pathname
 };
 
@@ -780,8 +780,7 @@ var CONFIG = {
 // =============================================
 var APPROVERS = [
   "muhamad.parid@gos.co.id",
-  "toro.sod@gos.co.id",
-  "yayat.hidayat@gos.co.id"
+  "toro.sod@gos.co.id"
 ];
 
 // =============================================
@@ -1210,9 +1209,11 @@ function submitForm() {
   var jp  = document.querySelector('input[name="jp"]:checked');
   var l1rule = getL1(currentUser ? currentUser.userPrincipalName : "");
 
+  var storedDok = "";
   uploadAllFiles(uploadedFiles, rn).then(function(fileResults) {
     btn.innerHTML = '<span class="spin"></span> Menyimpan...';
-    var dokStr = fileResults.length ? JSON.stringify(fileResults) : "";
+    storedDok = fileResults.length ? JSON.stringify(fileResults) : "";
+    var dokStr = storedDok;
     var fields = {
       Title:            rn,
       NomorPengajuan:   rn,
@@ -1244,7 +1245,7 @@ function submitForm() {
     var newItemId = res && res.id ? res.id : null;
     fixDuplicate(submittedSeq, newItemId);
 
-    var l1Email = l1rule ? l1rule.l1Email : CONFIG.approverEmail;
+    var l1Email  = l1rule ? l1rule.l1Email : CONFIG.approverEmail;
     sendNotif("new", rn, {
       co: document.getElementById("f-co").value,
       cl: document.getElementById("f-cl").value,
@@ -1252,9 +1253,11 @@ function submitForm() {
       tj: document.getElementById("f-tj").value,
       jp: jp ? jp.value : "",
       hg: hg, to: l1Email,
-      l1Name: l1rule ? l1rule.l1Name : "",
+      l1Name:    l1rule ? l1rule.l1Name : "",
       submitter: currentUser ? currentUser.displayName : "",
-      itemId: newItemId
+      itemId:    newItemId,
+      dokStr:    storedDok,
+      tgl:       new Date().toLocaleDateString("id-ID")
     });
     showToast("Pengajuan " + rn + " berhasil dikirim!", "ok");
     resetForm();
@@ -1634,6 +1637,9 @@ function emailDocLinks(dokStr) {
 
 function emailDetail(item, data) {
   var hg = "Rp " + (parseInt(item.EstimasiHarga || data.hg || 0)).toLocaleString("id-ID");
+  var tgl = item.TanggalPengajuan
+    ? item.TanggalPengajuan.split("T")[0].split("-").reverse().join("/")
+    : (data.tgl || new Date().toLocaleDateString("id-ID"));
   var rows = [
     ["Company",        item.Company        || data.co || "-"],
     ["Client",         item.Client         || data.cl || "-"],
@@ -1642,7 +1648,7 @@ function emailDetail(item, data) {
     ["Tujuan",         item.TujuanPermintaan || data.tj || "-"],
     ["Estimasi Harga", "<strong style='color:#0B4F7E'>" + hg + "</strong>"],
     ["Diajukan Oleh",  item.SubmittedBy    || data.submitter || "-"],
-    ["Tanggal",        item.TanggalPengajuan ? item.TanggalPengajuan.split("T")[0].split("-").reverse().join("/") : "-"]
+    ["Tanggal",        tgl]
   ];
   return "<table style='width:100%;border-collapse:collapse;font-size:13px;font-family:Arial;margin-top:10px'>" +
     rows.map(function(r, i){
@@ -1678,7 +1684,7 @@ function sendNotif(type, rn, data) {
   var item = data.item || {};
   var id   = data.itemId || item.id || "";
   var url  = deepLink(id);
-  var docs = emailDocLinks(item.DokumenPendukung || "");
+  var docs = emailDocLinks(data.dokStr || item.DokumenPendukung || "");
   var detail = emailDetail(item, data);
   var subject = "", body = "";
 
