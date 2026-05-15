@@ -734,12 +734,12 @@ body{font-family:'Plus Jakarta Sans',-apple-system,sans-serif;background:var(--g
 // CONFIG - ISI SESUAI DATA ANDA
 // =============================================
 var CONFIG = {
-  clientId:      "c87df5fb-eb2f-40bc-8c33-d0c47dedfe10",
-  tenantId:      "c1cc324d-9fda-4a48-97ee-ba6157ba9c67",
-  siteUrl:       "https://gosgroup.sharepoint.com/sites/procurement",
+  clientId:      "ISI_CLIENT_ID_DARI_AZURE",
+  tenantId:      "ISI_TENANT_ID_DARI_AZURE",
+  siteUrl:       "https://DOMAIN.sharepoint.com/sites/NAMA_SITE",
   masterList:    "MasterPengadaan",
   resultList:    "HasilPengajuan",
-  approverEmail: "muhamad.parid@gos.co.id",
+  approverEmail: "approver@gosgroup.com",
   redirectUri:   window.location.origin + window.location.pathname
 };
 
@@ -748,8 +748,7 @@ var CONFIG = {
 // =============================================
 var APPROVERS = [
   "muhamad.parid@gos.co.id",
-  "toro.sod@gos.co.id",
-  "yayat.hidayat@gos.co.id"
+  "toro.sod@gos.co.id"
 ];
 
 // =============================================
@@ -1002,6 +1001,13 @@ function onCl() {
   }
 }
 
+function genSuffix() {
+  var chars = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
+  var s = "";
+  for (var i = 0; i < 3; i++) s += chars[Math.floor(Math.random() * chars.length)];
+  return s;
+}
+
 function updateRn() {
   var seq = (document.getElementById("f-seq").value || "").replace(/\D/g,"");
   while (seq.length < 4) seq = "0" + seq;
@@ -1113,7 +1119,8 @@ function submitForm() {
   btn.disabled = true;
 
   var d   = new Date();
-  var rn  = document.getElementById("rnd").textContent;
+  var suffix = genSuffix();
+  var rn  = document.getElementById("rnd").textContent.replace(/^(\d{4})\//, "$1-" + suffix + "/");
   var hgRaw = document.getElementById("f-hg").value.replace(/\./g,"").replace(/,/g,"");
   var hg  = parseInt(hgRaw, 10) || 0;
   var jp  = document.querySelector('input[name="jp"]:checked');
@@ -1143,7 +1150,12 @@ function submitForm() {
     var itemJson = getItemsJSON();
     if (itemJson) fields.DetailItem = itemJson;
     return createItem(CONFIG.resultList, fields);
-  }).then(function() {
+  }).then(function(res) {
+    // Cek duplikat NomorUrut setelah submit
+    var submittedSeq = parseInt(document.getElementById("f-seq").value, 10) || 1;
+    var newItemId = res && res.id ? res.id : null;
+    fixDuplicate(submittedSeq, newItemId);
+
     var l1Email = l1rule ? l1rule.l1Email : CONFIG.approverEmail;
     sendNotif("new", rn, {
       co: document.getElementById("f-co").value,
@@ -1163,6 +1175,52 @@ function submitForm() {
   }).finally(function() {
     btn.innerHTML = "Kirim Pengajuan";
     btn.disabled = false;
+  });
+}
+
+// Auto-fix duplicate NomorUrut setelah submit
+function fixDuplicate(seq, newId) {
+  if (!newId) return;
+  getSid().then(function(sid) {
+    // Ambil semua item dengan NomorUrut yang sama
+    var url = "https://graph.microsoft.com/v1.0/sites/" + sid + "/lists/" + CONFIG.resultList +
+              "/items?$expand=fields($select=NomorUrut,NomorPengajuan,id)&$filter=fields/NomorUrut eq " + seq +
+              "&$top=10";
+    return gGet(url);
+  }).then(function(r) {
+    var dupes = (r.value || []).filter(function(i) {
+      return i.id !== newId && i.fields && i.fields.NomorUrut == seq;
+    });
+    if (dupes.length === 0) return; // Tidak ada duplikat
+
+    // Ada duplikat - cari NomorUrut terbesar lalu increment untuk item baru
+    return getSid().then(function(sid) {
+      var url2 = "https://graph.microsoft.com/v1.0/sites/" + sid + "/lists/" + CONFIG.resultList +
+                 "/items?$expand=fields($select=NomorUrut)&$orderby=fields/NomorUrut desc&$top=1";
+      return gGet(url2);
+    }).then(function(r2) {
+      var maxSeq = (r2.value && r2.value[0] && r2.value[0].fields && r2.value[0].fields.NomorUrut) || seq;
+      var newSeq = parseInt(maxSeq) + 1;
+      var newSeqStr = String(newSeq).padStart ? String(newSeq) : ("000" + newSeq).slice(-4);
+      while (newSeqStr.length < 4) newSeqStr = "0" + newSeqStr;
+
+      // Update item yang baru dibuat dengan NomorUrut yang benar
+      return getSid().then(function(sid) {
+        var d = new Date();
+        var co = "";
+        // Rebuild request number dengan seq baru
+        // Ambil company code dari NomorPengajuan lama
+        var oldRn = document.getElementById("rnd") ? document.getElementById("rnd").textContent : "";
+        var parts  = oldRn.split("/");
+        if (parts.length >= 5) {
+          parts[0] = newSeqStr;
+          var newRn = parts.join("/");
+          return patchItem(CONFIG.resultList, newId, { NomorUrut: newSeq, NomorPengajuan: newRn, Title: newRn });
+        }
+      });
+    });
+  }).catch(function(e) {
+    console.warn("fixDuplicate gagal:", e.message);
   });
 }
 
