@@ -766,12 +766,12 @@ body{font-family:'Plus Jakarta Sans',-apple-system,sans-serif;background:var(--g
 // CONFIG - ISI SESUAI DATA ANDA
 // =============================================
 var CONFIG = {
-  clientId:      "c87df5fb-eb2f-40bc-8c33-d0c47dedfe10",
-  tenantId:      "c1cc324d-9fda-4a48-97ee-ba6157ba9c67",
-  siteUrl:       "https://gosgroup.sharepoint.com/sites/procurement",
+  clientId:      "ISI_CLIENT_ID_DARI_AZURE",
+  tenantId:      "ISI_TENANT_ID_DARI_AZURE",
+  siteUrl:       "https://DOMAIN.sharepoint.com/sites/NAMA_SITE",
   masterList:    "MasterPengadaan",
   resultList:    "HasilPengajuan",
-  approverEmail: "muhamad.parid@gos.co.id",
+  approverEmail: "approver@gosgroup.com",
   redirectUri:   window.location.origin + window.location.pathname
 };
 
@@ -780,8 +780,7 @@ var CONFIG = {
 // =============================================
 var APPROVERS = [
   "muhamad.parid@gos.co.id",
-  "toro.sod@gos.co.id",
-  "yayat.hidayat@gos.co.id"
+  "toro.sod@gos.co.id"
 ];
 
 // =============================================
@@ -1697,7 +1696,7 @@ function sendNotif(type, rn, data) {
   if (type === "new") {
     subject = "[Approval L1] " + rn + " — Menunggu Persetujuan Anda";
     body = emailWrap("#D68910", "&#9888;", "Pengajuan Baru Perlu Approval L1 Anda",
-      "Pengajuan berikut telah dikirim dan menunggu persetujuan Anda.",
+      "Pengajuan berikut telah dikirim oleh <strong>" + (data.submitter || "pengaju") + "</strong> dan menunggu persetujuan Anda.",
       "<p style='background:#FEF9E7;border-left:4px solid #D68910;padding:10px 14px;border-radius:4px;font-size:13px;color:#666;margin:0 0 10px'>" +
       "Nomor: <strong style='color:#0B4F7E;font-family:monospace'>" + rn + "</strong></p>" +
       detail + docs + actionBtn(url, "Buka &amp; Berikan Approval", "#D68910"));
@@ -1715,7 +1714,7 @@ function sendNotif(type, rn, data) {
   } else if (type === "l2-needed") {
     subject = "[Approval L2] " + rn + " — Nilai Melebihi Threshold";
     body = emailWrap("#7B4FBF","&#128274;","Pengajuan Memerlukan Approval L2 Anda",
-      "Pengajuan telah disetujui L1 dan memerlukan approval final karena nilai melebihi Rp " +
+      "Pengajuan telah disetujui oleh <strong>" + (data.l1Name || "Approver L1") + "</strong> dan memerlukan approval final karena nilai melebihi Rp " +
       APPROVAL_CONFIG.l2Threshold.toLocaleString("id-ID") + ".",
       detail + docs + actionBtn(url, "Buka &amp; Berikan Approval L2", "#7B4FBF"));
 
@@ -1967,7 +1966,7 @@ function doApprove(level) {
     fields.L1Notes        = notes;
     fields.L1ApprovalDate = today;
     if (req2 && item.L2ApproverEmail) {
-      sendNotif("l2-needed", item.NomorPengajuan, { to: item.L2ApproverEmail, item: item });
+      sendNotif("l2-needed", item.NomorPengajuan, { to: item.L2ApproverEmail, item: item, l1Name: item.L1ApproverName || "" });
     } else {
       APPROVERS.forEach(function(ga) {
         sendNotif("ready-ga", item.NomorPengajuan, { to: ga, item: item });
