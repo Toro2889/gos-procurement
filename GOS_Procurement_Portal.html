@@ -766,9 +766,9 @@ body{font-family:'Plus Jakarta Sans',-apple-system,sans-serif;background:var(--g
 // CONFIG - ISI SESUAI DATA ANDA
 // =============================================
 var CONFIG = {
-  clientId:      "c87df5fb-eb2f-40bc-8c33-d0c47dedfe10",
-  tenantId:      "c1cc324d-9fda-4a48-97ee-ba6157ba9c67",
-  siteUrl:       "https://gosgroup.sharepoint.com/sites/procurement",
+  clientId:      "ISI_CLIENT_ID_DARI_AZURE",
+  tenantId:      "ISI_TENANT_ID_DARI_AZURE",
+  siteUrl:       "https://DOMAIN.sharepoint.com/sites/NAMA_SITE",
   masterList:    "MasterPengadaan",
   resultList:    "HasilPengajuan",
   approverEmail: "approver@gosgroup.com",
@@ -780,8 +780,7 @@ var CONFIG = {
 // =============================================
 var APPROVERS = [
   "muhamad.parid@gos.co.id",
-  "toro.sod@gos.co.id",
-  "yayat.hidayat@gos.co.id"
+  "toro.sod@gos.co.id"
 ];
 
 // =============================================
@@ -2493,9 +2492,14 @@ function initApp() {
     var deepLinkId = urlParams.get("item");
     if (deepLinkId) {
       switchView("dash");
-      loadDash().then ? loadDash().then(function() {
-        setTimeout(function() { openMo(deepLinkId); }, 500);
-      }) : setTimeout(function() { openMo(deepLinkId); }, 1500);
+      // Tunggu data dashboard selesai dimuat
+      var dlTry = 0;
+      var dlInterval = setInterval(function() {
+        dlTry++;
+        var found = allSubs.filter(function(i){ return i.id === deepLinkId; })[0];
+        if (found) { clearInterval(dlInterval); openMo(deepLinkId); }
+        else if (dlTry > 20) { clearInterval(dlInterval); showToast("Pengajuan tidak ditemukan","er"); }
+      }, 300);
     }
   }).catch(function(e) {
     console.warn("Init gagal:", e);
