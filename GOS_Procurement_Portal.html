@@ -127,10 +127,10 @@ body{font-family:'Plus Jakarta Sans',-apple-system,sans-serif;background:var(--g
 .mfield input:focus,.mfield select:focus{border-color:var(--navy)}
 .btn-outline{background:white;border-color:var(--border);color:var(--g700)}
 .sdd{position:relative}
-.sdd-input{width:100%;border:1.5px solid var(--border);border-radius:var(--rsm);padding:8px 32px 8px 11px;font-family:inherit;font-size:13px;color:var(--g900);background:white;outline:none;transition:border-color .15s;cursor:pointer}
+.sdd-input{width:100%;border:1.5px solid var(--border);border-radius:var(--rsm);padding:8px 11px;font-family:inherit;font-size:13px;color:var(--g900)!important;background:white!important;outline:none;transition:border-color .15s;cursor:pointer;-webkit-text-fill-color:var(--g900)!important;opacity:1!important}
 .sdd-input:focus{border-color:var(--navy);box-shadow:0 0 0 3px rgba(11,79,126,.08)}
 .sdd-input.open{border-radius:var(--rsm) var(--rsm) 0 0;border-color:var(--navy);border-bottom-color:transparent}
-.sdd-input:disabled{background:white;color:var(--g500);cursor:default;border-color:var(--border)}
+.sdd-input[readonly]{background:white!important;color:var(--g900)!important;-webkit-text-fill-color:var(--g900)!important;opacity:1!important;cursor:pointer}
 .sdd-list{display:none;position:absolute;top:100%;left:0;right:0;background:white;border:1.5px solid var(--navy);border-top:none;border-radius:0 0 var(--rsm) var(--rsm);max-height:240px;overflow:hidden;z-index:500;box-shadow:0 4px 12px rgba(11,79,126,.12)}
 .sdd-search{width:100%;border:none;border-bottom:1px solid var(--border);padding:7px 11px;font-family:inherit;font-size:12px;outline:none;background:var(--g50)}
 .sdd-options{max-height:195px;overflow-y:auto}
@@ -174,14 +174,11 @@ body{font-family:'Plus Jakarta Sans',-apple-system,sans-serif;background:var(--g
 .it-tot-lbl{font-size:12px;font-weight:600;color:var(--g700)}
 .it-tot-val{font-size:15px;font-weight:700;color:var(--navy)}
 
-.sdd-input{width:100%;border:1.5px solid var(--border);border-radius:var(--rsm);padding:8px 11px;font-family:inherit;font-size:13px;color:var(--g900);background:white;outline:none;transition:border-color .15s}
-.sdd-input:focus{border-color:var(--navy);box-shadow:0 0 0 3px rgba(11,79,126,.08)}
-.sdd.open .sdd-input{border-radius:var(--rsm) var(--rsm) 0 0;border-color:var(--navy);border-bottom-color:transparent}
 .sdd-list{display:none;position:absolute;top:100%;left:0;right:0;background:white;border:1.5px solid var(--navy);border-top:none;border-radius:0 0 var(--rsm) var(--rsm);max-height:220px;overflow-y:auto;z-index:200;box-shadow:0 4px 12px rgba(11,79,126,.12)}
 .sdd-item{padding:8px 11px;font-size:13px;cursor:pointer;color:var(--g900);transition:background .1s}
 .sdd-item:hover{background:var(--navy-lt);color:var(--navy)}
 .sdd-none{color:var(--g500);cursor:default;font-style:italic}
-.sdd.disabled .sdd-input{background:var(--g50);color:var(--g500);cursor:not-allowed}
+
 .sg{display:grid;grid-template-columns:repeat(5,1fr);gap:12px;margin-bottom:18px}
 .sc{background:white;border-radius:var(--radius);border:1px solid var(--border);padding:14px 16px}
 .sl{font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.5px;color:var(--g500);margin-bottom:6px}
@@ -357,7 +354,7 @@ body{font-family:'Plus Jakarta Sans',-apple-system,sans-serif;background:var(--g
             <div class="fd">
               <label>Client <span class="rq">*</span></label>
               <div class="sdd" id="sdd-cl">
-                <input type="text" class="sdd-input" id="f-cl-txt" placeholder="-- Pilih Company dulu --" autocomplete="off" readonly onclick="openSDD('cl')" onkeydown="onSDDKey(event,'cl')" disabled>
+                <input type="text" class="sdd-input" id="f-cl-txt" placeholder="-- Pilih Client --" autocomplete="off" readonly onclick="openSDD('cl')" onkeydown="onSDDKey(event,'cl')">
                 <input type="hidden" id="f-cl">
                 <div class="sdd-list" id="sdd-cl-list">
                   <input class="sdd-search" id="sdd-cl-search" placeholder="&#128269; Ketik untuk cari..." oninput="filterSDD('cl')" onclick="event.stopPropagation()">
@@ -369,7 +366,7 @@ body{font-family:'Plus Jakarta Sans',-apple-system,sans-serif;background:var(--g
             <div class="fd s2">
               <label>Project <span class="rq">*</span></label>
               <div class="sdd" id="sdd-pr">
-                <input type="text" class="sdd-input" id="f-pr-txt" placeholder="-- Pilih Client dulu --" autocomplete="off" readonly onclick="openSDD('pr')" onkeydown="onSDDKey(event,'pr')" disabled>
+                <input type="text" class="sdd-input" id="f-pr-txt" placeholder="-- Pilih Project --" autocomplete="off" readonly onclick="openSDD('pr')" onkeydown="onSDDKey(event,'pr')">
                 <input type="hidden" id="f-pr">
                 <div class="sdd-list" id="sdd-pr-list">
                   <input class="sdd-search" id="sdd-pr-search" placeholder="&#128269; Ketik untuk cari..." oninput="filterSDD('pr')" onclick="event.stopPropagation()">
@@ -769,9 +766,9 @@ body{font-family:'Plus Jakarta Sans',-apple-system,sans-serif;background:var(--g
 // CONFIG - ISI SESUAI DATA ANDA
 // =============================================
 var CONFIG = {
-  clientId:      "c87df5fb-eb2f-40bc-8c33-d0c47dedfe10",
-  tenantId:      "c1cc324d-9fda-4a48-97ee-ba6157ba9c67",
-  siteUrl:       "https://gosgroup.sharepoint.com/sites/procurement",
+  clientId:      "ISI_CLIENT_ID_DARI_AZURE",
+  tenantId:      "ISI_TENANT_ID_DARI_AZURE",
+  siteUrl:       "https://DOMAIN.sharepoint.com/sites/NAMA_SITE",
   masterList:    "MasterPengadaan",
   resultList:    "HasilPengajuan",
   approverEmail: "approver@gosgroup.com",
@@ -783,8 +780,7 @@ var CONFIG = {
 // =============================================
 var APPROVERS = [
   "muhamad.parid@gos.co.id",
-  "toro.sod@gos.co.id",
-  "yayat.hidayat@gos.co.id"
+  "toro.sod@gos.co.id"
 ];
 
 // =============================================
@@ -1023,18 +1019,21 @@ function renderSDDOpts(key, items, q) {
 }
 
 function openSDD(key) {
-  var input = document.getElementById("f-" + key + "-txt");
-  if (input.disabled) return;
+  // Guard: cek prerequisite
+  if (key === "cl" && !document.getElementById("f-co").value) {
+    showToast("Pilih Company terlebih dahulu", "er"); return;
+  }
+  if (key === "pr" && !document.getElementById("f-cl").value) {
+    showToast("Pilih Client terlebih dahulu", "er"); return;
+  }
   var list  = document.getElementById("sdd-" + key + "-list");
   var srch  = document.getElementById("sdd-" + key + "-search");
   // Close others
-  ["co","cl","pr"].forEach(function(k) {
-    if (k !== key) closeSDD(k);
-  });
+  ["co","cl","pr"].forEach(function(k) { if (k !== key) closeSDD(k); });
   var items = key==="co" ? getCos() : key==="cl" ? getCls(document.getElementById("f-co").value) : getPrs(document.getElementById("f-co").value, document.getElementById("f-cl").value);
   renderSDDOpts(key, items, "");
   list.style.display = "block";
-  input.classList.add("open");
+  document.getElementById("f-" + key + "-txt").classList.add("open");
   if (srch) { srch.value = ""; srch.focus(); }
 }
 
@@ -1052,25 +1051,19 @@ function filterSDD(key) {
 }
 
 function selectSDD(key, val) {
-  document.getElementById("f-" + key).value     = val;
+  document.getElementById("f-" + key).value          = val;
   document.getElementById("f-" + key + "-txt").value = val;
   closeSDD(key);
   if (key === "co") {
-    document.getElementById("f-cl").value = "";
+    document.getElementById("f-cl").value     = "";
     document.getElementById("f-cl-txt").value = "";
-    document.getElementById("f-pr").value = "";
+    document.getElementById("f-pr").value     = "";
     document.getElementById("f-pr-txt").value = "";
-    var clInput = document.getElementById("f-cl-txt");
-    var prInput = document.getElementById("f-pr-txt");
-    clInput.disabled = !val; clInput.placeholder = val ? "-- Pilih Client --" : "-- Pilih Company dulu --";
-    prInput.disabled = true;  prInput.placeholder = "-- Pilih Client dulu --";
     updateRn();
   }
   if (key === "cl") {
-    document.getElementById("f-pr").value = "";
+    document.getElementById("f-pr").value     = "";
     document.getElementById("f-pr-txt").value = "";
-    var prInput = document.getElementById("f-pr-txt");
-    prInput.disabled = !val; prInput.placeholder = val ? "-- Pilih Project --" : "-- Pilih Client dulu --";
   }
 }
 
@@ -1326,8 +1319,8 @@ function resetForm() {
   });
   document.querySelectorAll('input[name="jp"]').forEach(function(r) { r.checked = false; });
   document.getElementById("f-co").value = ""; document.getElementById("f-co-txt").value = "";
-  document.getElementById("f-cl").value = ""; document.getElementById("f-cl-txt").value = ""; document.getElementById("f-cl-txt").disabled = true; document.getElementById("f-cl-txt").placeholder = "-- Pilih Company dulu --";
-  document.getElementById("f-pr").value = ""; document.getElementById("f-pr-txt").value = ""; document.getElementById("f-pr-txt").disabled = true; document.getElementById("f-pr-txt").placeholder = "-- Pilih Client dulu --";
+  document.getElementById("f-cl").value = ""; document.getElementById("f-cl-txt").value = "";
+  document.getElementById("f-pr").value = ""; document.getElementById("f-pr-txt").value = "";
   closeSDD("co"); closeSDD("cl"); closeSDD("pr");
   document.querySelectorAll(".fd.err").forEach(function(fd) { fd.classList.remove("err"); });
   rBarang = []; rJasa = [];
