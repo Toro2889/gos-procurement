@@ -1,0 +1,613 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>GOS Group - Procurement Portal</title>
+<script src="https://cdn.jsdelivr.net/npm/@azure/msal-browser@3.27.0/lib/msal-browser.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<div id="ls">
+  <div class="lc">
+    <div class="ll">GOS</div>
+    <div class="lt">Procurement Portal</div>
+    <div class="ls2">GOS Group - Sistem Pengajuan Pengadaan<br>Masuk dengan akun Microsoft GOS Group Anda</div>
+    <button class="lb" onclick="signIn()">
+      <svg viewBox="0 0 21 21" fill="none"><rect x="1" y="1" width="9" height="9" fill="#f25022"/><rect x="11" y="1" width="9" height="9" fill="#7fba00"/><rect x="1" y="11" width="9" height="9" fill="#00a4ef"/><rect x="11" y="11" width="9" height="9" fill="#ffb900"/></svg>
+      Masuk dengan Microsoft
+    </button>
+    <div class="ln">Hanya untuk karyawan internal GOS Group.<br>Hubungi IT jika mengalami masalah login.</div>
+  </div>
+</div>
+
+<!-- ACCESS DENIED SCREEN -->
+<div id="no-access" style="display:none;align-items:center;justify-content:center;min-height:100vh;background:linear-gradient(135deg,var(--navy-dk),var(--navy) 50%,#1565A8)">
+  <div class="lc" style="text-align:center">
+    <div style="width:64px;height:64px;background:#FDEDEC;border-radius:50%;display:flex;align-items:center;justify-content:center;margin:0 auto 20px;font-size:28px">&#128274;</div>
+    <div class="lt" style="color:var(--red)">Akses Ditolak</div>
+    <div class="ls2" style="margin-bottom:24px">
+      Akun Anda tidak memiliki akses ke halaman ini.<br>
+      Hubungi Admin untuk mendapatkan akses.
+    </div>
+    <div style="background:var(--g50);border-radius:8px;padding:12px 16px;margin-bottom:20px;font-size:13px;color:var(--g700)">
+      <span id="denied-email" style="font-weight:600"></span>
+    </div>
+    <button class="lb" style="background:var(--red)" onclick="signOut()">
+      Keluar
+    </button>
+    <div class="ln">Jika Anda merasa ini adalah kesalahan,<br>minta Admin untuk menambahkan akun Anda di menu Setting Approval.</div>
+  </div>
+</div>
+
+<div id="app">
+  <header class="hd">
+    <div class="hb">
+      <div class="hbx">GOS</div>
+      <div><div class="hn">Procurement Portal</div><div class="hs">GOS Group</div></div>
+    </div>
+    <nav class="nav">
+      <button class="nb on" onclick="switchView('form')" id="nav-form">+ Pengajuan Baru</button>
+      <button class="nb" onclick="switchView('dash')" id="nav-dash">Dashboard</button>
+      <button class="nb" onclick="switchView('master')" id="nav-master" style="display:none">&#128193; Master Data</button>
+    </nav>
+    <div class="hu">
+      <div class="av" id="av">?</div>
+      <div class="un" id="un">...</div>
+      <button class="lob" onclick="signOut()">Keluar</button>
+    </div>
+  </header>
+
+  <main class="main">
+
+    <div class="view on" id="view-form">
+      <div class="fc">
+        <div class="fch">
+          <div class="fct">Form Pengajuan Pengadaan</div>
+          <div class="fcs">Purchase Requisition Submission Form</div>
+        </div>
+        <div class="rnb">
+          <div>
+            <div class="rnl">Nomor Pengajuan</div>
+            <div style="font-size:11px;color:var(--g500);margin-top:1px">Auto-generated</div>
+          </div>
+          <div style="display:flex;align-items:center;gap:8px">
+            <div class="rnv" id="rnd">____/___/___/___/____</div>
+            <button class="cpb" onclick="copyRn()">Salin</button>
+          </div>
+        </div>
+        <div class="fb">
+
+          <div class="stl"><div class="sn" style="background:var(--navy)">1</div>Informasi Dasar</div>
+          <div class="fg">
+            <div class="fd">
+              <label>Tanggal Pengajuan <span style="font-weight:400;color:var(--g500);font-size:11px">(otomatis)</span></label>
+              <input type="text" id="f-tgl" readonly>
+            </div>
+            <div class="fd">
+              <label>Nomor Urut <span style="font-weight:400;color:var(--g500);font-size:11px">(otomatis)</span></label>
+              <input type="text" id="f-seq" value="0001" readonly>
+            </div>
+            <div class="fd">
+              <label>Jenis Pengadaan <span class="rq">*</span></label>
+              <select id="f-jenis" onchange="updateRn()">
+                <option value="">-- Pilih --</option>
+                <option value="EXT">External</option>
+                <option value="INT">Internal</option>
+              </select>
+              <div class="fe">Pilih jenis pengadaan</div>
+            </div>
+            <div class="fd">
+              <label>Jenis Produk <span class="rq">*</span></label>
+              <div class="rg">
+                <label class="rc"><input type="radio" name="jp" value="Barang" onchange="onJP()"> Barang</label>
+                <label class="rc"><input type="radio" name="jp" value="Jasa" onchange="onJP()"> Jasa</label>
+              </div>
+              <div class="fe">Pilih jenis produk</div>
+            </div>
+          </div>
+
+          <div class="stl"><div class="sn" style="background:var(--teal)">2</div>Entitas &amp; Proyek</div>
+          <div class="fg">
+            <div class="fd">
+              <label>Company <span class="rq">*</span></label>
+              <div class="sdd" id="sdd-co">
+                <input type="text" class="sdd-input" id="f-co-txt" placeholder="-- Pilih Company --" autocomplete="off" readonly onclick="openSDD('co')" onkeydown="onSDDKey(event,'co')">
+                <input type="hidden" id="f-co">
+                <div class="sdd-list" id="sdd-co-list">
+                  <input class="sdd-search" id="sdd-co-search" placeholder="&#128269; Ketik untuk cari..." oninput="filterSDD('co')" onclick="event.stopPropagation()">
+                  <div class="sdd-options" id="sdd-co-opts"></div>
+                </div>
+              </div>
+              <div class="fe">Pilih company</div>
+            </div>
+            <div class="fd">
+              <label>Client <span class="rq">*</span></label>
+              <div class="sdd" id="sdd-cl">
+                <input type="text" class="sdd-input" id="f-cl-txt" placeholder="-- Pilih Client --" autocomplete="off" readonly onclick="openSDD('cl')" onkeydown="onSDDKey(event,'cl')">
+                <input type="hidden" id="f-cl">
+                <div class="sdd-list" id="sdd-cl-list">
+                  <input class="sdd-search" id="sdd-cl-search" placeholder="&#128269; Ketik untuk cari..." oninput="filterSDD('cl')" onclick="event.stopPropagation()">
+                  <div class="sdd-options" id="sdd-cl-opts"></div>
+                </div>
+              </div>
+              <div class="fe">Pilih client</div>
+            </div>
+            <div class="fd s2">
+              <label>Project <span class="rq">*</span></label>
+              <div class="sdd" id="sdd-pr">
+                <input type="text" class="sdd-input" id="f-pr-txt" placeholder="-- Pilih Project --" autocomplete="off" readonly onclick="openSDD('pr')" onkeydown="onSDDKey(event,'pr')">
+                <input type="hidden" id="f-pr">
+                <div class="sdd-list" id="sdd-pr-list">
+                  <input class="sdd-search" id="sdd-pr-search" placeholder="&#128269; Ketik untuk cari..." oninput="filterSDD('pr')" onclick="event.stopPropagation()">
+                  <div class="sdd-options" id="sdd-pr-opts"></div>
+                </div>
+              </div>
+              <div class="fe">Pilih project</div>
+            </div>
+            <div class="fd s2">
+              <label>Cabang / Asal Kantor <span style="font-weight:400;color:var(--g500);font-size:11px">(opsional)</span></label>
+              <div style="position:relative">
+                <input type="text" id="f-cabang" placeholder="Ketik atau pilih cabang..." autocomplete="off"
+                  oninput="filterCabangDD()" onfocus="filterCabangDD()"
+                  onblur="setTimeout(function(){var d=document.getElementById('cabang-dd');if(d)d.style.display='none'},200)"
+                  style="width:100%;border:1.5px solid var(--border);border-radius:var(--rsm);padding:8px 11px;font-family:inherit;font-size:13px;outline:none;transition:border-color .15s">
+                <div id="cabang-dd" style="display:none;position:absolute;top:100%;left:0;right:0;background:white;border:1.5px solid var(--navy);border-top:none;border-radius:0 0 var(--rsm) var(--rsm);max-height:180px;overflow-y:auto;z-index:500;box-shadow:0 4px 12px rgba(11,79,126,.12)"></div>
+              </div>
+              <div class="fe" style="color:var(--g500)">Pilihan sesuai project — kosongkan jika tidak ada cabang</div>
+            </div>
+          </div>
+
+          <div class="stl"><div class="sn" style="background:#7B4FBF">3</div>Detail Permintaan</div>
+          <div class="fg">
+            <div class="fd s2">
+              <label>Tujuan Permintaan <span class="rq">*</span></label>
+              <textarea id="f-tj" rows="3" placeholder="Jelaskan tujuan dan kebutuhan pengadaan ini..."></textarea>
+              <div class="fe">Wajib diisi</div>
+            </div>
+          </div>
+
+          <!-- SECTION 5 BARANG -->
+          <div id="sec-barang" style="display:none">
+            <div class="stl"><div class="sn" style="background:#E67E22">5</div>Detail Barang yang Dibutuhkan</div>
+            <datalist id="dl-barang"></datalist>
+            <div class="itw">
+              <table class="it">
+                <thead><tr>
+                  <th style="width:3%">No</th>
+                  <th style="width:20%">Nama Barang *</th>
+                  <th style="width:11%">Kategori</th>
+                  <th style="width:11%">Subkategori</th>
+                  <th style="width:6%">Satuan</th>
+                  <th style="width:11%">Harga Estimasi</th>
+                  <th style="width:6%">Jumlah *</th>
+                  <th style="width:12%">Est. Harga Beli</th>
+                  <th style="width:16%">Keterangan</th>
+                  <th style="width:4%"></th>
+                </tr></thead>
+                <tbody id="rows-barang"></tbody>
+              </table>
+            </div>
+            <div class="it-foot">
+              <button type="button" class="add-r" onclick="addRow('barang')">+ Tambah Barang</button>
+              <div class="it-tot"><span class="it-tot-lbl">Total:</span><span class="it-tot-val" id="tot-barang">Rp 0</span></div>
+            </div>
+          </div>
+
+          <!-- SECTION 5 JASA -->
+          <div id="sec-jasa" style="display:none">
+            <div class="stl"><div class="sn" style="background:#E67E22">5</div>Detail Jasa yang Dibutuhkan</div>
+            <datalist id="dl-jasa"></datalist>
+            <div class="itw">
+              <table class="it">
+                <thead><tr>
+                  <th style="width:3%">No</th>
+                  <th style="width:18%">Nama Vendor *</th>
+                  <th style="width:10%">Kategori</th>
+                  <th style="width:9%">Domisili</th>
+                  <th style="width:11%">PIC Vendor</th>
+                  <th style="width:10%">No. Telpon</th>
+                  <th style="width:13%">Nominal (Rp) *</th>
+                  <th style="width:18%">Keterangan</th>
+                  <th style="width:4%"></th>
+                </tr></thead>
+                <tbody id="rows-jasa"></tbody>
+              </table>
+            </div>
+            <div class="it-foot">
+              <button type="button" class="add-r" onclick="addRow('jasa')">+ Tambah Vendor</button>
+              <div class="it-tot"><span class="it-tot-lbl">Total:</span><span class="it-tot-val" id="tot-jasa">Rp 0</span></div>
+            </div>
+          </div>
+
+
+          <div class="fd">
+            <label>Upload Dokumen <span class="rq">*</span></label>
+            <div class="fz" id="dz" ondragover="event.preventDefault();this.classList.add('drag')" ondragleave="this.classList.remove('drag')" ondrop="onDrop(event)">
+              <input type="file" id="f-fl" multiple onchange="onFiles(this.files)">
+              <div class="fz-icon">&#128206;</div>
+              <div class="fz-txt">Klik atau drag &amp; drop file di sini</div>
+              <div class="fz-sub">PDF, Word, Excel, JPG, PNG</div>
+            </div>
+            <div class="fl" id="flist"></div>
+          </div>
+
+          <!-- Estimasi Harga - paling bawah -->
+          <div class="stl" style="margin-top:24px"><div class="sn" style="background:var(--navy)">6</div>Estimasi Total Harga</div>
+          <div class="fd">
+            <label>Estimasi Harga <span class="rq">*</span> <span style="font-weight:400;color:var(--g500);font-size:11px">(otomatis dari tabel item, atau isi manual)</span></label>
+            <div class="hw">
+              <span class="hp">Rp</span>
+              <input type="text" id="f-hg" class="hi" placeholder="0" oninput="fmtHg(this)">
+            </div>
+            <div class="fe">Wajib diisi</div>
+          </div>
+        </div>
+        <div class="ff">
+          <button class="btn btn-o" onclick="resetForm()">Reset</button>
+          <button class="btn btn-p" id="bsub" onclick="submitForm()">Kirim Pengajuan</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="view" id="view-dash">
+      <div class="dh">
+        <div class="dt">Dashboard Pengajuan</div>
+        <div class="da">
+          <button class="btn btn-outline btn-sm" id="btn-my-apv" onclick="toggleMyApv()">&#128338; Perlu Saya Approve</button>
+          <button class="btn btn-o bsm" onclick="expXls()">Export Excel</button>
+          <button class="btn btn-o bsm" onclick="loadDash()">Refresh</button>
+        </div>
+      </div>
+      <div class="sg">
+        <div class="sc"><div class="sl">Total</div><div class="sv tot" id="st">-</div></div>
+        <div class="sc"><div class="sl">Pending L1</div><div class="sv" style="color:var(--amber-bd)" id="sp">-</div></div>
+        <div class="sc"><div class="sl">Pending L2</div><div class="sv" style="color:#7B4FBF" id="sp2">-</div></div>
+        <div class="sc"><div class="sl">Approved</div><div class="sv app" id="sa">-</div></div>
+        <div class="sc"><div class="sl">Rejected</div><div class="sv rej" id="sr">-</div></div>
+      </div>
+      <div class="fib">
+        <input class="fi2 wide" type="text" id="srch" placeholder="Cari nomor, company, client..." oninput="renderTbl()">
+        <select class="fi2" id="fst" onchange="renderTbl()">
+          <option value="">Semua Status</option>
+          <option value="Pending L1">Pending L1</option>
+          <option value="Pending L2">Pending L2</option>
+          <option value="Approved">Approved</option>
+          <option value="Submitted to Finance">Submitted to Finance</option>
+          <option value="Delivered">Delivered</option>
+          <option value="Rejected">Rejected</option>
+        </select>
+        <select class="fi2" id="fco" onchange="renderTbl()"><option value="">Semua Company</option></select>
+        <input class="fi2" type="date" id="ffr" onchange="renderTbl()" title="Dari tanggal">
+        <input class="fi2" type="date" id="fto" onchange="renderTbl()" title="Sampai tanggal">
+      </div>
+      <div class="tw">
+        <table class="dt2">
+          <thead><tr>
+            <th>#</th><th>Nomor Pengajuan</th><th>Tanggal</th><th>Company</th>
+            <th>Client</th><th>Project</th><th>Jenis</th><th>Est. Harga</th><th>Harga Real</th><th>Status</th>
+          </tr></thead>
+          <tbody id="tbl"><tr class="lr"><td colspan="10">Memuat data...</td></tr></tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- MASTER DATA VIEW -->
+    <div class="view" id="view-master">
+      <div class="mtabs">
+        <button class="mtab on" onclick="switchMTab('entitas')" id="mt-entitas">&#127970; Entitas</button>
+        <button class="mtab" onclick="switchMTab('barang')" id="mt-barang">&#128230; Barang</button>
+        <button class="mtab" onclick="switchMTab('jasa')" id="mt-jasa">&#128101; Vendor/Jasa</button>
+        <button class="mtab" onclick="switchMTab('setting')" id="mt-setting">&#9881; Setting Approval</button>
+      </div>
+
+      <!-- Entitas -->
+      <div id="msub-entitas">
+        <div class="mbar">
+          <div style="display:flex;gap:8px;flex-wrap:wrap">
+            <input class="fi2" style="width:260px" type="text" id="ms-entitas-search" placeholder="&#128269; Cari company, client, project..." oninput="renderMT('entitas')">
+            <select class="fi2" id="ms-entitas-aktif" onchange="renderMT('entitas')">
+              <option value="">Semua Status</option><option value="1">Aktif</option><option value="0">Nonaktif</option>
+            </select>
+          </div>
+          <button class="btn btn-p btn-sm" onclick="openMM('entitas',null)">+ Tambah Entitas</button>
+        </div>
+        <div class="tw"><table class="mtbl">
+          <thead><tr><th style="width:3%">#</th><th>Company</th><th style="width:8%">Kode</th><th>Client</th><th>Project</th><th style="width:9%">Status</th><th style="width:13%">Aksi</th></tr></thead>
+          <tbody id="mt-entitas-tbody"><tr><td colspan="7" style="text-align:center;padding:24px;color:var(--g500)">Klik tab untuk memuat data</td></tr></tbody>
+        </table></div>
+      </div>
+
+      <!-- Barang -->
+      <div id="msub-barang" style="display:none">
+        <div class="mbar">
+          <div style="display:flex;gap:8px;flex-wrap:wrap">
+            <input class="fi2" style="width:260px" type="text" id="ms-barang-search" placeholder="&#128269; Cari nama barang, kategori..." oninput="renderMT('barang')">
+            <select class="fi2" id="ms-barang-aktif" onchange="renderMT('barang')">
+              <option value="">Semua Status</option><option value="1">Aktif</option><option value="0">Nonaktif</option>
+            </select>
+          </div>
+          <button class="btn btn-p btn-sm" onclick="openMM('barang',null)">+ Tambah Barang</button>
+        </div>
+        <div class="tw"><table class="mtbl">
+          <thead><tr><th style="width:3%">#</th><th>Nama Barang</th><th>Kategori</th><th>Subkategori</th><th style="width:8%">Satuan</th><th style="width:12%">Harga Est.</th><th style="width:9%">Status</th><th style="width:13%">Aksi</th></tr></thead>
+          <tbody id="mt-barang-tbody"><tr><td colspan="8" style="text-align:center;padding:24px;color:var(--g500)">–</td></tr></tbody>
+        </table></div>
+      </div>
+
+      <!-- Jasa/Vendor -->
+      <div id="msub-jasa" style="display:none">
+        <div class="mbar">
+          <div style="display:flex;gap:8px;flex-wrap:wrap">
+            <input class="fi2" style="width:260px" type="text" id="ms-jasa-search" placeholder="&#128269; Cari nama vendor, kategori..." oninput="renderMT('jasa')">
+            <select class="fi2" id="ms-jasa-aktif" onchange="renderMT('jasa')">
+              <option value="">Semua Status</option><option value="1">Aktif</option><option value="0">Nonaktif</option>
+            </select>
+          </div>
+          <button class="btn btn-p btn-sm" onclick="openMM('jasa',null)">+ Tambah Vendor</button>
+        </div>
+        <div class="tw"><table class="mtbl">
+          <thead><tr><th style="width:3%">#</th><th>Nama Vendor</th><th>Kategori</th><th>Domisili</th><th>PIC Vendor</th><th>No. Telpon</th><th style="width:9%">Status</th><th style="width:13%">Aksi</th></tr></thead>
+          <tbody id="mt-jasa-tbody"><tr><td colspan="8" style="text-align:center;padding:24px;color:var(--g500)">–</td></tr></tbody>
+        </table></div>
+      </div>
+      <!-- Setting Approval -->
+      <div id="msub-setting" style="display:none">
+
+        <!-- L2 Config -->
+        <div style="background:white;border:1px solid var(--border);border-radius:var(--radius);padding:20px 24px;margin-bottom:14px">
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;padding-bottom:10px;border-bottom:1px solid var(--g100)">
+            <div>
+              <div style="font-size:13px;font-weight:600;color:var(--g900)">Konfigurasi L2 Approval</div>
+              <div style="font-size:11px;color:var(--g500);margin-top:2px">Pengajuan di atas nilai threshold wajib mendapat approval L2</div>
+            </div>
+            <button class="btn btn-o bsm" onclick="editL2()">Edit</button>
+          </div>
+          <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:14px" id="l2-display">
+            <div class="fd"><label>Threshold (Rp)</label><input type="text" id="l2-threshold-val" readonly style="background:var(--g50)"></div>
+            <div class="fd"><label>Email L2 Approver</label><input type="text" id="l2-email-val" readonly style="background:var(--g50)"></div>
+            <div class="fd"><label>Nama L2 Approver</label><input type="text" id="l2-name-val" readonly style="background:var(--g50)"></div>
+          </div>
+          <div id="l2-edit" style="display:none;margin-top:12px;padding-top:12px;border-top:1px dashed var(--border)">
+            <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:14px;margin-bottom:12px">
+              <div class="fd"><label>Threshold (Rp) <span class="rq">*</span></label>
+                <div class="hw"><span class="hp">Rp</span><input type="text" id="l2-t-input" class="hi" placeholder="5.000.000" oninput="fmtHg(this)"></div>
+              </div>
+              <div class="fd"><label>Email L2 <span class="rq">*</span></label><input type="text" id="l2-e-input" placeholder="email@gos.co.id"></div>
+              <div class="fd"><label>Nama L2 <span class="rq">*</span></label><input type="text" id="l2-n-input" placeholder="Nama lengkap..."></div>
+            </div>
+            <div style="display:flex;gap:8px;justify-content:flex-end">
+              <button class="btn btn-o bsm" onclick="cancelL2()">Batal</button>
+              <button class="btn btn-p bsm" onclick="saveL2()">Simpan L2</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- L1 Rules -->
+        <div style="background:white;border:1px solid var(--border);border-radius:var(--radius);padding:20px 24px">
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;padding-bottom:10px;border-bottom:1px solid var(--g100)">
+            <div>
+              <div style="font-size:13px;font-weight:600;color:var(--g900)">Rules L1 Approval</div>
+              <div style="font-size:11px;color:var(--g500);margin-top:2px">Tentukan siapa approver untuk setiap pengaju. Gunakan * sebagai default.</div>
+            </div>
+            <button class="btn btn-p bsm" onclick="openRuleModal(null)">+ Tambah Rule</button>
+          </div>
+          <div class="tw">
+            <table class="mtbl">
+              <thead><tr>
+                <th style="width:3%">#</th>
+                <th>Nama Project</th>
+                <th>Cabang</th>
+                <th>L1 Approver</th>
+                <th>Email L1</th>
+                <th>L2 Approver</th>
+                <th>Email L2</th>
+                <th style="width:11%">Aksi</th>
+              </tr></thead>
+              <tbody id="rules-tbody">
+                <tr><td colspan="6" style="text-align:center;padding:20px;color:var(--g500)">Memuat...</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- Daftar Pengaju yang Diizinkan -->
+        <div style="background:white;border:1px solid var(--border);border-radius:var(--radius);padding:20px 24px;margin-top:14px">
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;padding-bottom:10px;border-bottom:1px solid var(--g100)">
+            <div>
+              <div style="font-size:13px;font-weight:600;color:var(--g900)">Daftar Pengaju yang Diizinkan</div>
+              <div style="font-size:11px;color:var(--g500);margin-top:2px">Hanya email terdaftar di sini yang bisa membuat pengajuan baru.</div>
+            </div>
+            <button class="btn btn-p bsm" onclick="openSubmitterModal(null)">+ Tambah Pengaju</button>
+          </div>
+          <div class="tw"><table class="mtbl">
+            <thead><tr><th style="width:4%">#</th><th>Email Pengaju</th><th style="width:13%">Aksi</th></tr></thead>
+            <tbody id="submitters-tbody"><tr><td colspan="3" style="text-align:center;padding:20px;color:var(--g500)">Memuat...</td></tr></tbody>
+          </table></div>
+        </div>
+      </div>
+    </div>
+  </main>
+</div>
+
+<div class="mo" id="modal">
+  <div class="md">
+    <div class="mh">
+      <div class="mtt" id="mtt">Detail Pengajuan</div>
+      <button class="mc" onclick="closeMo()">x</button>
+    </div>
+    <div class="mb">
+      <div class="dg" id="mcnt"></div>
+      <!-- L1 Approval Action -->
+      <div id="m-l1" style="display:none" class="apv-wrap apv-l1">
+        <div class="apv-lbl">Tindakan Approval L1</div>
+        <div class="fd">
+          <label>Catatan</label>
+          <textarea id="m-l1-notes" rows="2" style="border:1.5px solid var(--border);border-radius:var(--rsm);padding:7px 10px;font-family:inherit;font-size:13px;width:100%;outline:none;resize:none" placeholder="Catatan approval (opsional)..."></textarea>
+        </div>
+        <div class="apv-btns">
+          <button class="btn btn-ok btn-sm" onclick="doApprove('l1')">&#10003; Approve</button>
+          <button class="btn btn-ng btn-sm" onclick="doReject('l1')">&#10007; Reject</button>
+        </div>
+      </div>
+
+      <!-- L2 Approval Action -->
+      <div id="m-l2" style="display:none" class="apv-wrap apv-l2">
+        <div class="apv-lbl">Tindakan Approval L2 (Final)</div>
+        <div class="fd">
+          <label>Catatan</label>
+          <textarea id="m-l2-notes" rows="2" style="border:1.5px solid var(--border);border-radius:var(--rsm);padding:7px 10px;font-family:inherit;font-size:13px;width:100%;outline:none;resize:none" placeholder="Catatan approval (opsional)..."></textarea>
+        </div>
+        <div class="apv-btns">
+          <button class="btn btn-ok btn-sm" onclick="doApprove('l2')">&#10003; Approve</button>
+          <button class="btn btn-ng btn-sm" onclick="doReject('l2')">&#10007; Reject</button>
+        </div>
+      </div>
+
+      <!-- GA Action -->
+      <div id="m-ga" style="display:none" class="apv-wrap apv-ga">
+        <div class="apv-lbl">Update Status (GA)</div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+          <div class="fd"><label>Status</label>
+            <select id="mst" onchange="onStatusChange()">
+              <option value="Approved">Approved</option>
+              <option value="Submitted to Finance">Submitted to Finance</option>
+              <option value="Delivered">Delivered</option>
+              <option value="Rejected">Rejected</option>
+            </select>
+          </div>
+          <div class="fd"><label>Catatan</label>
+            <input type="text" id="mnt" placeholder="Opsional...">
+          </div>
+        </div>
+
+        <!-- Harga Real — muncul saat Submitted to Finance -->
+        <div id="real-price-section" style="display:none;margin-top:12px;padding-top:12px;border-top:1px dashed var(--border)">
+          <div style="font-size:11px;font-weight:700;color:var(--teal);text-transform:uppercase;letter-spacing:.5px;margin-bottom:8px">&#128176; Harga Real per Item (wajib diisi)</div>
+          <div class="itw">
+            <table class="it" id="real-tbl" style="table-layout:fixed">
+              <thead id="real-thead"></thead>
+              <tbody id="real-tbody"></tbody>
+            </table>
+          </div>
+          <div class="it-foot">
+            <div style="font-size:12px;color:var(--g500)">Isi harga real sesuai nilai aktual yang diproses ke Finance</div>
+            <div class="it-tot"><span class="it-tot-lbl">Total Harga Real:</span><span class="it-tot-val" id="real-total">Rp 0</span></div>
+          </div>
+        </div>
+
+        <!-- Delivered fields -->
+        <div id="delivered-fields" style="display:none;margin-top:10px;padding-top:10px;border-top:1px dashed var(--border)">
+          <div style="font-size:11px;font-weight:700;color:#7B4FBF;text-transform:uppercase;letter-spacing:.5px;margin-bottom:8px">&#128230; Info Penerimaan (wajib diisi)</div>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+            <div class="fd">
+              <label>Nama Penerima <span class="rq">*</span></label>
+              <input type="text" id="m-penerima" placeholder="Nama lengkap penerima...">
+            </div>
+            <div class="fd">
+              <label>Tanggal Terima <span class="rq">*</span></label>
+              <input type="date" id="m-tgl-terima">
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="mf">
+      <button class="btn btn-o bsm" onclick="closeMo()">Tutup</button>
+      <button class="btn btn-o bsm" id="m-pdf-btn" style="display:none;color:var(--red);border-color:var(--red)" onclick="exportPDF()">&#128196; Export PDF</button>
+      <button class="btn btn-p bsm" id="m-save-btn" style="display:none" onclick="updStatus()">Simpan Status</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<!-- RULE MODAL -->
+<div class="mo" id="rule-modal">
+  <div class="md" style="max-width:480px">
+    <div class="mh">
+      <div class="mtt" id="rule-modal-title">Tambah Rule L1</div>
+      <button class="mc" onclick="closeRuleModal()">x</button>
+    </div>
+    <div class="mb">
+      <div style="display:grid;grid-template-columns:1fr;gap:12px">
+        <div class="fd">
+          <label>Nama Project <span class="rq">*</span></label>
+          <div style="position:relative">
+            <input type="text" id="rule-project" placeholder="Ketik untuk mencari project..." autocomplete="off"
+              oninput="filterProjectDD()" onfocus="filterProjectDD()" onblur="setTimeout(function(){var d=document.getElementById('project-dd');if(d)d.style.display='none'},200)"
+              style="width:100%;border:1.5px solid var(--border);border-radius:var(--rsm);padding:8px 11px;font-family:inherit;font-size:13px;outline:none">
+            <div id="project-dd" style="display:none;position:absolute;top:100%;left:0;right:0;background:white;border:1.5px solid var(--navy);border-top:none;border-radius:0 0 var(--rsm) var(--rsm);max-height:200px;overflow-y:auto;z-index:600;box-shadow:0 4px 12px rgba(11,79,126,.12)"></div>
+          </div>
+        </div>
+        <div class="fd">
+          <label>Cabang / Asal Kantor <span style="font-weight:400;color:var(--g500);font-size:11px">(opsional)</span></label>
+          <input type="text" id="rule-cabang" placeholder="Contoh: HO, Medan, Malang...">
+          <div style="font-size:11px;color:var(--g500);margin-top:3px">Kosongkan untuk catch-all (berlaku semua cabang pada project ini)</div>
+        </div>
+        <div style="background:var(--navy-lt);border-radius:var(--rsm);padding:12px;border:1px solid #BAD4EE">
+          <div style="font-size:11px;font-weight:700;color:var(--navy);text-transform:uppercase;letter-spacing:.5px;margin-bottom:8px">L1 Approver</div>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+            <div class="fd"><label>Nama L1 <span class="rq">*</span></label><input type="text" id="rule-l1name" placeholder="Nama lengkap..."></div>
+            <div class="fd"><label>Email L1 <span class="rq">*</span></label><input type="text" id="rule-l1email" placeholder="email@gos.co.id"></div>
+          </div>
+        </div>
+        <div style="background:var(--amber);border-radius:var(--rsm);padding:12px;border:1px solid var(--amber-bd)">
+          <div style="font-size:11px;font-weight:700;color:var(--amber-bd);text-transform:uppercase;letter-spacing:.5px;margin-bottom:4px">L2 Approver <span style="font-weight:400;font-style:italic">(opsional)</span></div>
+          <div style="font-size:11px;color:var(--g700);margin-bottom:8px">Jika tidak diisi, setelah L1 approve langsung ke Approved.</div>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+            <div class="fd"><label>Nama L2</label><input type="text" id="rule-l2name" placeholder="Nama lengkap..."></div>
+            <div class="fd"><label>Email L2</label><input type="text" id="rule-l2email" placeholder="email@gos.co.id"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="mf">
+      <button class="btn btn-o bsm" onclick="closeRuleModal()">Batal</button>
+      <button class="btn btn-p bsm" onclick="saveRule()">Simpan Rule</button>
+    </div>
+  </div>
+</div>
+
+<!-- SUBMITTER MODAL -->
+<div class="mo" id="submitter-modal">
+  <div class="md" style="max-width:420px">
+    <div class="mh">
+      <div class="mtt">Tambah Pengaju</div>
+      <button class="mc" onclick="closeSubmitterModal()">x</button>
+    </div>
+    <div class="mb">
+      <div class="fd">
+        <label>Email Pengaju <span class="rq">*</span></label>
+        <input type="text" id="submitter-email" placeholder="email@gos.co.id">
+        <div style="font-size:11px;color:var(--g500);margin-top:4px">Email Microsoft yang terdaftar di organisasi GOS Group</div>
+      </div>
+    </div>
+    <div class="mf">
+      <button class="btn btn-o bsm" onclick="closeSubmitterModal()">Batal</button>
+      <button class="btn btn-p bsm" onclick="saveSubmitter()">Simpan</button>
+    </div>
+  </div>
+</div>
+
+<!-- MASTER DATA MODAL -->
+<div class="mo" id="mm-overlay">
+  <div class="md" style="max-width:560px">
+    <div class="mh">
+      <div class="mtt" id="mm-title">Tambah Data</div>
+      <button class="mc" onclick="closeMM()">x</button>
+    </div>
+    <div class="mb" id="mm-body" style="display:grid;grid-template-columns:1fr 1fr;gap:12px"></div>
+    <div class="mf">
+      <button class="btn btn-o bsm" onclick="closeMM()">Batal</button>
+      <button class="btn btn-p bsm" onclick="saveMM()">&#10003; Simpan</button>
+    </div>
+  </div>
+</div>
+
+<script src="app.js"></script>
+</body>
+</html>
