@@ -206,7 +206,7 @@ body{font-family:'Plus Jakarta Sans',-apple-system,sans-serif;background:var(--g
 /* MODAL */
 .mo{display:none;position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:9000;align-items:flex-start;justify-content:center;padding:40px 16px;overflow-y:auto}
 .mo.on{display:flex}
-.md{background:white;border-radius:var(--radius);width:100%;max-width:640px;overflow:hidden}
+.md{background:white;border-radius:var(--radius);width:100%;max-width:1000px;overflow:hidden}
 .mh{background:var(--navy);color:white;padding:18px 24px;display:flex;align-items:center;justify-content:space-between}
 .mtt{font-size:15px;font-weight:700}
 .mc{background:none;border:none;color:rgba(255,255,255,.7);font-size:22px;cursor:pointer;line-height:1;padding:0 4px}
@@ -824,12 +824,12 @@ body{font-family:'Plus Jakarta Sans',-apple-system,sans-serif;background:var(--g
 // CONFIG - ISI SESUAI DATA ANDA
 // =============================================
 var CONFIG = {
-  clientId:      "c87df5fb-eb2f-40bc-8c33-d0c47dedfe10",
-  tenantId:      "c1cc324d-9fda-4a48-97ee-ba6157ba9c67",
-  siteUrl:       "https://gosgroup.sharepoint.com/sites/procurement",
+  clientId:      "ISI_CLIENT_ID_DARI_AZURE",
+  tenantId:      "ISI_TENANT_ID_DARI_AZURE",
+  siteUrl:       "https://DOMAIN.sharepoint.com/sites/NAMA_SITE",
   masterList:    "MasterPengadaan",
   resultList:    "HasilPengajuan",
-  approverEmail: "muhamad.parid@gos.co.id",
+  approverEmail: "approver@gosgroup.com",
   redirectUri:   window.location.origin + window.location.pathname
 };
 
@@ -2340,12 +2340,6 @@ function exportPDF() {
     "<div class='section'><div class='section-title'>Detail Item</div>" + itemTable + "</div>" +
 
     (apvHtml ? "<div class='section'><div class='section-title'>Riwayat Approval</div><table>" + apvHtml + "</table></div>" : "") +
-
-    "<div class='stamp'>" +
-    "<div class='stamp-box'><div class='stamp-label'>Pengaju</div><br><br><br><div style='border-top:1px solid #ccc;padding-top:8px;font-size:12px'>" + (item.SubmittedBy||"_______") + "</div></div>" +
-    "<div class='stamp-box'><div class='stamp-label'>L1 Approver</div><br><br><br><div style='border-top:1px solid #ccc;padding-top:8px;font-size:12px'>" + (item.L1ApproverName||"_______") + "</div></div>" +
-    "<div class='stamp-box'><div class='stamp-label'>GA / Finance</div><br><br><br><div style='border-top:1px solid #ccc;padding-top:8px;font-size:12px'>_______</div></div>" +
-    "</div>" +
 
     "<script>window.onload=function(){window.print()}<\/script>" +
     "</body></html>";
