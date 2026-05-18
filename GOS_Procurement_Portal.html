@@ -615,12 +615,11 @@ body{font-family:'Plus Jakarta Sans',-apple-system,sans-serif;background:var(--g
             <table class="mtbl">
               <thead><tr>
                 <th style="width:3%">#</th>
-                <th>Email Pengaju</th>
+                <th>Nama Project</th>
                 <th>L1 Approver</th>
                 <th>Email L1</th>
                 <th>L2 Approver</th>
                 <th>Email L2</th>
-                <th style="width:8%">Tipe</th>
                 <th style="width:11%">Aksi</th>
               </tr></thead>
               <tbody id="rules-tbody">
@@ -628,6 +627,21 @@ body{font-family:'Plus Jakarta Sans',-apple-system,sans-serif;background:var(--g
               </tbody>
             </table>
           </div>
+        </div>
+
+        <!-- Daftar Pengaju yang Diizinkan -->
+        <div style="background:white;border:1px solid var(--border);border-radius:var(--radius);padding:20px 24px;margin-top:14px">
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;padding-bottom:10px;border-bottom:1px solid var(--g100)">
+            <div>
+              <div style="font-size:13px;font-weight:600;color:var(--g900)">Daftar Pengaju yang Diizinkan</div>
+              <div style="font-size:11px;color:var(--g500);margin-top:2px">Hanya email terdaftar di sini yang bisa membuat pengajuan baru.</div>
+            </div>
+            <button class="btn btn-p bsm" onclick="openSubmitterModal(null)">+ Tambah Pengaju</button>
+          </div>
+          <div class="tw"><table class="mtbl">
+            <thead><tr><th style="width:4%">#</th><th>Email Pengaju</th><th style="width:13%">Aksi</th></tr></thead>
+            <tbody id="submitters-tbody"><tr><td colspan="3" style="text-align:center;padding:20px;color:var(--g500)">Memuat...</td></tr></tbody>
+          </table></div>
         </div>
       </div>
     </div>
@@ -718,9 +732,9 @@ body{font-family:'Plus Jakarta Sans',-apple-system,sans-serif;background:var(--g
     <div class="mb">
       <div style="display:grid;grid-template-columns:1fr;gap:12px">
         <div class="fd">
-          <label>Email Pengaju <span class="rq">*</span></label>
-          <input type="text" id="rule-submitter" placeholder="email@gos.co.id atau * untuk default">
-          <div style="font-size:11px;color:var(--g500);margin-top:3px">Gunakan <strong>*</strong> sebagai rule default</div>
+          <label>Nama Project <span class="rq">*</span></label>
+          <input type="text" id="rule-project" placeholder="Nama project sesuai Master Pengadaan...">
+          <div style="font-size:11px;color:var(--g500);margin-top:3px">Harus sama persis dengan nama project di MasterPengadaan</div>
         </div>
         <div style="background:var(--navy-lt);border-radius:var(--rsm);padding:12px;border:1px solid #BAD4EE">
           <div style="font-size:11px;font-weight:700;color:var(--navy);text-transform:uppercase;letter-spacing:.5px;margin-bottom:8px">L1 Approver</div>
@@ -730,8 +744,8 @@ body{font-family:'Plus Jakarta Sans',-apple-system,sans-serif;background:var(--g
           </div>
         </div>
         <div style="background:var(--amber);border-radius:var(--rsm);padding:12px;border:1px solid var(--amber-bd)">
-          <div style="font-size:11px;font-weight:700;color:var(--amber-bd);text-transform:uppercase;letter-spacing:.5px;margin-bottom:4px">L2 Approver <span style="font-weight:400;font-style:italic">(opsional — aktif jika estimasi &ge; threshold)</span></div>
-          <div style="font-size:11px;color:var(--g700);margin-bottom:8px">Jika tidak diisi, pengajuan langsung ke Approved setelah L1.</div>
+          <div style="font-size:11px;font-weight:700;color:var(--amber-bd);text-transform:uppercase;letter-spacing:.5px;margin-bottom:4px">L2 Approver <span style="font-weight:400;font-style:italic">(opsional)</span></div>
+          <div style="font-size:11px;color:var(--g700);margin-bottom:8px">Jika tidak diisi, setelah L1 approve langsung ke Approved.</div>
           <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
             <div class="fd"><label>Nama L2</label><input type="text" id="rule-l2name" placeholder="Nama lengkap..."></div>
             <div class="fd"><label>Email L2</label><input type="text" id="rule-l2email" placeholder="email@gos.co.id"></div>
@@ -742,6 +756,27 @@ body{font-family:'Plus Jakarta Sans',-apple-system,sans-serif;background:var(--g
     <div class="mf">
       <button class="btn btn-o bsm" onclick="closeRuleModal()">Batal</button>
       <button class="btn btn-p bsm" onclick="saveRule()">Simpan Rule</button>
+    </div>
+  </div>
+</div>
+
+<!-- SUBMITTER MODAL -->
+<div class="mo" id="submitter-modal">
+  <div class="md" style="max-width:420px">
+    <div class="mh">
+      <div class="mtt">Tambah Pengaju</div>
+      <button class="mc" onclick="closeSubmitterModal()">x</button>
+    </div>
+    <div class="mb">
+      <div class="fd">
+        <label>Email Pengaju <span class="rq">*</span></label>
+        <input type="text" id="submitter-email" placeholder="email@gos.co.id">
+        <div style="font-size:11px;color:var(--g500);margin-top:4px">Email Microsoft yang terdaftar di organisasi GOS Group</div>
+      </div>
+    </div>
+    <div class="mf">
+      <button class="btn btn-o bsm" onclick="closeSubmitterModal()">Batal</button>
+      <button class="btn btn-p bsm" onclick="saveSubmitter()">Simpan</button>
     </div>
   </div>
 </div>
@@ -766,12 +801,12 @@ body{font-family:'Plus Jakarta Sans',-apple-system,sans-serif;background:var(--g
 // CONFIG - ISI SESUAI DATA ANDA
 // =============================================
 var CONFIG = {
-  clientId:      "c87df5fb-eb2f-40bc-8c33-d0c47dedfe10",
-  tenantId:      "c1cc324d-9fda-4a48-97ee-ba6157ba9c67",
-  siteUrl:       "https://gosgroup.sharepoint.com/sites/procurement",
+  clientId:      "ISI_CLIENT_ID_DARI_AZURE",
+  tenantId:      "ISI_TENANT_ID_DARI_AZURE",
+  siteUrl:       "https://DOMAIN.sharepoint.com/sites/NAMA_SITE",
   masterList:    "MasterPengadaan",
   resultList:    "HasilPengajuan",
-  approverEmail: "muhamad.parid@gos.co.id",
+  approverEmail: "approver@gosgroup.com",
   redirectUri:   window.location.origin + window.location.pathname
 };
 
@@ -780,8 +815,7 @@ var CONFIG = {
 // =============================================
 var APPROVERS = [
   "muhamad.parid@gos.co.id",
-  "toro.sod@gos.co.id",
-  "yayat.hidayat@gos.co.id"
+  "toro.sod@gos.co.id"
 ];
 
 // =============================================
@@ -790,7 +824,8 @@ var APPROVERS = [
 var APPROVAL_CONFIG = {
   l2Threshold: 5000000,
   l2: { email: "ISI_EMAIL_L2@gos.co.id", name: "ISI_NAMA_L2" },
-  rules: []
+  rules:      [],  // { project, l1Email, l1Name, l2Email, l2Name }
+  submitters: []   // email yang boleh submit
 };
 
 // =============================================
@@ -807,11 +842,18 @@ function amL1()    {
     return r.l1Email.toLowerCase() === myEmail();
   });
 }
-function getL1(submitterEmail) {
-  var e = (submitterEmail||"").toLowerCase();
-  var r = APPROVAL_CONFIG.rules.filter(function(x){ return x.submitter.toLowerCase()===e; })[0];
-  if (!r) r = APPROVAL_CONFIG.rules.filter(function(x){ return x.submitter==="*"; })[0];
-  return r || null;
+function getL1ByProject(projectName) {
+  var p = (projectName||"").toLowerCase().trim();
+  return APPROVAL_CONFIG.rules.filter(function(x){
+    return (x.project||"").toLowerCase().trim() === p;
+  })[0] || null;
+}
+function hasSubmitAccess() {
+  var email = myEmail();
+  if (amGA()) return true;
+  return APPROVAL_CONFIG.submitters.some(function(s){
+    return s.toLowerCase() === email;
+  });
 }
 function needsL2(amount, rule) {
   var r = rule || {};
@@ -1213,13 +1255,15 @@ function submitForm() {
   var hgRaw = document.getElementById("f-hg").value.replace(/\./g,"").replace(/,/g,"");
   var hg  = parseInt(hgRaw, 10) || 0;
   var jp  = document.querySelector('input[name="jp"]:checked');
-  var l1rule = getL1(currentUser ? currentUser.userPrincipalName : "");
+  var selectedProject = document.getElementById("f-pr").value;
+  var l1rule = getL1ByProject(selectedProject);
 
   var storedDok = "";
   uploadAllFiles(uploadedFiles, rn).then(function(fileResults) {
     btn.innerHTML = '<span class="spin"></span> Menyimpan...';
     storedDok = fileResults.length ? JSON.stringify(fileResults) : "";
     var dokStr = storedDok;
+    if (!l1rule) { showToast("Project ini belum memiliki approver. Hubungi Admin untuk mendaftarkan project.", "er"); btn.innerHTML="Kirim Pengajuan"; btn.disabled=false; return; }
     var fields = {
       Title:            rn,
       NomorPengajuan:   rn,
@@ -2107,13 +2151,17 @@ function loadApprovalConfig() {
     apvRules = records.filter(function(r){ return r.TipeKonfigurasi==="ApprovalRule"; });
     APPROVAL_CONFIG.rules = apvRules.map(function(r){
       return {
-        submitter: r.SubmitterEmail||"*",
-        l1Email:   r.L1Email||"",
-        l1Name:    r.L1Name||"",
-        l2Email:   r.L2Email||"",
-        l2Name:    r.L2Name||""
+        project: r.Project||"",
+        l1Email: r.L1Email||"",
+        l1Name:  r.L1Name||"",
+        l2Email: r.L2Email||"",
+        l2Name:  r.L2Name||""
       };
     });
+    // Load daftar pengaju yang diizinkan
+    var submRecs = records.filter(function(r){ return r.TipeKonfigurasi==="SubmitterAccess"; });
+    APPROVAL_CONFIG.submitters = submRecs.map(function(r){ return (r.SubmitterEmail||"").toLowerCase(); });
+    submitterRecs = submRecs;
   }).catch(function(e){ console.warn("KonfigurasiApproval gagal:", e.message); });
 }
 
@@ -2165,29 +2213,17 @@ function renderRules() {
     return;
   }
   // Sort: specific rules first, default (*) last
-  var sorted = apvRules.slice().sort(function(a,b){
-    if ((a.SubmitterEmail||"*")==="*") return 1;
-    if ((b.SubmitterEmail||"*")==="*") return -1;
-    return 0;
-  });
-  tbody.innerHTML = sorted.map(function(r,i){
-    var isDefault = (r.SubmitterEmail||"*") === "*";
-    var badge = isDefault
-      ? '<span class="sb pl2" style="font-size:11px">Default</span>'
-      : '<span class="sb apv" style="font-size:11px">Spesifik</span>';
-    var editBtn = '<button class="btn btn-o bsm" style="font-size:11px" onclick="openRuleModal(\''+r.id+'\')">Edit</button>';
-    var delBtn  = !isDefault
-      ? '<button class="btn bsm" style="font-size:11px;color:var(--red);border:1.5px solid var(--red);background:white;border-radius:var(--rsm);cursor:pointer;font-family:inherit" onclick="deleteRule(\''+r.id+'\')">Hapus</button>'
-      : '';
-    return '<tr>'+
-      '<td style="color:var(--g500)">'+(i+1)+'</td>'+
-      '<td style="font-size:12px">'+(isDefault?'<em style="color:var(--g500)">* (semua lainnya)</em>':eA(r.SubmitterEmail||""))+'</td>'+
-      '<td>'+eA(r.L1Name||'-')+'</td>'+
-      '<td style="font-size:12px">'+eA(r.L1Email||'-')+'</td>'+
-      '<td>'+(r.L2Name?eA(r.L2Name):'<span style="color:var(--g500);font-size:11px">-</span>')+'</td>'+
-      '<td style="font-size:12px">'+(r.L2Email?eA(r.L2Email):'<span style="color:var(--g500)">-</span>')+'</td>'+
-      '<td>'+badge+'</td>'+
-      '<td><div style="display:flex;gap:4px">'+editBtn+delBtn+'</div></td>'+
+  tbody.innerHTML = apvRules.map(function(r,i){
+    var editBtn = '<button class="btn btn-o bsm" style="font-size:11px" onclick="openRuleModal(\'' + r.id + '\')">Edit</button>';
+    var delBtn  = '<button class="btn bsm" style="font-size:11px;color:var(--red);border:1.5px solid var(--red);background:white;border-radius:var(--rsm);cursor:pointer;font-family:inherit" onclick="deleteRule(\'' + r.id + '\')">Hapus</button>';
+    return '<tr>' +
+      '<td style="color:var(--g500)">' + (i+1) + '</td>' +
+      '<td style="font-weight:500">' + eA(r.Project || "-") + '</td>' +
+      '<td>' + eA(r.L1Name || "-") + '</td>' +
+      '<td style="font-size:12px">' + eA(r.L1Email || "-") + '</td>' +
+      '<td>' + (r.L2Name ? eA(r.L2Name) : '<span style="color:var(--g500);font-size:11px">-</span>') + '</td>' +
+      '<td style="font-size:12px">' + (r.L2Email ? eA(r.L2Email) : '<span style="color:var(--g500)">-</span>') + '</td>' +
+      '<td><div style="display:flex;gap:4px">' + editBtn + delBtn + '</div></td>' +
       '</tr>';
   }).join("");
 }
@@ -2197,24 +2233,24 @@ function openRuleModal(id) {
   var r = id ? apvRules.filter(function(x){ return x.id===id; })[0] : {};
   if (!r) r = {};
   document.getElementById("rule-modal-title").textContent = id ? "Edit Rule L1" : "Tambah Rule L1";
-  document.getElementById("rule-submitter").value = r.SubmitterEmail || "";
-  document.getElementById("rule-l1name").value    = r.L1Name         || "";
-  document.getElementById("rule-l1email").value   = r.L1Email        || "";
-  document.getElementById("rule-l2name").value    = r.L2Name         || "";
-  document.getElementById("rule-l2email").value   = r.L2Email        || "";
+  document.getElementById("rule-project").value  = r.Project  || "";
+  document.getElementById("rule-l1name").value   = r.L1Name   || "";
+  document.getElementById("rule-l1email").value  = r.L1Email  || "";
+  document.getElementById("rule-l2name").value   = r.L2Name   || "";
+  document.getElementById("rule-l2email").value  = r.L2Email  || "";
   document.getElementById("rule-modal").classList.add("on");
 }
 function closeRuleModal() { document.getElementById("rule-modal").classList.remove("on"); }
 
 function saveRule() {
-  var sub  = document.getElementById("rule-submitter").value.trim();
+  var proj = document.getElementById("rule-project").value.trim();
   var l1n  = document.getElementById("rule-l1name").value.trim();
   var l1e  = document.getElementById("rule-l1email").value.trim();
   var l2n  = document.getElementById("rule-l2name").value.trim();
   var l2e  = document.getElementById("rule-l2email").value.trim();
-  if (!sub||!l1n||!l1e) { showToast("Email pengaju, Nama L1, dan Email L1 wajib diisi","er"); return; }
+  if (!proj||!l1n||!l1e) { showToast("Project, Nama L1, dan Email L1 wajib diisi","er"); return; }
 
-  var fields = { Title:sub, TipeKonfigurasi:"ApprovalRule", SubmitterEmail:sub,
+  var fields = { Title:proj, TipeKonfigurasi:"ApprovalRule", Project:proj,
                  L1Name:l1n, L1Email:l1e, L2Name:l2n, L2Email:l2e };
   var promise = ruleEditId ? patchItem("KonfigurasiApproval", ruleEditId, fields)
                            : createItem("KonfigurasiApproval", fields);
@@ -2227,7 +2263,7 @@ function saveRule() {
       apvRules.push(Object.assign({id:newId}, fields));
     }
     APPROVAL_CONFIG.rules = apvRules.map(function(r){
-      return { submitter:r.SubmitterEmail||"*", l1Email:r.L1Email||"", l1Name:r.L1Name||"",
+      return { project:r.Project||"", l1Email:r.L1Email||"", l1Name:r.L1Name||"",
                l2Email:r.L2Email||"", l2Name:r.L2Name||"" };
     });
     renderRules(); closeRuleModal();
@@ -2240,7 +2276,7 @@ function deleteRule(id) {
   patchItem("KonfigurasiApproval", id, { TipeKonfigurasi:"Deleted" }).then(function(){
     apvRules = apvRules.filter(function(r){ return r.id!==id; });
     APPROVAL_CONFIG.rules = apvRules.map(function(r){
-      return { submitter:r.SubmitterEmail||"*", l1Email:r.L1Email||"", l1Name:r.L1Name||"",
+      return { project:r.Project||"", l1Email:r.L1Email||"", l1Name:r.L1Name||"",
                l2Email:r.L2Email||"", l2Name:r.L2Name||"" };
     });
     renderRules();
@@ -2248,6 +2284,59 @@ function deleteRule(id) {
   }).catch(function(e){ showToast("Gagal: "+e.message,"er"); });
 }
 
+
+// =============================================
+// SUBMITTER ACCESS MANAGEMENT
+// =============================================
+var submitterRecs = [];
+
+function renderSubmitters() {
+  var tbody = document.getElementById("submitters-tbody");
+  if (!tbody) return;
+  if (!submitterRecs.length) {
+    tbody.innerHTML = '<tr><td colspan="3" style="text-align:center;padding:20px;color:var(--g500)">Belum ada pengaju terdaftar.</td></tr>';
+    return;
+  }
+  tbody.innerHTML = submitterRecs.map(function(r,i){
+    var delBtn = '<button class="btn bsm" style="font-size:11px;color:var(--red);border:1.5px solid var(--red);background:white;border-radius:var(--rsm);cursor:pointer;font-family:inherit" onclick="deleteSubmitter(\'' + r.id + '\')">Hapus</button>';
+    return '<tr><td style="color:var(--g500)">'+(i+1)+'</td><td>'+eA(r.SubmitterEmail||"")+'</td><td>'+delBtn+'</td></tr>';
+  }).join("");
+}
+
+function openSubmitterModal() {
+  document.getElementById("submitter-email").value = "";
+  document.getElementById("submitter-modal").classList.add("on");
+}
+function closeSubmitterModal() { document.getElementById("submitter-modal").classList.remove("on"); }
+
+function saveSubmitter() {
+  var email = document.getElementById("submitter-email").value.trim().toLowerCase();
+  if (!email) { showToast("Email wajib diisi","er"); return; }
+  if (submitterRecs.some(function(r){ return (r.SubmitterEmail||"").toLowerCase()===email; })) {
+    showToast("Email sudah terdaftar","er"); return;
+  }
+  createItem("KonfigurasiApproval", { Title:email, TipeKonfigurasi:"SubmitterAccess", SubmitterEmail:email }).then(function(res){
+    var newId = res && res.id ? res.id : "tmp-"+Date.now();
+    submitterRecs.push({ id:newId, SubmitterEmail:email });
+    APPROVAL_CONFIG.submitters.push(email);
+    renderSubmitters(); closeSubmitterModal();
+    showToast("Pengaju ditambahkan!","ok");
+  }).catch(function(e){ showToast("Gagal: "+e.message,"er"); });
+}
+
+function deleteSubmitter(id) {
+  if (!confirm("Hapus akses pengaju ini?")) return;
+  patchItem("KonfigurasiApproval", id, { TipeKonfigurasi:"Deleted" }).then(function(){
+    var r = submitterRecs.filter(function(x){ return x.id===id; })[0];
+    if (r) {
+      var em = (r.SubmitterEmail||"").toLowerCase();
+      APPROVAL_CONFIG.submitters = APPROVAL_CONFIG.submitters.filter(function(s){ return s!==em; });
+    }
+    submitterRecs = submitterRecs.filter(function(x){ return x.id!==id; });
+    renderSubmitters();
+    showToast("Akses pengaju dihapus","ok");
+  }).catch(function(e){ showToast("Gagal: "+e.message,"er"); });
+}
 
 var mData = { entitas: [], barang: [], jasa: [] };
 var mmTab = "entitas";
@@ -2268,8 +2357,9 @@ function switchMTab(tab) {
   if (tab === "setting") {
     refreshL2Display();
     renderRules();
+    renderSubmitters();
     if (!apvRules.length) loadApprovalConfig().then(function(){
-      refreshL2Display(); renderRules();
+      refreshL2Display(); renderRules(); renderSubmitters();
     });
   } else if (!mData[tab].length) loadMT(tab);
 }
@@ -2443,25 +2533,10 @@ function toggleAktif(tab, id, currentAktif) {
 
 
 function hasAccess() {
+  // Semua user Microsoft org bisa masuk (minimal lihat Dashboard)
+  // Pengajuan Baru hanya untuk yang terdaftar (dicek di initApp)
   var email = myEmail();
-  if (!email) return false;
-  // GA selalu bisa masuk
-  if (amGA()) return true;
-  // Kalau rules belum di-load / kosong, tolak semua selain GA
-  if (APPROVAL_CONFIG.rules.length === 0) return false;
-  // L2 approver bisa masuk
-  if (amL2()) return true;
-  // L1 approver bisa masuk
-  if (amL1()) return true;
-  // Cek apakah email terdaftar sebagai submitter
-  var explicit = APPROVAL_CONFIG.rules.some(function(r) {
-    return r.submitter.toLowerCase() === email;
-  });
-  if (explicit) return true;
-  // Cek rule default (*)
-  return APPROVAL_CONFIG.rules.some(function(r) {
-    return r.submitter === "*";
-  });
+  return !!email;
 }
 
 function showAccessDenied() {
@@ -2483,10 +2558,11 @@ function initApp() {
     // Master Data hanya GA
     if (amGA()) document.getElementById("nav-master").style.display = "inline-flex";
 
-    // Pengajuan Baru hanya untuk yang terdaftar
-    if (!hasAccess()) {
+    // Master Data hanya GA
+    if (amGA()) document.getElementById("nav-master").style.display = "inline-flex";
+    // Pengajuan Baru hanya untuk submitter terdaftar
+    if (!hasSubmitAccess()) {
       document.getElementById("nav-form").style.display = "none";
-      // Default ke Dashboard
       switchView("dash");
     }
 
