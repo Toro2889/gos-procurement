@@ -376,9 +376,15 @@ body{font-family:'Plus Jakarta Sans',-apple-system,sans-serif;background:var(--g
               <div class="fe">Pilih project</div>
             </div>
             <div class="fd s2">
-              <label>Cabang / Asal Kantor</label>
-              <input type="text" id="f-cabang" placeholder="Contoh: HO, Medan, Malang... (kosongkan jika tidak ada)">
-              <div class="fe" style="color:var(--g500)">Isi jika pengajuan dari cabang tertentu</div>
+              <label>Cabang / Asal Kantor <span style="font-weight:400;color:var(--g500);font-size:11px">(opsional)</span></label>
+              <div style="position:relative">
+                <input type="text" id="f-cabang" placeholder="Ketik atau pilih cabang..." autocomplete="off"
+                  oninput="filterCabangDD()" onfocus="filterCabangDD()"
+                  onblur="setTimeout(function(){var d=document.getElementById('cabang-dd');if(d)d.style.display='none'},200)"
+                  style="width:100%;border:1.5px solid var(--border);border-radius:var(--rsm);padding:8px 11px;font-family:inherit;font-size:13px;outline:none;transition:border-color .15s">
+                <div id="cabang-dd" style="display:none;position:absolute;top:100%;left:0;right:0;background:white;border:1.5px solid var(--navy);border-top:none;border-radius:0 0 var(--rsm) var(--rsm);max-height:180px;overflow-y:auto;z-index:500;box-shadow:0 4px 12px rgba(11,79,126,.12)"></div>
+              </div>
+              <div class="fe" style="color:var(--g500)">Pilihan sesuai project — kosongkan jika tidak ada cabang</div>
             </div>
           </div>
 
@@ -834,9 +840,9 @@ body{font-family:'Plus Jakarta Sans',-apple-system,sans-serif;background:var(--g
 // CONFIG - ISI SESUAI DATA ANDA
 // =============================================
 var CONFIG = {
-  clientId:      "c87df5fb-eb2f-40bc-8c33-d0c47dedfe10",
-  tenantId:      "c1cc324d-9fda-4a48-97ee-ba6157ba9c67",
-  siteUrl:       "https://gosgroup.sharepoint.com/sites/procurement",
+  clientId:      "c87df5fb-eb2f-40bc-8c33-d0c47dedfe10",
+  tenantId:      "c1cc324d-9fda-4a48-97ee-ba6157ba9c67",
+  siteUrl:       "https://gosgroup.sharepoint.com/sites/procurement",
   masterList:    "MasterPengadaan",
   resultList:    "HasilPengajuan",
   approverEmail: "muhamad.parid@gos.co.id",
@@ -1153,11 +1159,19 @@ function selectSDD(key, val) {
     document.getElementById("f-cl-txt").value = "";
     document.getElementById("f-pr").value     = "";
     document.getElementById("f-pr-txt").value = "";
+    document.getElementById("f-cabang").value = "";
+    document.getElementById("cabang-dd").style.display = "none";
     updateRn();
   }
   if (key === "cl") {
     document.getElementById("f-pr").value     = "";
     document.getElementById("f-pr-txt").value = "";
+    document.getElementById("f-cabang").value = "";
+    document.getElementById("cabang-dd").style.display = "none";
+  }
+  if (key === "pr") {
+    document.getElementById("f-cabang").value = "";
+    document.getElementById("cabang-dd").style.display = "none";
   }
 }
 
@@ -2470,6 +2484,41 @@ function renderRules() {
       '</tr>';
   }).join("");
 }
+
+function filterCabangDD() {
+  var dd   = document.getElementById("cabang-dd");
+  var q    = (document.getElementById("f-cabang").value||"").toLowerCase();
+  var proj = document.getElementById("f-pr").value;
+
+  // Ambil cabang unik dari rules untuk project yang dipilih
+  var options = [];
+  APPROVAL_CONFIG.rules.forEach(function(r) {
+    if (r.cabang && (!proj || (r.project||"").toLowerCase().trim() === proj.toLowerCase().trim())) {
+      if (options.indexOf(r.cabang) < 0) options.push(r.cabang);
+    }
+  });
+  options.sort();
+
+  var filtered = q ? options.filter(function(c){ return c.toLowerCase().indexOf(q)>-1; }) : options;
+
+  if (!filtered.length) {
+    dd.style.display = "none"; return;
+  }
+
+  dd.innerHTML = filtered.map(function(c) {
+    return '<div onmousedown="selectCabangDD(\'' + c.replace(/'/g,"\\'") + '\')" ' +
+      'style="padding:8px 11px;font-size:13px;cursor:pointer;color:var(--g900)" ' +
+      'onmouseover="this.style.background=\'var(--navy-lt)\'" ' +
+      'onmouseout="this.style.background=\'\'">' + c + '</div>';
+  }).join("");
+  dd.style.display = "block";
+}
+
+function selectCabangDD(val) {
+  document.getElementById("f-cabang").value = val;
+  document.getElementById("cabang-dd").style.display = "none";
+}
+
 
 function filterProjectDD() {
   var input = document.getElementById("rule-project");
