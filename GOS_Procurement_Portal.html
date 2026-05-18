@@ -375,6 +375,11 @@ body{font-family:'Plus Jakarta Sans',-apple-system,sans-serif;background:var(--g
               </div>
               <div class="fe">Pilih project</div>
             </div>
+            <div class="fd s2">
+              <label>Cabang / Asal Kantor</label>
+              <input type="text" id="f-cabang" placeholder="Contoh: HO, Medan, Malang... (kosongkan jika tidak ada)">
+              <div class="fe" style="color:var(--g500)">Isi jika pengajuan dari cabang tertentu</div>
+            </div>
           </div>
 
           <div class="stl"><div class="sn" style="background:#7B4FBF">3</div>Detail Permintaan</div>
@@ -616,6 +621,7 @@ body{font-family:'Plus Jakarta Sans',-apple-system,sans-serif;background:var(--g
               <thead><tr>
                 <th style="width:3%">#</th>
                 <th>Nama Project</th>
+                <th>Cabang</th>
                 <th>L1 Approver</th>
                 <th>Email L1</th>
                 <th>L2 Approver</th>
@@ -757,7 +763,11 @@ body{font-family:'Plus Jakarta Sans',-apple-system,sans-serif;background:var(--g
               style="width:100%;border:1.5px solid var(--border);border-radius:var(--rsm);padding:8px 11px;font-family:inherit;font-size:13px;outline:none">
             <div id="project-dd" style="display:none;position:absolute;top:100%;left:0;right:0;background:white;border:1.5px solid var(--navy);border-top:none;border-radius:0 0 var(--rsm) var(--rsm);max-height:200px;overflow-y:auto;z-index:600;box-shadow:0 4px 12px rgba(11,79,126,.12)"></div>
           </div>
-          <div style="font-size:11px;color:var(--g500);margin-top:3px">Project yang sudah memiliki rule tidak akan ditampilkan</div>
+        </div>
+        <div class="fd">
+          <label>Cabang / Asal Kantor <span style="font-weight:400;color:var(--g500);font-size:11px">(opsional)</span></label>
+          <input type="text" id="rule-cabang" placeholder="Contoh: HO, Medan, Malang...">
+          <div style="font-size:11px;color:var(--g500);margin-top:3px">Kosongkan untuk catch-all (berlaku semua cabang pada project ini)</div>
         </div>
         <div style="background:var(--navy-lt);border-radius:var(--rsm);padding:12px;border:1px solid #BAD4EE">
           <div style="font-size:11px;font-weight:700;color:var(--navy);text-transform:uppercase;letter-spacing:.5px;margin-bottom:8px">L1 Approver</div>
@@ -824,12 +834,12 @@ body{font-family:'Plus Jakarta Sans',-apple-system,sans-serif;background:var(--g
 // CONFIG - ISI SESUAI DATA ANDA
 // =============================================
 var CONFIG = {
-  clientId:      "c87df5fb-eb2f-40bc-8c33-d0c47dedfe10",
-  tenantId:      "c1cc324d-9fda-4a48-97ee-ba6157ba9c67",
-  siteUrl:       "https://gosgroup.sharepoint.com/sites/procurement",
+  clientId:      "ISI_CLIENT_ID_DARI_AZURE",
+  tenantId:      "ISI_TENANT_ID_DARI_AZURE",
+  siteUrl:       "https://DOMAIN.sharepoint.com/sites/NAMA_SITE",
   masterList:    "MasterPengadaan",
   resultList:    "HasilPengajuan",
-  approverEmail: "muhamad.parid@gos.co.id",
+  approverEmail: "approver@gosgroup.com",
   redirectUri:   window.location.origin + window.location.pathname
 };
 
@@ -838,8 +848,7 @@ var CONFIG = {
 // =============================================
 var APPROVERS = [
   "muhamad.parid@gos.co.id",
-  "toro.sod@gos.co.id",
-  "mis@gos.co.id"
+  "toro.sod@gos.co.id"
 ];
 
 // =============================================
@@ -866,11 +875,23 @@ function amL1()    {
     return r.l1Email.toLowerCase() === myEmail();
   });
 }
-function getL1ByProject(projectName) {
+function getL1ByProject(projectName, cabang) {
   var p = (projectName||"").toLowerCase().trim();
-  return APPROVAL_CONFIG.rules.filter(function(x){
+  var c = (cabang||"").toLowerCase().trim();
+  // 1. Cari rule project + cabang exact match
+  var r = APPROVAL_CONFIG.rules.filter(function(x){
+    return (x.project||"").toLowerCase().trim() === p &&
+           (x.cabang||"").toLowerCase().trim() === c;
+  })[0];
+  // 2. Fallback: project match tanpa cabang (catch-all)
+  if (!r && c) r = APPROVAL_CONFIG.rules.filter(function(x){
+    return (x.project||"").toLowerCase().trim() === p && !(x.cabang||"").trim();
+  })[0];
+  // 3. Fallback: project match saja (ignore cabang)
+  if (!r) r = APPROVAL_CONFIG.rules.filter(function(x){
     return (x.project||"").toLowerCase().trim() === p;
-  })[0] || null;
+  })[0];
+  return r || null;
 }
 function hasSubmitAccess() {
   var email = myEmail();
@@ -1280,14 +1301,15 @@ function submitForm() {
   var hg  = parseInt(hgRaw, 10) || 0;
   var jp  = document.querySelector('input[name="jp"]:checked');
   var selectedProject = document.getElementById("f-pr").value;
-  var l1rule = getL1ByProject(selectedProject);
+  var selectedCabang  = document.getElementById("f-cabang").value.trim();
+  var l1rule = getL1ByProject(selectedProject, selectedCabang);
 
   var storedDok = "";
   uploadAllFiles(uploadedFiles, rn).then(function(fileResults) {
     btn.innerHTML = '<span class="spin"></span> Menyimpan...';
     storedDok = fileResults.length ? JSON.stringify(fileResults) : "";
     var dokStr = storedDok;
-    if (!l1rule) { showToast("Project ini belum memiliki approver. Hubungi Admin untuk mendaftarkan project.", "er"); btn.innerHTML="Kirim Pengajuan"; btn.disabled=false; return; }
+    if (!l1rule) { showToast("Project ini belum memiliki rule approval" + (selectedCabang ? " untuk cabang " + selectedCabang : "") + ". Hubungi Admin.", "er"); btn.innerHTML="Kirim Pengajuan"; btn.disabled=false; return; }
     var fields = {
       Title:            rn,
       NomorPengajuan:   rn,
@@ -1297,6 +1319,7 @@ function submitForm() {
       Company:          document.getElementById("f-co").value,
       Client:           document.getElementById("f-cl").value,
       Project:          document.getElementById("f-pr").value,
+      Cabang:           selectedCabang,
       TujuanPermintaan: document.getElementById("f-tj").value,
       JenisProduk:      jp ? jp.value : "",
       EstimasiHarga:    hg,
@@ -1393,7 +1416,7 @@ function fixDuplicate(seq, newId) {
 }
 
 function resetForm() {
-  ["f-jenis","f-tj","f-hg"].forEach(function(id) {
+  ["f-jenis","f-tj","f-hg","f-cabang"].forEach(function(id) {
     document.getElementById(id).value = "";
   });
   document.querySelectorAll('input[name="jp"]').forEach(function(r) { r.checked = false; });
@@ -2056,6 +2079,7 @@ function openMo(id) {
     '<div class="df"><div class="dl">Company</div><div class="dv">' + (item.Company||"-") + '</div></div>' +
     '<div class="df"><div class="dl">Client</div><div class="dv">' + (item.Client||"-") + '</div></div>' +
     '<div class="df full"><div class="dl">Project</div><div class="dv">' + (item.Project||"-") + '</div></div>' +
+    (item.Cabang ? '<div class="df"><div class="dl">Cabang</div><div class="dv"><span style="background:#E8F2FB;color:var(--navy);padding:2px 8px;border-radius:10px;font-size:12px">' + item.Cabang + '</span></div></div>' : '') +
     '<div class="df full"><div class="dl">Detail Item</div><div class="dv">' + buildItemDetail(item.DetailItem, item.JenisProduk, item.DetailItemReal) + '</div></div>' +
     '<div class="df full"><div class="dl">Tujuan Permintaan</div><div class="dv">' + (item.TujuanPermintaan||"-") + '</div></div>' +
     '<div class="df"><div class="dl">Estimasi Harga</div><div class="dv" style="font-weight:700;color:var(--navy)">' + h + '</div></div>' +
@@ -2368,6 +2392,7 @@ function loadApprovalConfig() {
     APPROVAL_CONFIG.rules = apvRules.map(function(r){
       return {
         project: r.Project||"",
+        cabang:  r.Cabang||"",
         l1Email: r.L1Email||"",
         l1Name:  r.L1Name||"",
         l2Email: r.L2Email||"",
@@ -2435,6 +2460,7 @@ function renderRules() {
     return '<tr>' +
       '<td style="color:var(--g500)">' + (i+1) + '</td>' +
       '<td style="font-weight:500">' + eA(r.Project || "-") + '</td>' +
+      '<td>' + (r.Cabang ? '<span style="background:#E8F2FB;color:var(--navy);padding:2px 8px;border-radius:10px;font-size:11px">' + eA(r.Cabang) + '</span>' : '<span style="color:var(--g400);font-size:11px">semua cabang</span>') + '</td>' +
       '<td>' + eA(r.L1Name || "-") + '</td>' +
       '<td style="font-size:12px">' + eA(r.L1Email || "-") + '</td>' +
       '<td>' + (r.L2Name ? eA(r.L2Name) : '<span style="color:var(--g500);font-size:11px">-</span>') + '</td>' +
@@ -2456,13 +2482,8 @@ function filterProjectDD() {
   });
   allProjects.sort();
 
-  // Kecualikan project yang sudah punya rule (kecuali rule yang sedang diedit)
-  var usedProjects = apvRules
-    .filter(function(r) { return r.id !== ruleEditId; })
-    .map(function(r) { return (r.Project||"").toLowerCase(); });
-
+  // Tampilkan semua project (project boleh punya multiple rule untuk cabang berbeda)
   var filtered = allProjects.filter(function(p) {
-    if (usedProjects.indexOf(p.toLowerCase()) > -1) return false;
     if (q) return p.toLowerCase().indexOf(q) > -1;
     return true;
   });
@@ -2494,6 +2515,7 @@ function openRuleModal(id) {
   document.getElementById("rule-modal-title").textContent = id ? "Edit Rule Project" : "Tambah Rule Project";
   document.getElementById("rule-project").value  = r.Project  || "";
   document.getElementById("project-dd").style.display = "none";
+  document.getElementById("rule-cabang").value   = r.Cabang   || "";
   document.getElementById("rule-l1name").value   = r.L1Name   || "";
   document.getElementById("rule-l1email").value  = r.L1Email  || "";
   document.getElementById("rule-l2name").value   = r.L2Name   || "";
@@ -2504,13 +2526,14 @@ function closeRuleModal() { document.getElementById("rule-modal").classList.remo
 
 function saveRule() {
   var proj = document.getElementById("rule-project").value.trim();
+  var cab  = document.getElementById("rule-cabang").value.trim();
   var l1n  = document.getElementById("rule-l1name").value.trim();
   var l1e  = document.getElementById("rule-l1email").value.trim();
   var l2n  = document.getElementById("rule-l2name").value.trim();
   var l2e  = document.getElementById("rule-l2email").value.trim();
   if (!proj||!l1n||!l1e) { showToast("Project, Nama L1, dan Email L1 wajib diisi","er"); return; }
 
-  var fields = { Title:proj, TipeKonfigurasi:"ApprovalRule", Project:proj,
+  var fields = { Title: proj+(cab?"/"+cab:""), TipeKonfigurasi:"ApprovalRule", Project:proj, Cabang:cab,
                  L1Name:l1n, L1Email:l1e, L2Name:l2n, L2Email:l2e };
   var promise = ruleEditId ? patchItem("KonfigurasiApproval", ruleEditId, fields)
                            : createItem("KonfigurasiApproval", fields);
@@ -2523,7 +2546,7 @@ function saveRule() {
       apvRules.push(Object.assign({id:newId}, fields));
     }
     APPROVAL_CONFIG.rules = apvRules.map(function(r){
-      return { project:r.Project||"", l1Email:r.L1Email||"", l1Name:r.L1Name||"",
+      return { project:r.Project||"", cabang:r.Cabang||"", l1Email:r.L1Email||"", l1Name:r.L1Name||"",
                l2Email:r.L2Email||"", l2Name:r.L2Name||"" };
     });
     renderRules(); closeRuleModal();
@@ -2536,7 +2559,7 @@ function deleteRule(id) {
   patchItem("KonfigurasiApproval", id, { TipeKonfigurasi:"Deleted" }).then(function(){
     apvRules = apvRules.filter(function(r){ return r.id!==id; });
     APPROVAL_CONFIG.rules = apvRules.map(function(r){
-      return { project:r.Project||"", l1Email:r.L1Email||"", l1Name:r.L1Name||"",
+      return { project:r.Project||"", cabang:r.Cabang||"", l1Email:r.L1Email||"", l1Name:r.L1Name||"",
                l2Email:r.L2Email||"", l2Name:r.L2Name||"" };
     });
     renderRules();
