@@ -733,8 +733,13 @@ body{font-family:'Plus Jakarta Sans',-apple-system,sans-serif;background:var(--g
       <div style="display:grid;grid-template-columns:1fr;gap:12px">
         <div class="fd">
           <label>Nama Project <span class="rq">*</span></label>
-          <input type="text" id="rule-project" placeholder="Nama project sesuai Master Pengadaan...">
-          <div style="font-size:11px;color:var(--g500);margin-top:3px">Harus sama persis dengan nama project di MasterPengadaan</div>
+          <div style="position:relative">
+            <input type="text" id="rule-project" placeholder="Ketik untuk mencari project..." autocomplete="off"
+              oninput="filterProjectDD()" onfocus="filterProjectDD()" onblur="setTimeout(function(){var d=document.getElementById('project-dd');if(d)d.style.display='none'},200)"
+              style="width:100%;border:1.5px solid var(--border);border-radius:var(--rsm);padding:8px 11px;font-family:inherit;font-size:13px;outline:none">
+            <div id="project-dd" style="display:none;position:absolute;top:100%;left:0;right:0;background:white;border:1.5px solid var(--navy);border-top:none;border-radius:0 0 var(--rsm) var(--rsm);max-height:200px;overflow-y:auto;z-index:600;box-shadow:0 4px 12px rgba(11,79,126,.12)"></div>
+          </div>
+          <div style="font-size:11px;color:var(--g500);margin-top:3px">Project yang sudah memiliki rule tidak akan ditampilkan</div>
         </div>
         <div style="background:var(--navy-lt);border-radius:var(--rsm);padding:12px;border:1px solid #BAD4EE">
           <div style="font-size:11px;font-weight:700;color:var(--navy);text-transform:uppercase;letter-spacing:.5px;margin-bottom:8px">L1 Approver</div>
@@ -801,12 +806,12 @@ body{font-family:'Plus Jakarta Sans',-apple-system,sans-serif;background:var(--g
 // CONFIG - ISI SESUAI DATA ANDA
 // =============================================
 var CONFIG = {
-  clientId:      "c87df5fb-eb2f-40bc-8c33-d0c47dedfe10",
-  tenantId:      "c1cc324d-9fda-4a48-97ee-ba6157ba9c67",
-  siteUrl:       "https://gosgroup.sharepoint.com/sites/procurement",
+  clientId:      "ISI_CLIENT_ID_DARI_AZURE",
+  tenantId:      "ISI_TENANT_ID_DARI_AZURE",
+  siteUrl:       "https://DOMAIN.sharepoint.com/sites/NAMA_SITE",
   masterList:    "MasterPengadaan",
   resultList:    "HasilPengajuan",
-  approverEmail: "muhamad.parid@gos.co.id",
+  approverEmail: "approver@gosgroup.com",
   redirectUri:   window.location.origin + window.location.pathname
 };
 
@@ -815,8 +820,7 @@ var CONFIG = {
 // =============================================
 var APPROVERS = [
   "muhamad.parid@gos.co.id",
-  "toro.sod@gos.co.id",
-  "yayat.hidayat@gmail.com"
+  "toro.sod@gos.co.id"
 ];
 
 // =============================================
@@ -2229,12 +2233,56 @@ function renderRules() {
   }).join("");
 }
 
+function filterProjectDD() {
+  var input = document.getElementById("rule-project");
+  var dd    = document.getElementById("project-dd");
+  var q     = (input.value || "").toLowerCase();
+
+  // Ambil semua project dari masterData
+  var allProjects = [];
+  (masterData || []).forEach(function(r) {
+    if (r.Project && allProjects.indexOf(r.Project) < 0) allProjects.push(r.Project);
+  });
+  allProjects.sort();
+
+  // Kecualikan project yang sudah punya rule (kecuali rule yang sedang diedit)
+  var usedProjects = apvRules
+    .filter(function(r) { return r.id !== ruleEditId; })
+    .map(function(r) { return (r.Project||"").toLowerCase(); });
+
+  var filtered = allProjects.filter(function(p) {
+    if (usedProjects.indexOf(p.toLowerCase()) > -1) return false;
+    if (q) return p.toLowerCase().indexOf(q) > -1;
+    return true;
+  });
+
+  if (!filtered.length) {
+    dd.innerHTML = '<div style="padding:8px 11px;font-size:12px;color:var(--g500);font-style:italic">' +
+      (q ? "Tidak ditemukan / sudah dikonfigurasi" : "Semua project sudah dikonfigurasi") + '</div>';
+  } else {
+    dd.innerHTML = filtered.map(function(p) {
+      return '<div onmousedown="selectProjectDD(\'' + p.replace(/'/g, "\\'") + '\')" ' +
+        'style="padding:8px 11px;font-size:13px;cursor:pointer;color:var(--g900)" ' +
+        'onmouseover="this.style.background=\'var(--navy-lt)\'" ' +
+        'onmouseout="this.style.background=\'\'">' + p + '</div>';
+    }).join("");
+  }
+  dd.style.display = "block";
+}
+
+function selectProjectDD(val) {
+  document.getElementById("rule-project").value = val;
+  document.getElementById("project-dd").style.display = "none";
+}
+
+
 function openRuleModal(id) {
   ruleEditId = id;
   var r = id ? apvRules.filter(function(x){ return x.id===id; })[0] : {};
   if (!r) r = {};
-  document.getElementById("rule-modal-title").textContent = id ? "Edit Rule L1" : "Tambah Rule L1";
+  document.getElementById("rule-modal-title").textContent = id ? "Edit Rule Project" : "Tambah Rule Project";
   document.getElementById("rule-project").value  = r.Project  || "";
+  document.getElementById("project-dd").style.display = "none";
   document.getElementById("rule-l1name").value   = r.L1Name   || "";
   document.getElementById("rule-l1email").value  = r.L1Email  || "";
   document.getElementById("rule-l2name").value   = r.L2Name   || "";
