@@ -504,9 +504,9 @@ body{font-family:'Plus Jakarta Sans',-apple-system,sans-serif;background:var(--g
         <table class="dt2">
           <thead><tr>
             <th>#</th><th>Nomor Pengajuan</th><th>Tanggal</th><th>Company</th>
-            <th>Client</th><th>Project</th><th>Jenis</th><th>Harga</th><th>Status</th>
+            <th>Client</th><th>Project</th><th>Jenis</th><th>Est. Harga</th><th>Harga Real</th><th>Status</th>
           </tr></thead>
-          <tbody id="tbl"><tr class="lr"><td colspan="9">Memuat data...</td></tr></tbody>
+          <tbody id="tbl"><tr class="lr"><td colspan="10">Memuat data...</td></tr></tbody>
         </table>
       </div>
     </div>
@@ -732,6 +732,7 @@ body{font-family:'Plus Jakarta Sans',-apple-system,sans-serif;background:var(--g
     </div>
     <div class="mf">
       <button class="btn btn-o bsm" onclick="closeMo()">Tutup</button>
+      <button class="btn btn-o bsm" id="m-pdf-btn" style="display:none;color:var(--red);border-color:var(--red)" onclick="exportPDF()">&#128196; Export PDF</button>
       <button class="btn btn-p bsm" id="m-save-btn" style="display:none" onclick="updStatus()">Simpan Status</button>
     </div>
   </div>
@@ -823,12 +824,12 @@ body{font-family:'Plus Jakarta Sans',-apple-system,sans-serif;background:var(--g
 // CONFIG - ISI SESUAI DATA ANDA
 // =============================================
 var CONFIG = {
-  clientId:      "c87df5fb-eb2f-40bc-8c33-d0c47dedfe10",
-  tenantId:      "c1cc324d-9fda-4a48-97ee-ba6157ba9c67",
-  siteUrl:       "https://gosgroup.sharepoint.com/sites/procurement",
+  clientId:      "ISI_CLIENT_ID_DARI_AZURE",
+  tenantId:      "ISI_TENANT_ID_DARI_AZURE",
+  siteUrl:       "https://DOMAIN.sharepoint.com/sites/NAMA_SITE",
   masterList:    "MasterPengadaan",
   resultList:    "HasilPengajuan",
-  approverEmail: "muhamad.parid@gos.co.id",
+  approverEmail: "approver@gosgroup.com",
   redirectUri:   window.location.origin + window.location.pathname
 };
 
@@ -1978,18 +1979,19 @@ function renderTbl() {
 
   var tb = document.getElementById("tbl");
   if (!f.length) {
-    tb.innerHTML = '<tr><td colspan="9" style="text-align:center;padding:32px;color:var(--g500)">Tidak ada data</td></tr>';
+    tb.innerHTML = '<tr><td colspan="10" style="text-align:center;padding:32px;color:var(--g500)">Tidak ada data</td></tr>';
     return;
   }
   tb.innerHTML = f.map(function(item, idx) {
-    var h   = item.EstimasiHarga ? "Rp " + parseInt(item.EstimasiHarga).toLocaleString("id-ID") : "-";
-    var tgl = item.TanggalPengajuan ? item.TanggalPengajuan.split("T")[0].split("-").reverse().join("/") : "-";
-    var jBg = item.JenisPengadaan === "EXT" ? "#E8F2FB" : "#E6F5F0";
-    var jCo = item.JenisPengadaan === "EXT" ? "var(--navy)" : "var(--teal)";
-    var cl  = (item.Client || "-");
-    var cls = cl.length > 22 ? cl.slice(0, 22) + "..." : cl;
-    var pr  = (item.Project || "-");
-    var prs = pr.length > 25 ? pr.slice(0, 25) + "..." : pr;
+    var h    = item.EstimasiHarga ? "Rp " + parseInt(item.EstimasiHarga).toLocaleString("id-ID") : "-";
+    var hr   = item.HargaReal     ? '<span style="color:var(--teal);font-weight:600">Rp ' + parseInt(item.HargaReal).toLocaleString("id-ID") + '</span>' : '<span style="color:var(--g400)">-</span>';
+    var tgl  = item.TanggalPengajuan ? item.TanggalPengajuan.split("T")[0].split("-").reverse().join("/") : "-";
+    var jBg  = item.JenisPengadaan === "EXT" ? "#E8F2FB" : "#E6F5F0";
+    var jCo  = item.JenisPengadaan === "EXT" ? "var(--navy)" : "var(--teal)";
+    var cl   = (item.Client || "-");
+    var cls  = cl.length > 22 ? cl.slice(0, 22) + "..." : cl;
+    var pr   = (item.Project || "-");
+    var prs  = pr.length > 25 ? pr.slice(0, 25) + "..." : pr;
     return '<tr onclick="openMo(\'' + item.id + '\')">' +
       '<td style="color:var(--g500)">' + (idx+1) + '</td>' +
       '<td style="font-weight:600;color:var(--navy);font-family:\'Courier New\',monospace;font-size:12px">' + (item.NomorPengajuan||"-") + '</td>' +
@@ -1999,6 +2001,7 @@ function renderTbl() {
       '<td style="font-size:12px">' + prs + '</td>' +
       '<td><span style="background:' + jBg + ';color:' + jCo + ';padding:2px 7px;border-radius:10px;font-size:11px;font-weight:600">' + (item.JenisPengadaan||"-") + '</span></td>' +
       '<td style="text-align:right;font-weight:500">' + h + '</td>' +
+      '<td style="text-align:right">' + hr + '</td>' +
       '<td>' + sBadge(item.Status) + '</td></tr>';
   }).join("");
 }
@@ -2077,6 +2080,8 @@ function openMo(id) {
   document.getElementById("m-l2").style.display   = canApproveL2(item) ? "block" : "none";
   document.getElementById("m-ga").style.display   = canUpdateGA(item)  ? "block" : "none";
   document.getElementById("m-save-btn").style.display = canUpdateGA(item) ? "inline-flex" : "none";
+  var showPdf = ["Submitted to Finance","Delivered"].indexOf(item.Status) > -1;
+  document.getElementById("m-pdf-btn").style.display = showPdf ? "inline-flex" : "none";
 
   // Reset notes
   document.getElementById("m-l1-notes").value = "";
@@ -2271,8 +2276,84 @@ function showToast(msg, type) {
 }
 
 // =============================================
-// APPROVAL CONFIG LOADER FROM SHAREPOINT
+// EXPORT PDF
 // =============================================
+function exportPDF() {
+  var item = allSubs.filter(function(i){ return i.id===curId; })[0];
+  if (!item) return;
+
+  var hEst  = item.EstimasiHarga ? "Rp "+parseInt(item.EstimasiHarga).toLocaleString("id-ID") : "-";
+  var hReal = item.HargaReal     ? "Rp "+parseInt(item.HargaReal).toLocaleString("id-ID")     : "-";
+  var tgl   = item.TanggalPengajuan ? item.TanggalPengajuan.split("T")[0].split("-").reverse().join("/") : "-";
+  var itemTable = buildItemDetail(item.DetailItem, item.JenisProduk, item.DetailItemReal);
+
+  // Approval history
+  var apvHtml = "";
+  if (item.L1ApproverName) apvHtml += "<tr><td style='padding:6px 14px;color:#888;width:160px'>L1 Approver</td><td style='padding:6px 14px'>" + (item.L1ApproverName||"-") + " &mdash; " + (item.L1ApprovalDate?item.L1ApprovalDate.split("T")[0].split("-").reverse().join("/"):"-") + "</td></tr>";
+  if (item.L2ApproverName) apvHtml += "<tr><td style='padding:6px 14px;color:#888'>L2 Approver</td><td style='padding:6px 14px'>" + (item.L2ApproverName||"-") + " &mdash; " + (item.L2ApprovalDate?item.L2ApprovalDate.split("T")[0].split("-").reverse().join("/"):"-") + "</td></tr>";
+
+  var html = "<!DOCTYPE html><html><head><meta charset='utf-8'><title>Pengajuan " + (item.NomorPengajuan||"") + "</title>" +
+    "<style>body{font-family:Arial,sans-serif;font-size:13px;color:#333;padding:24px;max-width:900px;margin:0 auto}" +
+    "h1{font-size:18px;color:#0B4F7E;margin:0}h2{font-size:13px;color:#888;font-weight:normal;margin:4px 0 16px}" +
+    ".header{background:#0B4F7E;color:white;padding:16px 20px;border-radius:8px;margin-bottom:20px}" +
+    ".header h1{color:white}.header h2{color:rgba(255,255,255,.75)}" +
+    ".info{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:16px}" +
+    ".box{background:#f8f9fa;border-radius:6px;padding:12px 16px}" +
+    ".label{font-size:11px;color:#888;text-transform:uppercase;letter-spacing:.4px;margin-bottom:3px}" +
+    ".val{font-size:14px;font-weight:600;color:#333}" +
+    ".val.navy{color:#0B4F7E}.val.teal{color:#1A8C6E;font-size:16px}" +
+    "table{width:100%;border-collapse:collapse;margin-top:8px}" +
+    "th{background:#0B4F7E;color:white;padding:7px 10px;text-align:left;font-size:12px}" +
+    "td{padding:7px 10px;border-bottom:1px solid #eee;font-size:12px}" +
+    "tr:last-child td{border-bottom:none}" +
+    "tr:nth-child(even) td{background:#f8f9fa}" +
+    ".section{margin-bottom:20px;padding-bottom:16px;border-bottom:1px solid #eee}" +
+    ".section-title{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:#888;margin-bottom:8px}" +
+    ".stamp{margin-top:40px;display:grid;grid-template-columns:1fr 1fr 1fr;gap:20px;text-align:center}" +
+    ".stamp-box{border:1px solid #ccc;border-radius:6px;padding:12px;min-height:80px}" +
+    ".stamp-label{font-size:11px;color:#888;margin-bottom:4px}" +
+    "@media print{body{padding:0}}" +
+    "</style></head><body>" +
+
+    "<div class='header'><h1>&#127970; GOS Group &mdash; Procurement Portal</h1>" +
+    "<h2>Bukti Pengajuan Pengadaan &mdash; " + (item.NomorPengajuan||"") + "</h2></div>" +
+
+    "<div class='section'><div class='section-title'>Informasi Pengajuan</div>" +
+    "<div class='info'>" +
+    "<div class='box'><div class='label'>Nomor Pengajuan</div><div class='val navy'>" + (item.NomorPengajuan||"-") + "</div></div>" +
+    "<div class='box'><div class='label'>Tanggal</div><div class='val'>" + tgl + "</div></div>" +
+    "<div class='box'><div class='label'>Company</div><div class='val'>" + (item.Company||"-") + "</div></div>" +
+    "<div class='box'><div class='label'>Client</div><div class='val'>" + (item.Client||"-") + "</div></div>" +
+    "<div class='box' style='grid-column:span 2'><div class='label'>Project</div><div class='val'>" + (item.Project||"-") + "</div></div>" +
+    "<div class='box'><div class='label'>Jenis Pengadaan</div><div class='val'>" + (item.JenisPengadaan||"-") + " / " + (item.JenisProduk||"-") + "</div></div>" +
+    "<div class='box'><div class='label'>Status</div><div class='val'>" + (item.Status||"-") + "</div></div>" +
+    "<div class='box'><div class='label'>Diajukan Oleh</div><div class='val'>" + (item.SubmittedBy||"-") + "</div></div>" +
+    "<div class='box'><div class='label'>Tujuan</div><div class='val'>" + (item.TujuanPermintaan||"-") + "</div></div>" +
+    "</div></div>" +
+
+    "<div class='section'><div class='section-title'>Ringkasan Harga</div>" +
+    "<div class='info'>" +
+    "<div class='box'><div class='label'>Estimasi Harga</div><div class='val navy'>" + hEst + "</div></div>" +
+    (item.HargaReal ? "<div class='box'><div class='label'>Harga Real (disetujui)</div><div class='val teal'>" + hReal + "</div></div>" : "") +
+    "</div></div>" +
+
+    "<div class='section'><div class='section-title'>Detail Item</div>" + itemTable + "</div>" +
+
+    (apvHtml ? "<div class='section'><div class='section-title'>Riwayat Approval</div><table>" + apvHtml + "</table></div>" : "") +
+
+    "<div class='stamp'>" +
+    "<div class='stamp-box'><div class='stamp-label'>Pengaju</div><br><br><br><div style='border-top:1px solid #ccc;padding-top:8px;font-size:12px'>" + (item.SubmittedBy||"_______") + "</div></div>" +
+    "<div class='stamp-box'><div class='stamp-label'>L1 Approver</div><br><br><br><div style='border-top:1px solid #ccc;padding-top:8px;font-size:12px'>" + (item.L1ApproverName||"_______") + "</div></div>" +
+    "<div class='stamp-box'><div class='stamp-label'>GA / Finance</div><br><br><br><div style='border-top:1px solid #ccc;padding-top:8px;font-size:12px'>_______</div></div>" +
+    "</div>" +
+
+    "<script>window.onload=function(){window.print()}<\/script>" +
+    "</body></html>";
+
+  var w = window.open("", "_blank");
+  if (w) { w.document.write(html); w.document.close(); }
+  else showToast("Popup diblokir browser. Izinkan popup untuk export PDF.", "er");
+}
 var apvConfigId = null; // ID of L2Setting record
 var apvRules    = [];   // All rule records
 
