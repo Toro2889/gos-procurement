@@ -698,6 +698,23 @@ body{font-family:'Plus Jakarta Sans',-apple-system,sans-serif;background:var(--g
             <input type="text" id="mnt" placeholder="Opsional...">
           </div>
         </div>
+
+        <!-- Harga Real — muncul saat Submitted to Finance -->
+        <div id="real-price-section" style="display:none;margin-top:12px;padding-top:12px;border-top:1px dashed var(--border)">
+          <div style="font-size:11px;font-weight:700;color:var(--teal);text-transform:uppercase;letter-spacing:.5px;margin-bottom:8px">&#128176; Harga Real per Item (wajib diisi)</div>
+          <div class="itw">
+            <table class="it" id="real-tbl" style="table-layout:fixed">
+              <thead id="real-thead"></thead>
+              <tbody id="real-tbody"></tbody>
+            </table>
+          </div>
+          <div class="it-foot">
+            <div style="font-size:12px;color:var(--g500)">Isi harga real sesuai nilai aktual yang diproses ke Finance</div>
+            <div class="it-tot"><span class="it-tot-lbl">Total Harga Real:</span><span class="it-tot-val" id="real-total">Rp 0</span></div>
+          </div>
+        </div>
+
+        <!-- Delivered fields -->
         <div id="delivered-fields" style="display:none;margin-top:10px;padding-top:10px;border-top:1px dashed var(--border)">
           <div style="font-size:11px;font-weight:700;color:#7B4FBF;text-transform:uppercase;letter-spacing:.5px;margin-bottom:8px">&#128230; Info Penerimaan (wajib diisi)</div>
           <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
@@ -806,12 +823,12 @@ body{font-family:'Plus Jakarta Sans',-apple-system,sans-serif;background:var(--g
 // CONFIG - ISI SESUAI DATA ANDA
 // =============================================
 var CONFIG = {
-  clientId:      "c87df5fb-eb2f-40bc-8c33-d0c47dedfe10",
-  tenantId:      "c1cc324d-9fda-4a48-97ee-ba6157ba9c67",
-  siteUrl:       "https://gosgroup.sharepoint.com/sites/procurement",
+  clientId:      "ISI_CLIENT_ID_DARI_AZURE",
+  tenantId:      "ISI_TENANT_ID_DARI_AZURE",
+  siteUrl:       "https://DOMAIN.sharepoint.com/sites/NAMA_SITE",
   masterList:    "MasterPengadaan",
   resultList:    "HasilPengajuan",
-  approverEmail: "muhamad.parid@gos.co.id",
+  approverEmail: "approver@gosgroup.com",
   redirectUri:   window.location.origin + window.location.pathname
 };
 
@@ -1572,50 +1589,57 @@ function getItemsJSON() {
   return "";
 }
 
-function buildItemDetail(jsonStr, type) {
+function buildItemDetail(jsonStr, type, realStr) {
   if (!jsonStr) return "-";
   try {
     var rows = JSON.parse(jsonStr);
     if (!rows.length) return "-";
+    var realData = [];
+    if (realStr) { try { realData = JSON.parse(realStr); } catch(e){} }
+    var hasReal = realData.length > 0;
     if (type === "Barang") {
       return '<table style="width:100%;border-collapse:collapse;font-size:12px;margin-top:6px">' +
-        '<tr style="background:var(--navy);color:white">'+
-        '<th style="padding:5px 8px;text-align:left">Nama Barang</th>'+
-        '<th style="padding:5px 8px">Kategori</th>'+
-        '<th style="padding:5px 8px">Subkategori</th>'+
-        '<th style="padding:5px 8px">Satuan</th>'+
-        '<th style="padding:5px 8px;text-align:right">Harga Estimasi</th>'+
-        '<th style="padding:5px 8px;text-align:right">Jumlah</th>'+
-        '<th style="padding:5px 8px;text-align:right">Est. Harga Beli</th>'+
+        '<tr style="background:var(--navy);color:white">' +
+        '<th style="padding:5px 8px;text-align:left">Nama Barang</th>' +
+        '<th style="padding:5px 8px">Kategori</th><th style="padding:5px 8px">Subkategori</th>' +
+        '<th style="padding:5px 8px">Satuan</th>' +
+        '<th style="padding:5px 8px;text-align:right">Harga Est.</th>' +
+        '<th style="padding:5px 8px;text-align:right">Jumlah</th>' +
+        '<th style="padding:5px 8px;text-align:right">Est. Total</th>' +
+        (hasReal ? '<th style="padding:5px 8px;text-align:right;background:#107856">Harga Real</th><th style="padding:5px 8px;text-align:right;background:#107856">Total Real</th>' : '') +
         '<th style="padding:5px 8px">Keterangan</th></tr>' +
         rows.map(function(r,i) {
-          var bg    = i%2===0 ? "white" : "var(--g50)";
-          var hEst  = r.hargaEst ? "Rp "+parseInt(r.hargaEst).toLocaleString("id-ID") : "-";
-          var total = r.total ? "Rp "+parseInt(r.total).toLocaleString("id-ID") : "-";
+          var bg = i%2===0?"white":"var(--g50)";
+          var hEst = r.hargaEst ? "Rp "+parseInt(r.hargaEst).toLocaleString("id-ID") : "-";
+          var tot  = r.total ? "Rp "+parseInt(r.total).toLocaleString("id-ID") : "-";
+          var rr   = realData[i] || {};
+          var hR   = rr.hargaReal ? "Rp "+parseInt(rr.hargaReal).toLocaleString("id-ID") : "-";
+          var tR   = (rr.hargaReal&&r.jumlah) ? "Rp "+(parseInt(rr.hargaReal)*parseInt(r.jumlah)).toLocaleString("id-ID") : "-";
           return '<tr style="background:'+bg+'">'+
             '<td style="padding:5px 8px">'+(r.nama||"-")+'</td>'+
             '<td style="padding:5px 8px;text-align:center">'+(r.kategori||"-")+'</td>'+
             '<td style="padding:5px 8px;text-align:center">'+(r.subkat||"-")+'</td>'+
             '<td style="padding:5px 8px;text-align:center">'+(r.satuan||"-")+'</td>'+
-            '<td style="padding:5px 8px;text-align:right">'+(hEst)+'</td>'+
+            '<td style="padding:5px 8px;text-align:right">'+hEst+'</td>'+
             '<td style="padding:5px 8px;text-align:right">'+(r.jumlah||0)+'</td>'+
-            '<td style="padding:5px 8px;text-align:right;font-weight:600;color:var(--navy)">'+total+'</td>'+
-            '<td style="padding:5px 8px">'+(r.keterangan||"-")+'</td>'+
-            '</tr>';
+            '<td style="padding:5px 8px;text-align:right;font-weight:600;color:var(--navy)">'+tot+'</td>'+
+            (hasReal?'<td style="padding:5px 8px;text-align:right;color:var(--teal);font-weight:600">'+hR+'</td><td style="padding:5px 8px;text-align:right;color:var(--teal);font-weight:700">'+tR+'</td>':'')+
+            '<td style="padding:5px 8px">'+(r.keterangan||"-")+'</td></tr>';
         }).join("")+'</table>';
     } else {
       return '<table style="width:100%;border-collapse:collapse;font-size:12px;margin-top:6px">' +
-        '<tr style="background:var(--navy);color:white">'+
-        '<th style="padding:5px 8px;text-align:left">Nama Vendor</th>'+
-        '<th style="padding:5px 8px">Kategori</th>'+
-        '<th style="padding:5px 8px">Domisili</th>'+
-        '<th style="padding:5px 8px">PIC Vendor</th>'+
-        '<th style="padding:5px 8px">No. Telpon</th>'+
-        '<th style="padding:5px 8px;text-align:right">Nominal</th>'+
+        '<tr style="background:var(--navy);color:white">' +
+        '<th style="padding:5px 8px;text-align:left">Nama Vendor</th>' +
+        '<th style="padding:5px 8px">Kategori</th><th style="padding:5px 8px">Domisili</th>' +
+        '<th style="padding:5px 8px">PIC Vendor</th><th style="padding:5px 8px">No. Telpon</th>' +
+        '<th style="padding:5px 8px;text-align:right">Nominal Est.</th>' +
+        (hasReal ? '<th style="padding:5px 8px;text-align:right;background:#107856">Nominal Real</th>' : '') +
         '<th style="padding:5px 8px">Keterangan</th></tr>' +
         rows.map(function(r,i) {
-          var bg  = i%2===0 ? "white" : "var(--g50)";
+          var bg = i%2===0?"white":"var(--g50)";
           var nom = r.nominal ? "Rp "+parseInt(r.nominal).toLocaleString("id-ID") : "-";
+          var rr  = realData[i] || {};
+          var nR  = rr.hargaReal ? "Rp "+parseInt(rr.hargaReal).toLocaleString("id-ID") : "-";
           return '<tr style="background:'+bg+'">'+
             '<td style="padding:5px 8px">'+(r.vendor||"-")+'</td>'+
             '<td style="padding:5px 8px;text-align:center">'+(r.kategori||"-")+'</td>'+
@@ -1623,8 +1647,8 @@ function buildItemDetail(jsonStr, type) {
             '<td style="padding:5px 8px">'+(r.pic||"-")+'</td>'+
             '<td style="padding:5px 8px">'+(r.telp||"-")+'</td>'+
             '<td style="padding:5px 8px;text-align:right;font-weight:600;color:var(--navy)">'+nom+'</td>'+
-            '<td style="padding:5px 8px">'+(r.keterangan||"-")+'</td>'+
-            '</tr>';
+            (hasReal?'<td style="padding:5px 8px;text-align:right;color:var(--teal);font-weight:700">'+nR+'</td>':'')+
+            '<td style="padding:5px 8px">'+(r.keterangan||"-")+'</td></tr>';
         }).join("")+'</table>';
     }
   } catch(e) { return jsonStr || "-"; }
@@ -1663,14 +1687,105 @@ function uploadAllFiles(files, nomor) {
   return Promise.all(files.map(function(f) { return uploadFile(f, nomor); }));
 }
 
+var realRows = [];
+
 function onStatusChange() {
   var st = document.getElementById("mst").value;
-  document.getElementById("delivered-fields").style.display = st === "Delivered" ? "block" : "none";
-  if (st !== "Delivered") {
-    document.getElementById("m-penerima").value = "";
-    document.getElementById("m-tgl-terima").value = "";
-  }
+  document.getElementById("delivered-fields").style.display   = st === "Delivered"            ? "block" : "none";
+  document.getElementById("real-price-section").style.display = st === "Submitted to Finance" ? "block" : "none";
+  if (st !== "Delivered")            { document.getElementById("m-penerima").value = ""; document.getElementById("m-tgl-terima").value = ""; }
+  if (st !== "Submitted to Finance") { realRows = []; }
+  if (st === "Submitted to Finance") { populateRealPriceTable(); }
 }
+
+function populateRealPriceTable() {
+  var item = allSubs.filter(function(i){ return i.id===curId; })[0];
+  if (!item) return;
+  var type = item.JenisProduk || "Barang";
+  var rows = [];
+  if (item.DetailItem) {
+    try { rows = JSON.parse(item.DetailItem); } catch(e) { rows = []; }
+  }
+  // Pre-fill with existing real prices if any
+  var existing = {};
+  if (item.DetailItemReal) {
+    try {
+      var ex = JSON.parse(item.DetailItemReal);
+      ex.forEach(function(r,i){ existing[i] = r.hargaReal || 0; });
+    } catch(e){}
+  }
+  realRows = rows.map(function(r,i){ return Object.assign({},r,{hargaReal: existing[i]||0}); });
+  renderRealTable(type);
+}
+
+function renderRealTable(type) {
+  var thead = document.getElementById("real-thead");
+  var tbody = document.getElementById("real-tbody");
+  if (!realRows.length) {
+    thead.innerHTML = ""; tbody.innerHTML = '<tr><td style="padding:12px;color:var(--g500);text-align:center">Tidak ada detail item</td></tr>'; return;
+  }
+  if (type === "Barang") {
+    thead.innerHTML = '<tr><th style="width:25%">Nama Barang</th><th style="width:8%">Jml</th><th style="width:8%">Satuan</th><th style="width:18%">Harga Est.</th><th style="width:20%">Harga Real *</th><th style="width:18%">Total Real</th></tr>';
+    tbody.innerHTML = realRows.map(function(r,i){
+      var est = r.hargaEst ? "Rp "+parseInt(r.hargaEst).toLocaleString("id-ID") : "-";
+      var tot = (r.hargaReal && r.jumlah) ? "Rp "+(parseInt(r.hargaReal)*parseInt(r.jumlah)).toLocaleString("id-ID") : "-";
+      return '<tr>'+
+        '<td style="padding:4px 6px;font-size:12px">'+(r.nama||"-")+'</td>'+
+        '<td style="padding:4px 6px;text-align:center;font-size:12px">'+(r.jumlah||0)+'</td>'+
+        '<td style="padding:4px 6px;text-align:center;font-size:12px">'+(r.satuan||"-")+'</td>'+
+        '<td style="padding:4px 6px;text-align:right;font-size:12px;color:var(--g500)">'+est+'</td>'+
+        '<td style="padding:4px 6px"><input class="ti tr" type="text" value="'+(r.hargaReal?parseInt(r.hargaReal).toLocaleString("id-ID"):"")+'" placeholder="0" onblur="onRealHarga('+i+',this.value)"></td>'+
+        '<td style="padding:4px 6px;text-align:right;font-weight:600;color:var(--teal);font-size:12px" id="rr-tot-'+i+'">'+tot+'</td>'+
+        '</tr>';
+    }).join("");
+  } else {
+    thead.innerHTML = '<tr><th style="width:30%">Nama Vendor</th><th style="width:20%">Nominal Est.</th><th style="width:25%">Nominal Real *</th><th style="width:22%">Total Real</th></tr>';
+    tbody.innerHTML = realRows.map(function(r,i){
+      var est = r.nominal ? "Rp "+parseInt(r.nominal).toLocaleString("id-ID") : "-";
+      var tot = r.hargaReal ? "Rp "+parseInt(r.hargaReal).toLocaleString("id-ID") : "-";
+      return '<tr>'+
+        '<td style="padding:4px 6px;font-size:12px">'+(r.vendor||r.nama||"-")+'</td>'+
+        '<td style="padding:4px 6px;text-align:right;font-size:12px;color:var(--g500)">'+est+'</td>'+
+        '<td style="padding:4px 6px"><input class="ti tr" type="text" value="'+(r.hargaReal?parseInt(r.hargaReal).toLocaleString("id-ID"):"")+'" placeholder="0" onblur="onRealHarga('+i+',this.value)"></td>'+
+        '<td style="padding:4px 6px;text-align:right;font-weight:600;color:var(--teal);font-size:12px" id="rr-tot-'+i+'">'+tot+'</td>'+
+        '</tr>';
+    }).join("");
+  }
+  calcRealTotal();
+}
+
+function onRealHarga(i, val) {
+  var clean = parseInt((val||"").replace(/\D/g,"")) || 0;
+  realRows[i].hargaReal = clean;
+  var item = allSubs.filter(function(x){ return x.id===curId; })[0];
+  var type = item ? item.JenisProduk : "Barang";
+  var tot = type === "Barang"
+    ? (clean * (parseInt(realRows[i].jumlah)||0))
+    : clean;
+  var totEl = document.getElementById("rr-tot-"+i);
+  if (totEl) totEl.textContent = tot ? "Rp "+tot.toLocaleString("id-ID") : "-";
+  // Update input display
+  var inputs = document.getElementById("real-tbody").querySelectorAll("tr")[i];
+  if (inputs) {
+    var inp = inputs.querySelectorAll(".ti.tr")[0];
+    if (inp) inp.value = clean ? clean.toLocaleString("id-ID") : "";
+  }
+  calcRealTotal();
+}
+
+function calcRealTotal() {
+  var item = allSubs.filter(function(x){ return x.id===curId; })[0];
+  var type = item ? item.JenisProduk : "Barang";
+  var total = realRows.reduce(function(s,r){
+    return s + (type==="Barang" ? (r.hargaReal||0)*(parseInt(r.jumlah)||0) : (r.hargaReal||0));
+  },0);
+  document.getElementById("real-total").textContent = "Rp "+total.toLocaleString("id-ID");
+  return total;
+}
+
+function getRealTotal() { return calcRealTotal(); }
+
+
 
 // =============================================
 // EMAIL NOTIFICATIONS
@@ -1937,12 +2052,14 @@ function openMo(id) {
     '<div class="df"><div class="dl">Company</div><div class="dv">' + (item.Company||"-") + '</div></div>' +
     '<div class="df"><div class="dl">Client</div><div class="dv">' + (item.Client||"-") + '</div></div>' +
     '<div class="df full"><div class="dl">Project</div><div class="dv">' + (item.Project||"-") + '</div></div>' +
-    '<div class="df full"><div class="dl">Detail Item</div><div class="dv">' + buildItemDetail(item.DetailItem, item.JenisProduk) + '</div></div>' +
+    '<div class="df full"><div class="dl">Detail Item</div><div class="dv">' + buildItemDetail(item.DetailItem, item.JenisProduk, item.DetailItemReal) + '</div></div>' +
     '<div class="df full"><div class="dl">Tujuan Permintaan</div><div class="dv">' + (item.TujuanPermintaan||"-") + '</div></div>' +
     '<div class="df"><div class="dl">Estimasi Harga</div><div class="dv" style="font-weight:700;color:var(--navy)">' + h + '</div></div>' +
     '<div class="df"><div class="dl">Diajukan Oleh</div><div class="dv">' + (item.SubmittedBy||"-") + '</div></div>' +
     '<div class="df full"><div class="dl">Dokumen Pendukung</div><div class="dv">' + buildFileLinks(item.DokumenPendukung) + '</div></div>' +
     '<div class="df"><div class="dl">Status</div><div class="dv">' + sBadge(item.Status) + '</div></div>' +
+    '<div class="df"><div class="dl">Estimasi Harga</div><div class="dv" style="font-weight:600;color:var(--navy)">Rp ' + (parseInt(item.EstimasiHarga)||0).toLocaleString("id-ID") + '</div></div>' +
+    (item.HargaReal ? '<div class="df"><div class="dl">Harga Real</div><div class="dv" style="font-weight:700;color:var(--teal);font-size:15px">Rp ' + (parseInt(item.HargaReal)||0).toLocaleString("id-ID") + '</div></div>' : '') +
     '<div class="df"><div class="dl">Catatan GA</div><div class="dv">' + (item.ApproverNotes||"-") + '</div></div>' +
     (item.Status === "Delivered" ? (
       '<div class="df"><div class="dl">Nama Penerima</div><div class="dv" style="font-weight:600;color:#7B4FBF">' + (item.NamaPenerima||"-") + '</div></div>' +
@@ -2067,20 +2184,38 @@ function updStatus() {
   if (!amGA()) { showToast("Tidak ada akses", "er"); return; }
   var item = allSubs.filter(function(i){ return i.id===curId; })[0];
   if (!item) return;
-  var st = document.getElementById("mst").value;
-  var nt = document.getElementById("mnt").value;
+  var st       = document.getElementById("mst").value;
+  var nt       = document.getElementById("mnt").value;
   var penerima = document.getElementById("m-penerima").value.trim();
   var tglTrm   = document.getElementById("m-tgl-terima").value;
+
   if (st === "Delivered") {
     if (!penerima){ showToast("Nama penerima wajib diisi","er"); return; }
     if (!tglTrm)  { showToast("Tanggal terima wajib diisi","er"); return; }
   }
+
   var fields = { Status: st, ApproverNotes: nt };
-  if (st === "Delivered") { fields.NamaPenerima = penerima; fields.TanggalTerima = tglTrm; }
+
+  if (st === "Submitted to Finance") {
+    // Validasi harga real
+    var unfilled = realRows.filter(function(r){ return !r.hargaReal; });
+    if (realRows.length && unfilled.length) {
+      showToast("Harga real untuk semua item wajib diisi", "er"); return;
+    }
+    var totalReal = getRealTotal();
+    fields.HargaReal       = totalReal;
+    fields.DetailItemReal  = JSON.stringify(realRows);
+  }
+
+  if (st === "Delivered") {
+    fields.NamaPenerima  = penerima;
+    fields.TanggalTerima = tglTrm;
+  }
+
   patchItem(CONFIG.resultList, curId, fields).then(function() {
     Object.assign(item, fields);
     updateStats(); renderTbl(); closeMo();
-    showToast("Status diperbarui: "+st,"ok");
+    showToast("Status diperbarui: "+st, "ok");
   }).catch(function(e){ showToast("Gagal: "+e.message,"er"); });
 }
 
