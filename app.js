@@ -1438,30 +1438,43 @@ function updStatus() {
 // =============================================
 function expXls() {
   if (!allSubs.length) { showToast("Tidak ada data", "er"); return; }
-  var fmtTgl = function(v) { return v ? v.split("T")[0].split("-").reverse().join("/") : ""; };
+  var fmtTgl = function(v) {
+    if (!v) return "";
+    var s = typeof v === "string" ? v : String(v);
+    var d = s.split("T")[0]; // "2026-05-19"
+    var p = d.split("-");
+    return p.length === 3 ? p[2]+"/"+p[1]+"/"+p[0] : d;
+  };
+  // Helper: ambil field dengan coba beberapa nama (fallback)
+  var fld = function(item, names) {
+    for (var n = 0; n < names.length; n++) {
+      if (item[names[n]] !== undefined && item[names[n]] !== null) return item[names[n]];
+    }
+    return "";
+  };
   var rows = allSubs.map(function(i) {
     return {
-      "Nomor Pengajuan":             i.NomorPengajuan  || "",
-      "Tanggal Pengajuan":           fmtTgl(i.TanggalPengajuan),
-      "Company":                     i.Company         || "",
-      "Client":                      i.Client          || "",
-      "Project":                     i.Project         || "",
-      "Cabang":                      i.Cabang          || "",
-      "Jenis Pengadaan":             i.JenisPengadaan  || "",
-      "Jenis Produk":                i.JenisProduk     || "",
-      "Tujuan":                      i.TujuanPermintaan|| "",
-      "Estimasi Harga":              i.EstimasiHarga   || 0,
-      "Harga Real":                  i.HargaReal       || 0,
-      "Status":                      i.Status          || "",
-      "Diajukan Oleh":               i.SubmittedBy     || "",
-      "L1 Approver":                 i.L1ApproverName  || "",
-      "Tgl. L1 Approval":            fmtTgl(i.L1ApprovalDate),
-      "L2 Approver":                 i.L2ApproverName  || "",
-      "Tgl. L2 Approval":            fmtTgl(i.L2ApprovalDate),
-      "Tgl. Submitted to Finance":   fmtTgl(i.TanggalSubmittedToFinance),
-      "Nama Penerima":               i.NamaPenerima    || "",
-      "Tgl. Terima":                 fmtTgl(i.TanggalTerima),
-      "Catatan GA":                  i.ApproverNotes   || ""
+      "Nomor Pengajuan":             fld(i,["NomorPengajuan"]),
+      "Tanggal Pengajuan":           fmtTgl(fld(i,["TanggalPengajuan"])),
+      "Company":                     fld(i,["Company"]),
+      "Client":                      fld(i,["Client"]),
+      "Project":                     fld(i,["Project"]),
+      "Cabang":                      fld(i,["Cabang"]),
+      "Jenis Pengadaan":             fld(i,["JenisPengadaan"]),
+      "Jenis Produk":                fld(i,["JenisProduk"]),
+      "Tujuan":                      fld(i,["TujuanPermintaan"]),
+      "Estimasi Harga":              fld(i,["EstimasiHarga"]) || 0,
+      "Harga Real":                  fld(i,["HargaReal"]) || 0,
+      "Status":                      fld(i,["Status"]),
+      "Diajukan Oleh":               fld(i,["SubmittedBy"]),
+      "L1 Approver":                 fld(i,["L1ApproverName"]),
+      "Tgl. L1 Approval":            fmtTgl(fld(i,["L1ApprovalDate"])),
+      "L2 Approver":                 fld(i,["L2ApproverName"]),
+      "Tgl. L2 Approval":            fmtTgl(fld(i,["L2ApprovalDate"])),
+      "Tgl. Submitted to Finance":   fmtTgl(fld(i,["TanggalSubmittedToFinance"])),
+      "Nama Penerima":               fld(i,["NamaPenerima"]),
+      "Tgl. Terima":                 fmtTgl(fld(i,["TanggalTerima","Tgl_x002e_Terima","TglTerima"])),
+      "Catatan GA":                  fld(i,["ApproverNotes"])
     };
   });
   var ws = XLSX.utils.json_to_sheet(rows);
