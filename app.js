@@ -437,17 +437,9 @@ function validate() {
   } else {
     document.querySelector(".rg").closest(".fd").classList.remove("err");
   }
-  if (uploadedFiles.length === 0) {
-    var fz = document.getElementById("dz");
-    fz.style.borderColor = "var(--red)";
-    fz.style.background  = "var(--red-lt)";
-    showToast("Dokumen pendukung wajib dilampirkan", "er");
-    ok = false;
-  } else {
-    var fz = document.getElementById("dz");
-    fz.style.borderColor = "";
-    fz.style.background  = "";
-  }
+  // Dokumen tidak wajib — reset border jika ada
+  var fz = document.getElementById("dz");
+  if (fz) { fz.style.borderColor = ""; fz.style.background = ""; }
   var jp = document.querySelector('input[name="jp"]:checked');
   if (jp && jp.value === "Barang") {
     var filledB = rBarang.filter(function(r) { return r.nama && r.jumlah; });
