@@ -220,11 +220,20 @@ function patchItem(list, id, fields) {
 var masterData = [];
 var CODES = {
   "PT. PRIMA RAYA SOLUSINDO": "PRS",
-  "PT. OTSINDO PRIMA RAYA": "OPR",
+  "PT. OTSINDO PRIMA RAYA":   "OPR",
   "PT. DINAMIKA NUANSA ABSOLUTE": "DNA",
-  "PT. FAS INDO RAYA": "FAS"
+  "PT. FAS INDO RAYA":        "FAS"
 };
 var ROMAN = ["","I","II","III","IV","V","VI","VII","VIII","IX","X","XI","XII"];
+
+function getCompanyCode(co) {
+  // Cari dari masterData (CompanyCode field) dulu
+  var r = (masterData||[]).filter(function(d){ return d.Company === co; })[0];
+  if (r && r.CompanyCode) return r.CompanyCode;
+  // Fallback ke CODES dictionary (case-insensitive)
+  var key = Object.keys(CODES).filter(function(k){ return k.toUpperCase() === (co||"").toUpperCase(); })[0];
+  return key ? CODES[key] : "___";
+}
 
 function loadMaster() {
   return getItems(CONFIG.masterList).then(function(items) {
@@ -368,7 +377,7 @@ function updateRn() {
   var j  = document.getElementById("f-jenis").value;
   var d  = new Date();
   document.getElementById("rnd").textContent =
-    seq + "/" + (CODES[co] || "___") + "/" + (j || "___") + "/" + ROMAN[d.getMonth()+1] + "/" + d.getFullYear();
+    seq + "/" + getCompanyCode(co) + "/" + (j || "___") + "/" + ROMAN[d.getMonth()+1] + "/" + d.getFullYear();
 }
 
 function copyRn() {
@@ -463,9 +472,13 @@ function submitForm() {
   btn.innerHTML = '<span class="spin"></span> Mengupload file...';
   btn.disabled = true;
 
-  var d   = new Date();
+  var d      = new Date();
   var suffix = genSuffix();
-  var rn  = document.getElementById("rnd").textContent.replace(/^(\d{4})\//, "$1-" + suffix + "/");
+  var seqNum = parseInt((document.getElementById("f-seq").value||"1").replace(/\D/g,""),10) || 1;
+  var seq    = String(seqNum); while (seq.length < 4) seq = "0" + seq;
+  var co     = document.getElementById("f-co").value;
+  var j      = document.getElementById("f-jenis").value;
+  var rn     = seq + "-" + suffix + "/" + getCompanyCode(co) + "/" + (j||"___") + "/" + ROMAN[d.getMonth()+1] + "/" + d.getFullYear();
   var hgRaw = document.getElementById("f-hg").value.replace(/\./g,"").replace(/,/g,"");
   var hg  = parseInt(hgRaw, 10) || 0;
   var jp  = document.querySelector('input[name="jp"]:checked');
