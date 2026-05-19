@@ -1270,6 +1270,7 @@ function openMo(id) {
     '<div class="df"><div class="dl">Status</div><div class="dv">' + sBadge(item.Status) + '</div></div>' +
     '<div class="df"><div class="dl">Estimasi Harga</div><div class="dv" style="font-weight:600;color:var(--navy)">Rp ' + (parseInt(item.EstimasiHarga)||0).toLocaleString("id-ID") + '</div></div>' +
     (item.HargaReal ? '<div class="df"><div class="dl">Harga Real</div><div class="dv" style="font-weight:700;color:var(--teal);font-size:15px">Rp ' + (parseInt(item.HargaReal)||0).toLocaleString("id-ID") + '</div></div>' : '') +
+    (item.TanggalSubmittedToFinance ? '<div class="df"><div class="dl">Tgl. Submitted to Finance</div><div class="dv">' + item.TanggalSubmittedToFinance.split("T")[0].split("-").reverse().join("/") + '</div></div>' : '') +
     '<div class="df"><div class="dl">Catatan GA</div><div class="dv">' + (item.ApproverNotes||"-") + '</div></div>' +
     (item.Status === "Delivered" ? (
       '<div class="df"><div class="dl">Nama Penerima</div><div class="dv" style="font-weight:600;color:#7B4FBF">' + (item.NamaPenerima||"-") + '</div></div>' +
@@ -1415,8 +1416,9 @@ function updStatus() {
       showToast("Harga real untuk semua item wajib diisi", "er"); return;
     }
     var totalReal = getRealTotal();
-    fields.HargaReal       = totalReal;
-    fields.DetailItemReal  = JSON.stringify(realRows);
+    fields.HargaReal                 = totalReal;
+    fields.DetailItemReal            = JSON.stringify(realRows);
+    fields.TanggalSubmittedToFinance = new Date().toISOString().split("T")[0];
   }
 
   if (st === "Delivered") {
@@ -1436,24 +1438,40 @@ function updStatus() {
 // =============================================
 function expXls() {
   if (!allSubs.length) { showToast("Tidak ada data", "er"); return; }
+  var fmtTgl = function(v) { return v ? v.split("T")[0].split("-").reverse().join("/") : ""; };
   var rows = allSubs.map(function(i) {
     return {
-      "Nomor Pengajuan": i.NomorPengajuan || "",
-      "Tanggal": i.TanggalPengajuan ? i.TanggalPengajuan.split("T")[0] : "",
-      "Jenis Pengadaan": i.JenisPengadaan || "",
-      "Company": i.Company || "",
-      "Client": i.Client || "",
-      "Project": i.Project || "",
-      "Tujuan": i.TujuanPermintaan || "",
-      "Jenis Produk": i.JenisProduk || "",
-      "Estimasi Harga": i.EstimasiHarga || 0,
-      "Dokumen": i.DokumenPendukung || "",
-      "Status": i.Status || "",
-      "Catatan Approver": i.ApproverNotes || "",
-      "Diajukan Oleh": i.SubmittedBy || ""
+      "Nomor Pengajuan":             i.NomorPengajuan  || "",
+      "Tanggal Pengajuan":           fmtTgl(i.TanggalPengajuan),
+      "Company":                     i.Company         || "",
+      "Client":                      i.Client          || "",
+      "Project":                     i.Project         || "",
+      "Cabang":                      i.Cabang          || "",
+      "Jenis Pengadaan":             i.JenisPengadaan  || "",
+      "Jenis Produk":                i.JenisProduk     || "",
+      "Tujuan":                      i.TujuanPermintaan|| "",
+      "Estimasi Harga":              i.EstimasiHarga   || 0,
+      "Harga Real":                  i.HargaReal       || 0,
+      "Status":                      i.Status          || "",
+      "Diajukan Oleh":               i.SubmittedBy     || "",
+      "L1 Approver":                 i.L1ApproverName  || "",
+      "Tgl. L1 Approval":            fmtTgl(i.L1ApprovalDate),
+      "L2 Approver":                 i.L2ApproverName  || "",
+      "Tgl. L2 Approval":            fmtTgl(i.L2ApprovalDate),
+      "Tgl. Submitted to Finance":   fmtTgl(i.TanggalSubmittedToFinance),
+      "Nama Penerima":               i.NamaPenerima    || "",
+      "Tgl. Terima":                 fmtTgl(i.TanggalTerima),
+      "Catatan GA":                  i.ApproverNotes   || ""
     };
   });
   var ws = XLSX.utils.json_to_sheet(rows);
+  // Auto-width kolom
+  var cols = Object.keys(rows[0] || {}).map(function(k) {
+    var max = k.length;
+    rows.forEach(function(r) { var v = String(r[k]||""); if (v.length > max) max = v.length; });
+    return { wch: Math.min(max + 2, 40) };
+  });
+  ws["!cols"] = cols;
   var wb = XLSX.utils.book_new();
   XLSX.utils.book_append_sheet(wb, ws, "Pengajuan");
   var n = new Date();
