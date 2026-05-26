@@ -301,6 +301,7 @@
         <button class="mtab on" onclick="switchMTab('entitas')" id="mt-entitas">&#127970; Entitas</button>
         <button class="mtab" onclick="switchMTab('barang')" id="mt-barang">&#128230; Barang</button>
         <button class="mtab" onclick="switchMTab('jasa')" id="mt-jasa">&#128101; Vendor/Jasa</button>
+        <button class="mtab" onclick="switchMTab('pengaju')" id="mt-pengaju">&#128101; Daftar Pengaju</button>
         <button class="mtab" onclick="switchMTab('setting')" id="mt-setting">&#9881; Setting Approval</button>
       </div>
 
@@ -413,9 +414,11 @@
             </table>
           </div>
         </div>
+      </div>
 
-        <!-- Daftar Pengaju yang Diizinkan -->
-        <div style="background:white;border:1px solid var(--border);border-radius:var(--radius);padding:20px 24px;margin-top:14px">
+      <!-- Daftar Pengaju -->
+      <div id="msub-pengaju" style="display:none">
+        <div style="background:white;border:1px solid var(--border);border-radius:var(--radius);padding:20px 24px">
           <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;padding-bottom:10px;border-bottom:1px solid var(--g100)">
             <div>
               <div style="font-size:13px;font-weight:600;color:var(--g900)">Daftar Pengaju yang Diizinkan</div>

@@ -1881,16 +1881,20 @@ var ML = {
 
 function switchMTab(tab) {
   mmTab = tab;
-  ["entitas","barang","jasa","setting"].forEach(function(t) {
+  ["entitas","barang","jasa","pengaju","setting"].forEach(function(t) {
     document.getElementById("msub-"+t).style.display = t===tab ? "block" : "none";
     document.getElementById("mt-"+t).classList.toggle("on", t===tab);
   });
   if (tab === "setting") {
     refreshL2Display();
     renderRules();
-    renderSubmitters();
     if (!apvRules.length) loadApprovalConfig().then(function(){
-      refreshL2Display(); renderRules(); renderSubmitters();
+      refreshL2Display(); renderRules();
+    });
+  } else if (tab === "pengaju") {
+    renderSubmitters();
+    if (!submitterRecs.length) loadApprovalConfig().then(function(){
+      renderSubmitters();
     });
   } else if (!mData[tab].length) loadMT(tab);
 }
