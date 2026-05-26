@@ -1882,8 +1882,10 @@ var ML = {
 function switchMTab(tab) {
   mmTab = tab;
   ["entitas","barang","jasa","pengaju","setting"].forEach(function(t) {
-    document.getElementById("msub-"+t).style.display = t===tab ? "block" : "none";
-    document.getElementById("mt-"+t).classList.toggle("on", t===tab);
+    var sub = document.getElementById("msub-"+t);
+    var btn = document.getElementById("mt-"+t);
+    if (sub) sub.style.display = t===tab ? "block" : "none";
+    if (btn) btn.classList.toggle("on", t===tab);
   });
   if (tab === "setting") {
     refreshL2Display();
@@ -1896,7 +1898,9 @@ function switchMTab(tab) {
     if (!submitterRecs.length) loadApprovalConfig().then(function(){
       renderSubmitters();
     });
-  } else if (!mData[tab].length) loadMT(tab);
+  } else if (mData[tab] !== undefined && !mData[tab].length) {
+    loadMT(tab);
+  }
 }
 
 function loadMT(tab) {
