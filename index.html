@@ -308,16 +308,34 @@
       <!-- Entitas -->
       <div id="msub-entitas">
         <div class="mbar">
-          <div style="display:flex;gap:8px;flex-wrap:wrap">
+          <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center">
             <input class="fi2" style="width:260px" type="text" id="ms-entitas-search" placeholder="&#128269; Cari company, client, project..." oninput="renderMT('entitas')">
             <select class="fi2" id="ms-entitas-aktif" onchange="renderMT('entitas')">
               <option value="">Semua Status</option><option value="1">Aktif</option><option value="0">Nonaktif</option>
             </select>
+            <div class="sdd" id="mt-entitas-filter" style="width:180px">
+              <div class="sdd-input" onclick="mtToggleFilterDD('entitas')">Filter Client <span id="mt-entitas-filter-count" style="color:var(--navy);font-weight:600"></span></div>
+              <div class="sdd-list" id="mt-entitas-filter-list">
+                <div class="sdd-options" id="mt-entitas-filter-options"></div>
+                <div style="display:flex;justify-content:space-between;padding:6px 11px;border-top:1px solid var(--g100)">
+                  <button type="button" style="background:none;border:none;color:var(--navy);font-size:11px;cursor:pointer;font-family:inherit;padding:0" onclick="mtClearFilter('entitas')">Reset</button>
+                  <button type="button" style="background:none;border:none;color:var(--navy);font-size:11px;cursor:pointer;font-family:inherit;padding:0" onclick="document.getElementById('mt-entitas-filter-list').style.display='none'">Tutup</button>
+                </div>
+              </div>
+            </div>
           </div>
           <button class="btn btn-p btn-sm" onclick="openMM('entitas',null)">+ Tambah Entitas</button>
         </div>
         <div class="tw"><table class="mtbl">
-          <thead><tr><th style="width:3%">#</th><th>Company</th><th style="width:8%">Kode</th><th>Client</th><th>Project</th><th style="width:9%">Status</th><th style="width:13%">Aksi</th></tr></thead>
+          <thead><tr>
+            <th style="width:3%">#</th>
+            <th class="thsort" onclick="mtSortBy('entitas','Company')">Company<span class="sort-arrow" id="sa-entitas-Company"></span></th>
+            <th class="thsort" style="width:8%" onclick="mtSortBy('entitas','CompanyCode')">Kode<span class="sort-arrow" id="sa-entitas-CompanyCode"></span></th>
+            <th class="thsort" onclick="mtSortBy('entitas','Client')">Client<span class="sort-arrow" id="sa-entitas-Client"></span></th>
+            <th class="thsort" onclick="mtSortBy('entitas','Project')">Project<span class="sort-arrow" id="sa-entitas-Project"></span></th>
+            <th style="width:9%">Status</th>
+            <th style="width:13%">Aksi</th>
+          </tr></thead>
           <tbody id="mt-entitas-tbody"><tr><td colspan="7" style="text-align:center;padding:24px;color:var(--g500)">Klik tab untuk memuat data</td></tr></tbody>
         </table></div>
       </div>
@@ -325,16 +343,35 @@
       <!-- Barang -->
       <div id="msub-barang" style="display:none">
         <div class="mbar">
-          <div style="display:flex;gap:8px;flex-wrap:wrap">
+          <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center">
             <input class="fi2" style="width:260px" type="text" id="ms-barang-search" placeholder="&#128269; Cari nama barang, kategori..." oninput="renderMT('barang')">
             <select class="fi2" id="ms-barang-aktif" onchange="renderMT('barang')">
               <option value="">Semua Status</option><option value="1">Aktif</option><option value="0">Nonaktif</option>
             </select>
+            <div class="sdd" id="mt-barang-filter" style="width:180px">
+              <div class="sdd-input" onclick="mtToggleFilterDD('barang')">Filter Kategori <span id="mt-barang-filter-count" style="color:var(--navy);font-weight:600"></span></div>
+              <div class="sdd-list" id="mt-barang-filter-list">
+                <div class="sdd-options" id="mt-barang-filter-options"></div>
+                <div style="display:flex;justify-content:space-between;padding:6px 11px;border-top:1px solid var(--g100)">
+                  <button type="button" style="background:none;border:none;color:var(--navy);font-size:11px;cursor:pointer;font-family:inherit;padding:0" onclick="mtClearFilter('barang')">Reset</button>
+                  <button type="button" style="background:none;border:none;color:var(--navy);font-size:11px;cursor:pointer;font-family:inherit;padding:0" onclick="document.getElementById('mt-barang-filter-list').style.display='none'">Tutup</button>
+                </div>
+              </div>
+            </div>
           </div>
           <button class="btn btn-p btn-sm" onclick="openMM('barang',null)">+ Tambah Barang</button>
         </div>
         <div class="tw"><table class="mtbl">
-          <thead><tr><th style="width:3%">#</th><th>Nama Barang</th><th>Kategori</th><th>Subkategori</th><th style="width:8%">Satuan</th><th style="width:12%">Harga Est.</th><th style="width:9%">Status</th><th style="width:13%">Aksi</th></tr></thead>
+          <thead><tr>
+            <th style="width:3%">#</th>
+            <th class="thsort" onclick="mtSortBy('barang','NamaBarang')">Nama Barang<span class="sort-arrow" id="sa-barang-NamaBarang"></span></th>
+            <th class="thsort" onclick="mtSortBy('barang','KategoriBarang')">Kategori<span class="sort-arrow" id="sa-barang-KategoriBarang"></span></th>
+            <th class="thsort" onclick="mtSortBy('barang','Subkategori')">Subkategori<span class="sort-arrow" id="sa-barang-Subkategori"></span></th>
+            <th class="thsort" style="width:8%" onclick="mtSortBy('barang','Satuan')">Satuan<span class="sort-arrow" id="sa-barang-Satuan"></span></th>
+            <th class="thsort" style="width:12%" onclick="mtSortBy('barang','HargaEstimasi')">Harga Est.<span class="sort-arrow" id="sa-barang-HargaEstimasi"></span></th>
+            <th style="width:9%">Status</th>
+            <th style="width:13%">Aksi</th>
+          </tr></thead>
           <tbody id="mt-barang-tbody"><tr><td colspan="8" style="text-align:center;padding:24px;color:var(--g500)">–</td></tr></tbody>
         </table></div>
       </div>
@@ -342,16 +379,35 @@
       <!-- Jasa/Vendor -->
       <div id="msub-jasa" style="display:none">
         <div class="mbar">
-          <div style="display:flex;gap:8px;flex-wrap:wrap">
+          <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center">
             <input class="fi2" style="width:260px" type="text" id="ms-jasa-search" placeholder="&#128269; Cari nama vendor, kategori..." oninput="renderMT('jasa')">
             <select class="fi2" id="ms-jasa-aktif" onchange="renderMT('jasa')">
               <option value="">Semua Status</option><option value="1">Aktif</option><option value="0">Nonaktif</option>
             </select>
+            <div class="sdd" id="mt-jasa-filter" style="width:180px">
+              <div class="sdd-input" onclick="mtToggleFilterDD('jasa')">Filter Domisili <span id="mt-jasa-filter-count" style="color:var(--navy);font-weight:600"></span></div>
+              <div class="sdd-list" id="mt-jasa-filter-list">
+                <div class="sdd-options" id="mt-jasa-filter-options"></div>
+                <div style="display:flex;justify-content:space-between;padding:6px 11px;border-top:1px solid var(--g100)">
+                  <button type="button" style="background:none;border:none;color:var(--navy);font-size:11px;cursor:pointer;font-family:inherit;padding:0" onclick="mtClearFilter('jasa')">Reset</button>
+                  <button type="button" style="background:none;border:none;color:var(--navy);font-size:11px;cursor:pointer;font-family:inherit;padding:0" onclick="document.getElementById('mt-jasa-filter-list').style.display='none'">Tutup</button>
+                </div>
+              </div>
+            </div>
           </div>
           <button class="btn btn-p btn-sm" onclick="openMM('jasa',null)">+ Tambah Vendor</button>
         </div>
         <div class="tw"><table class="mtbl">
-          <thead><tr><th style="width:3%">#</th><th>Nama Vendor</th><th>Kategori</th><th>Domisili</th><th>PIC Vendor</th><th>No. Telpon</th><th style="width:9%">Status</th><th style="width:13%">Aksi</th></tr></thead>
+          <thead><tr>
+            <th style="width:3%">#</th>
+            <th class="thsort" onclick="mtSortBy('jasa','NamaVendor')">Nama Vendor<span class="sort-arrow" id="sa-jasa-NamaVendor"></span></th>
+            <th class="thsort" onclick="mtSortBy('jasa','Kategori')">Kategori<span class="sort-arrow" id="sa-jasa-Kategori"></span></th>
+            <th class="thsort" onclick="mtSortBy('jasa','DomisiliVendor')">Domisili<span class="sort-arrow" id="sa-jasa-DomisiliVendor"></span></th>
+            <th class="thsort" onclick="mtSortBy('jasa','PICVendor')">PIC Vendor<span class="sort-arrow" id="sa-jasa-PICVendor"></span></th>
+            <th class="thsort" onclick="mtSortBy('jasa','NoTelpon')">No. Telpon<span class="sort-arrow" id="sa-jasa-NoTelpon"></span></th>
+            <th style="width:9%">Status</th>
+            <th style="width:13%">Aksi</th>
+          </tr></thead>
           <tbody id="mt-jasa-tbody"><tr><td colspan="8" style="text-align:center;padding:24px;color:var(--g500)">–</td></tr></tbody>
         </table></div>
       </div>
@@ -396,20 +452,35 @@
             </div>
             <button class="btn btn-p bsm" onclick="openRuleModal(null)">+ Tambah Rule</button>
           </div>
+          <div class="mbar">
+            <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center">
+              <input class="fi2" style="width:260px" type="text" id="rules-search" placeholder="&#128269; Cari project, cabang, approver..." oninput="renderRules()">
+              <div class="sdd" id="rules-cabang-filter" style="width:200px">
+                <div class="sdd-input" id="rules-cabang-btn" onclick="toggleCabangFilter()">Filter Cabang <span id="rules-cabang-count" style="color:var(--navy);font-weight:600"></span></div>
+                <div class="sdd-list" id="rules-cabang-list">
+                  <div class="sdd-options" id="rules-cabang-options"></div>
+                  <div style="display:flex;justify-content:space-between;padding:6px 11px;border-top:1px solid var(--g100)">
+                    <button type="button" style="background:none;border:none;color:var(--navy);font-size:11px;cursor:pointer;font-family:inherit;padding:0" onclick="clearCabangFilter()">Reset</button>
+                    <button type="button" style="background:none;border:none;color:var(--navy);font-size:11px;cursor:pointer;font-family:inherit;padding:0" onclick="document.getElementById('rules-cabang-list').style.display='none'">Tutup</button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
           <div class="tw">
             <table class="mtbl">
               <thead><tr>
                 <th style="width:3%">#</th>
-                <th>Nama Project</th>
-                <th>Cabang</th>
-                <th>L1 Approver</th>
-                <th>Email L1</th>
-                <th>L2 Approver</th>
-                <th>Email L2</th>
+                <th class="thsort" onclick="sortRules('Project')">Nama Project<span class="sort-arrow" id="sa-Project"></span></th>
+                <th class="thsort" onclick="sortRules('Cabang')">Cabang<span class="sort-arrow" id="sa-Cabang"></span></th>
+                <th class="thsort" onclick="sortRules('L1Name')">L1 Approver<span class="sort-arrow" id="sa-L1Name"></span></th>
+                <th class="thsort" onclick="sortRules('L1Email')">Email L1<span class="sort-arrow" id="sa-L1Email"></span></th>
+                <th class="thsort" onclick="sortRules('L2Name')">L2 Approver<span class="sort-arrow" id="sa-L2Name"></span></th>
+                <th class="thsort" onclick="sortRules('L2Email')">Email L2<span class="sort-arrow" id="sa-L2Email"></span></th>
                 <th style="width:11%">Aksi</th>
               </tr></thead>
               <tbody id="rules-tbody">
-                <tr><td colspan="6" style="text-align:center;padding:20px;color:var(--g500)">Memuat...</td></tr>
+                <tr><td colspan="8" style="text-align:center;padding:20px;color:var(--g500)">Memuat...</td></tr>
               </tbody>
             </table>
           </div>
@@ -426,8 +497,11 @@
             </div>
             <button class="btn btn-p bsm" onclick="openSubmitterModal(null)">+ Tambah Pengaju</button>
           </div>
+          <div class="mbar">
+            <input class="fi2" style="width:260px" type="text" id="submitters-search" placeholder="&#128269; Cari email pengaju..." oninput="renderSubmitters()">
+          </div>
           <div class="tw"><table class="mtbl">
-            <thead><tr><th style="width:4%">#</th><th>Email Pengaju</th><th style="width:13%">Aksi</th></tr></thead>
+            <thead><tr><th style="width:4%">#</th><th class="thsort" onclick="sortSubmitters()">Email Pengaju<span class="sort-arrow" id="sa-submitters-email"></span></th><th style="width:13%">Aksi</th></tr></thead>
             <tbody id="submitters-tbody"><tr><td colspan="3" style="text-align:center;padding:20px;color:var(--g500)">Memuat...</td></tr></tbody>
           </table></div>
         </div>

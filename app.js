@@ -1660,14 +1660,50 @@ function refreshL2Display() {
   document.getElementById("l2-name-val").value       = APPROVAL_CONFIG.l2.name;
 }
 
+var rulesSortCol      = null;
+var rulesSortDir      = 1;   // 1 = asc, -1 = desc
+var rulesCabangFilter = [];  // selected cabang values; empty = semua
+
+var RULES_SORT_COLS = ["Project","Cabang","L1Name","L1Email","L2Name","L2Email"];
+
+function cabangLabel(r) { return r.Cabang || "(semua cabang)"; }
+
 function renderRules() {
-  var tbody = document.getElementById("rules-tbody");
+  var tbody  = document.getElementById("rules-tbody");
+  var search = (document.getElementById("rules-search")||{}).value || "";
+  var q      = search.toLowerCase();
+
   if (!apvRules.length) {
-    tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;padding:20px;color:var(--g500)">Belum ada rule. Klik "+ Tambah Rule" untuk menambahkan.</td></tr>';
+    tbody.innerHTML = '<tr><td colspan="8" style="text-align:center;padding:20px;color:var(--g500)">Belum ada rule. Klik "+ Tambah Rule" untuk menambahkan.</td></tr>';
     return;
   }
-  // Sort: specific rules first, default (*) last
-  tbody.innerHTML = apvRules.map(function(r,i){
+
+  var list = apvRules.filter(function(r) {
+    if (rulesCabangFilter.length && rulesCabangFilter.indexOf(cabangLabel(r)) < 0) return false;
+    if (q) {
+      var str = [r.Project, r.Cabang, r.L1Name, r.L1Email, r.L2Name, r.L2Email].join(" ").toLowerCase();
+      if (str.indexOf(q) < 0) return false;
+    }
+    return true;
+  });
+
+  if (rulesSortCol) {
+    var col = rulesSortCol, dir = rulesSortDir;
+    list = list.slice().sort(function(a,b){
+      var av = (a[col]||"").toString().toLowerCase();
+      var bv = (b[col]||"").toString().toLowerCase();
+      if (av < bv) return -1*dir;
+      if (av > bv) return  1*dir;
+      return 0;
+    });
+  }
+
+  if (!list.length) {
+    tbody.innerHTML = '<tr><td colspan="8" style="text-align:center;padding:20px;color:var(--g500)">Tidak ada rule yang cocok dengan pencarian/filter.</td></tr>';
+    return;
+  }
+
+  tbody.innerHTML = list.map(function(r,i){
     var editBtn = '<button class="btn btn-o bsm" style="font-size:11px" onclick="openRuleModal(\'' + r.id + '\')">Edit</button>';
     var delBtn  = '<button class="btn bsm" style="font-size:11px;color:var(--red);border:1.5px solid var(--red);background:white;border-radius:var(--rsm);cursor:pointer;font-family:inherit" onclick="deleteRule(\'' + r.id + '\')">Hapus</button>';
     return '<tr>' +
@@ -1682,6 +1718,68 @@ function renderRules() {
       '</tr>';
   }).join("");
 }
+
+function sortRules(col) {
+  if (rulesSortCol === col) { rulesSortDir = -rulesSortDir; }
+  else { rulesSortCol = col; rulesSortDir = 1; }
+  RULES_SORT_COLS.forEach(function(c){
+    var el = document.getElementById("sa-"+c);
+    if (!el) return;
+    el.textContent = (rulesSortCol === c) ? (rulesSortDir === 1 ? "▲" : "▼") : "";
+  });
+  renderRules();
+}
+
+function toggleCabangFilter() {
+  var dd = document.getElementById("rules-cabang-list");
+  if (dd.style.display === "block") { dd.style.display = "none"; return; }
+  renderCabangFilterOptions();
+  dd.style.display = "block";
+}
+
+function renderCabangFilterOptions() {
+  var opts = [];
+  apvRules.forEach(function(r){
+    var c = cabangLabel(r);
+    if (opts.indexOf(c) < 0) opts.push(c);
+  });
+  opts.sort();
+  var box = document.getElementById("rules-cabang-options");
+  if (!opts.length) { box.innerHTML = '<div class="sdd-none">Belum ada data cabang</div>'; return; }
+  box.innerHTML = opts.map(function(c){
+    var checked = rulesCabangFilter.indexOf(c) > -1 ? "checked" : "";
+    return '<label class="rules-cabang-item">' +
+      '<input type="checkbox" class="rules-cabang-cb" data-val="' + eA(c) + '" ' + checked + '> ' +
+      eA(c) + '</label>';
+  }).join("");
+  box.querySelectorAll(".rules-cabang-cb").forEach(function(cb){
+    cb.addEventListener("change", function(){ toggleCabangFilterVal(cb.getAttribute("data-val")); });
+  });
+}
+
+function toggleCabangFilterVal(val) {
+  var i = rulesCabangFilter.indexOf(val);
+  if (i > -1) rulesCabangFilter.splice(i,1); else rulesCabangFilter.push(val);
+  updateCabangFilterCount();
+  renderRules();
+}
+
+function updateCabangFilterCount() {
+  document.getElementById("rules-cabang-count").textContent = rulesCabangFilter.length ? "(" + rulesCabangFilter.length + ")" : "";
+}
+
+function clearCabangFilter() {
+  rulesCabangFilter = [];
+  updateCabangFilterCount();
+  renderCabangFilterOptions();
+  renderRules();
+}
+
+document.addEventListener("click", function(e) {
+  var box  = document.getElementById("rules-cabang-filter");
+  var list = document.getElementById("rules-cabang-list");
+  if (box && list && !box.contains(e.target)) list.style.display = "none";
+});
 
 function filterCabangDD() {
   var dd   = document.getElementById("cabang-dd");
@@ -1821,6 +1919,9 @@ function deleteRule(id) {
 // =============================================
 var submitterRecs = [];
 
+var submittersSorted  = false;
+var submittersSortDir = 1;
+
 function renderSubmitters() {
   var tbody = document.getElementById("submitters-tbody");
   if (!tbody) return;
@@ -1828,10 +1929,36 @@ function renderSubmitters() {
     tbody.innerHTML = '<tr><td colspan="3" style="text-align:center;padding:20px;color:var(--g500)">Belum ada pengaju terdaftar.</td></tr>';
     return;
   }
-  tbody.innerHTML = submitterRecs.map(function(r,i){
+  var search = (document.getElementById("submitters-search")||{}).value || "";
+  var q = search.toLowerCase();
+  var list = submitterRecs.filter(function(r){
+    return !q || (r.SubmitterEmail||"").toLowerCase().indexOf(q) > -1;
+  });
+  if (submittersSorted) {
+    var dir = submittersSortDir;
+    list = list.slice().sort(function(a,b){
+      var av = (a.SubmitterEmail||"").toLowerCase(), bv = (b.SubmitterEmail||"").toLowerCase();
+      if (av < bv) return -1*dir;
+      if (av > bv) return  1*dir;
+      return 0;
+    });
+  }
+  if (!list.length) {
+    tbody.innerHTML = '<tr><td colspan="3" style="text-align:center;padding:20px;color:var(--g500)">Tidak ada email yang cocok dengan pencarian.</td></tr>';
+    return;
+  }
+  tbody.innerHTML = list.map(function(r,i){
     var delBtn = '<button class="btn bsm" style="font-size:11px;color:var(--red);border:1.5px solid var(--red);background:white;border-radius:var(--rsm);cursor:pointer;font-family:inherit" onclick="deleteSubmitter(\'' + r.id + '\')">Hapus</button>';
     return '<tr><td style="color:var(--g500)">'+(i+1)+'</td><td>'+eA(r.SubmitterEmail||"")+'</td><td>'+delBtn+'</td></tr>';
   }).join("");
+}
+
+function sortSubmitters() {
+  if (!submittersSorted) { submittersSorted = true; submittersSortDir = 1; }
+  else submittersSortDir = -submittersSortDir;
+  var el = document.getElementById("sa-submitters-email");
+  if (el) el.textContent = submittersSortDir === 1 ? "▲" : "▼";
+  renderSubmitters();
 }
 
 function openSubmitterModal() {
@@ -1917,16 +2044,98 @@ function loadMT(tab) {
 
 function isAktif(r) { return r.Aktif !== false && r.Aktif !== 0 && r.Aktif !== "0"; }
 
+// =============================================
+// MASTER DATA - sort & tick-filter (Entitas/Barang/Jasa)
+// =============================================
+var MT_SORT_COLS  = {
+  entitas: ["Company","CompanyCode","Client","Project"],
+  barang:  ["NamaBarang","KategoriBarang","Subkategori","Satuan","HargaEstimasi"],
+  jasa:    ["NamaVendor","Kategori","DomisiliVendor","PICVendor","NoTelpon"]
+};
+var MT_FILTER_FIELD = { entitas: "Client", barang: "KategoriBarang", jasa: "DomisiliVendor" };
+var mtSort      = { entitas: {col:null, dir:1}, barang: {col:null, dir:1}, jasa: {col:null, dir:1} };
+var mtFilterVals= { entitas: [], barang: [], jasa: [] };
+
+function mtFilterFieldVal(tab, r) { return r[MT_FILTER_FIELD[tab]] || "(kosong)"; }
+
+function mtSortBy(tab, col) {
+  var s = mtSort[tab];
+  if (s.col === col) s.dir = -s.dir; else { s.col = col; s.dir = 1; }
+  (MT_SORT_COLS[tab]||[]).forEach(function(c){
+    var el = document.getElementById("sa-"+tab+"-"+c);
+    if (!el) return;
+    el.textContent = (s.col===c) ? (s.dir===1?"▲":"▼") : "";
+  });
+  renderMT(tab);
+}
+
+function mtToggleFilterDD(tab) {
+  var dd = document.getElementById("mt-"+tab+"-filter-list");
+  if (dd.style.display === "block") { dd.style.display = "none"; return; }
+  mtRenderFilterOptions(tab);
+  dd.style.display = "block";
+}
+
+function mtRenderFilterOptions(tab) {
+  var opts = [];
+  (mData[tab]||[]).forEach(function(r){
+    var v = mtFilterFieldVal(tab, r);
+    if (opts.indexOf(v) < 0) opts.push(v);
+  });
+  opts.sort();
+  var box = document.getElementById("mt-"+tab+"-filter-options");
+  if (!opts.length) { box.innerHTML = '<div class="sdd-none">Belum ada data</div>'; return; }
+  box.innerHTML = opts.map(function(v){
+    var checked = mtFilterVals[tab].indexOf(v) > -1 ? "checked" : "";
+    return '<label class="rules-cabang-item">' +
+      '<input type="checkbox" class="mt-filter-cb" data-val="' + eA(v) + '" ' + checked + '> ' +
+      eA(v) + '</label>';
+  }).join("");
+  box.querySelectorAll(".mt-filter-cb").forEach(function(cb){
+    cb.addEventListener("change", function(){ mtToggleFilterVal(tab, cb.getAttribute("data-val")); });
+  });
+}
+
+function mtToggleFilterVal(tab, val) {
+  var arr = mtFilterVals[tab];
+  var i = arr.indexOf(val);
+  if (i > -1) arr.splice(i,1); else arr.push(val);
+  mtUpdateFilterCount(tab);
+  renderMT(tab);
+}
+
+function mtUpdateFilterCount(tab) {
+  var el = document.getElementById("mt-"+tab+"-filter-count");
+  if (el) el.textContent = mtFilterVals[tab].length ? "(" + mtFilterVals[tab].length + ")" : "";
+}
+
+function mtClearFilter(tab) {
+  mtFilterVals[tab] = [];
+  mtUpdateFilterCount(tab);
+  mtRenderFilterOptions(tab);
+  renderMT(tab);
+}
+
+document.addEventListener("click", function(e) {
+  ["entitas","barang","jasa"].forEach(function(tab){
+    var box  = document.getElementById("mt-"+tab+"-filter");
+    var list = document.getElementById("mt-"+tab+"-filter-list");
+    if (box && list && !box.contains(e.target)) list.style.display = "none";
+  });
+});
+
 function renderMT(tab) {
   var data   = mData[tab];
   var search = (document.getElementById("ms-"+tab+"-search")||{}).value || "";
   var fAktif = (document.getElementById("ms-"+tab+"-aktif")||{}).value || "";
   var q = search.toLowerCase();
+  var filterVals = mtFilterVals[tab] || [];
 
   var f = data.filter(function(r) {
     var ak = isAktif(r);
     if (fAktif === "1" && !ak) return false;
     if (fAktif === "0" &&  ak) return false;
+    if (filterVals.length && filterVals.indexOf(mtFilterFieldVal(tab, r)) < 0) return false;
     if (q) {
       var str = [r.Company,r.Client,r.Project,r.NamaBarang,r.KategoriBarang,r.Subkategori,r.NamaVendor,r.Kategori,r.DomisiliVendor,r.PICVendor].join(" ").toLowerCase();
       if (str.indexOf(q) < 0) return false;
@@ -1934,8 +2143,25 @@ function renderMT(tab) {
     return true;
   });
 
+  var sortState = mtSort[tab];
+  if (sortState && sortState.col) {
+    var col = sortState.col, dir = sortState.dir;
+    f = f.slice().sort(function(a,b){
+      if (col === "HargaEstimasi") { return ((parseInt(a[col])||0) - (parseInt(b[col])||0)) * dir; }
+      var av = (a[col]||"").toString().toLowerCase();
+      var bv = (b[col]||"").toString().toLowerCase();
+      if (av < bv) return -1*dir;
+      if (av > bv) return  1*dir;
+      return 0;
+    });
+  }
+
   var tbody = document.getElementById("mt-"+tab+"-tbody");
-  if (!f.length) { tbody.innerHTML = '<tr><td colspan="8" style="text-align:center;padding:24px;color:var(--g500)">Tidak ada data</td></tr>'; return; }
+  if (!f.length) {
+    tbody.innerHTML = '<tr><td colspan="8" style="text-align:center;padding:24px;color:var(--g500)">' +
+      (data.length ? "Tidak ada data yang cocok dengan pencarian/filter." : "Tidak ada data") + '</td></tr>';
+    return;
+  }
 
   var rows = f.map(function(r, i) {
     var ak  = isAktif(r);

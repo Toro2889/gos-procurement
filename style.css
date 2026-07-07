@@ -111,6 +111,12 @@ body{font-family:'Plus Jakarta Sans',-apple-system,sans-serif;background:var(--g
 .mtbl td{padding:9px 12px;border-bottom:1px solid var(--g100);vertical-align:middle}
 .mtbl tr:last-child td{border-bottom:none}
 .mtbl tr:hover td{background:var(--g50)}
+.mtbl th.thsort{cursor:pointer;user-select:none;white-space:nowrap}
+.mtbl th.thsort:hover{background:#0d5a8f}
+.sort-arrow{display:inline-block;margin-left:4px;font-size:9px}
+.sdd-item label{cursor:pointer}
+.rules-cabang-item{display:flex;align-items:center;gap:8px;padding:7px 11px;font-size:13px;color:var(--g900);cursor:pointer}
+.rules-cabang-item:hover{background:var(--navy-lt)}
 .mfield{display:flex;flex-direction:column;gap:4px}
 .mfield label{font-size:12px;font-weight:600;color:var(--g700)}
 .mfield input,.mfield select{border:1.5px solid var(--border);border-radius:var(--rsm);padding:8px 11px;font-family:inherit;font-size:13px;outline:none;width:100%}
