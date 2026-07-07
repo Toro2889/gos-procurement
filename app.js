@@ -1348,7 +1348,7 @@ function openMo(id) {
     ) : '') +
     (item.Status === "Cancelled" ? (
       '<div class="df"><div class="dl">Tanggal Dibatalkan</div><div class="dv" style="font-weight:600;color:var(--red)">' + (item.CancelDate ? item.CancelDate.split("T")[0].split("-").reverse().join("/") : "-") + '</div></div>' +
-      '<div class="df full"><div class="dl">Alasan Pembatalan</div><div class="dv">' + (item.CancelNotes||"-") + '</div></div>'
+      '<div class="df full"><div class="dl">Alasan Pembatalan</div><div class="dv">' + eA(item.CancelNotes||"-") + '</div></div>'
     ) : '') +
     '<div class="df full"><div class="dl">Riwayat Approval</div><div class="dv">' + buildApvHistory(item) + '</div></div>';
   document.getElementById("mst").value  = item.Status || "Pending L1";
