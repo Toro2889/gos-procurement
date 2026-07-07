@@ -344,6 +344,7 @@ function selectSDD(key, val) {
     document.getElementById("f-cabang").value = "";
     document.getElementById("cabang-dd").style.display = "none";
   }
+  updateApproverPreview();
 }
 
 function onSDDKey(e, key) {
@@ -360,6 +361,36 @@ document.addEventListener("click", function(e) {
 
 function onCo() { /* kept for compatibility */ }
 function onCl() { /* kept for compatibility */ }
+
+function updateApproverPreview() {
+  var box  = document.getElementById("approver-preview");
+  var body = document.getElementById("approver-preview-body");
+  if (!box || !body) return;
+  var co     = document.getElementById("f-co").value;
+  var cl     = document.getElementById("f-cl").value;
+  var pr     = document.getElementById("f-pr").value;
+  var cabang = document.getElementById("f-cabang").value.trim();
+
+  if (!co || !cl || !pr) { box.style.display = "none"; return; }
+
+  var rule = getL1ByProject(pr, cabang);
+  if (!rule) {
+    body.innerHTML = '<span style="color:var(--red)">Belum ada rule approval untuk project ini' +
+      (cabang ? " (cabang " + eA(cabang) + ")" : "") + '. Hubungi Admin.</span>';
+    box.style.display = "block";
+    return;
+  }
+  var rows = [];
+  rows.push('<div style="margin-bottom:4px"><b>Level 1:</b> ' + eA(rule.l1Name || rule.l1Email || "-") +
+    (rule.l1Email ? ' <span style="color:var(--g500)">(' + eA(rule.l1Email) + ')</span>' : "") + '</div>');
+  if (rule.l2Email) {
+    rows.push('<div><b>Level 2:</b> ' + eA(rule.l2Name || rule.l2Email) +
+      ' <span style="color:var(--g500)">(' + eA(rule.l2Email) + ')</span>' +
+      ' &mdash; diminta jika total pengajuan &ge; Rp ' + APPROVAL_CONFIG.l2Threshold.toLocaleString("id-ID") + '</div>');
+  }
+  body.innerHTML = rows.join("");
+  box.style.display = "block";
+}
 
 
 
@@ -615,6 +646,7 @@ function resetForm() {
   document.getElementById("sec-barang").style.display = "none";
   document.getElementById("sec-jasa").style.display   = "none";
   uploadedFiles = []; renderFiles(); updateRn();
+  document.getElementById("approver-preview").style.display = "none";
 }
 
 // =============================================
@@ -1662,7 +1694,6 @@ function refreshL2Display() {
 
 var rulesSortCol      = null;
 var rulesSortDir      = 1;   // 1 = asc, -1 = desc
-var rulesCabangFilter = [];  // selected cabang values; empty = semua
 
 var RULES_SORT_COLS = ["Project","Cabang","L1Name","L1Email","L2Name","L2Email"];
 
@@ -1679,7 +1710,7 @@ function renderRules() {
   }
 
   var list = apvRules.filter(function(r) {
-    if (rulesCabangFilter.length && rulesCabangFilter.indexOf(cabangLabel(r)) < 0) return false;
+    if (!cfPassRow("rules", RULES_SORT_COLS, r)) return false;
     if (q) {
       var str = [r.Project, r.Cabang, r.L1Name, r.L1Email, r.L2Name, r.L2Email].join(" ").toLowerCase();
       if (str.indexOf(q) < 0) return false;
@@ -1730,61 +1761,11 @@ function sortRules(col) {
   renderRules();
 }
 
-function toggleCabangFilter() {
-  var dd = document.getElementById("rules-cabang-list");
-  if (dd.style.display === "block") { dd.style.display = "none"; return; }
-  renderCabangFilterOptions();
-  dd.style.display = "block";
-}
-
-function renderCabangFilterOptions() {
-  var opts = [];
-  apvRules.forEach(function(r){
-    var c = cabangLabel(r);
-    if (opts.indexOf(c) < 0) opts.push(c);
-  });
-  opts.sort();
-  var box = document.getElementById("rules-cabang-options");
-  if (!opts.length) { box.innerHTML = '<div class="sdd-none">Belum ada data cabang</div>'; return; }
-  box.innerHTML = opts.map(function(c){
-    var checked = rulesCabangFilter.indexOf(c) > -1 ? "checked" : "";
-    return '<label class="rules-cabang-item">' +
-      '<input type="checkbox" class="rules-cabang-cb" data-val="' + eA(c) + '" ' + checked + '> ' +
-      eA(c) + '</label>';
-  }).join("");
-  box.querySelectorAll(".rules-cabang-cb").forEach(function(cb){
-    cb.addEventListener("change", function(){ toggleCabangFilterVal(cb.getAttribute("data-val")); });
-  });
-}
-
-function toggleCabangFilterVal(val) {
-  var i = rulesCabangFilter.indexOf(val);
-  if (i > -1) rulesCabangFilter.splice(i,1); else rulesCabangFilter.push(val);
-  updateCabangFilterCount();
-  renderRules();
-}
-
-function updateCabangFilterCount() {
-  document.getElementById("rules-cabang-count").textContent = rulesCabangFilter.length ? "(" + rulesCabangFilter.length + ")" : "";
-}
-
-function clearCabangFilter() {
-  rulesCabangFilter = [];
-  updateCabangFilterCount();
-  renderCabangFilterOptions();
-  renderRules();
-}
-
-document.addEventListener("click", function(e) {
-  var box  = document.getElementById("rules-cabang-filter");
-  var list = document.getElementById("rules-cabang-list");
-  if (box && list && !box.contains(e.target)) list.style.display = "none";
-});
-
 function filterCabangDD() {
   var dd   = document.getElementById("cabang-dd");
   var q    = (document.getElementById("f-cabang").value||"").toLowerCase();
   var proj = document.getElementById("f-pr").value;
+  updateApproverPreview();
 
   // Ambil cabang unik dari rules untuk project yang dipilih
   var options = [];
@@ -1813,6 +1794,7 @@ function filterCabangDD() {
 function selectCabangDD(val) {
   document.getElementById("f-cabang").value = val;
   document.getElementById("cabang-dd").style.display = "none";
+  updateApproverPreview();
 }
 
 
@@ -2045,18 +2027,120 @@ function loadMT(tab) {
 function isAktif(r) { return r.Aktif !== false && r.Aktif !== 0 && r.Aktif !== "0"; }
 
 // =============================================
-// MASTER DATA - sort & tick-filter (Entitas/Barang/Jasa)
+// GENERIC COLUMN TICK-FILTER (Excel-style) - Rules L1 & Master Data tables
+// =============================================
+var CF_DATA = {
+  rules:   function(){ return apvRules; },
+  entitas: function(){ return mData.entitas; },
+  barang:  function(){ return mData.barang; },
+  jasa:    function(){ return mData.jasa; }
+};
+var CF_RENDER = {
+  rules:   function(){ renderRules(); },
+  entitas: function(){ renderMT("entitas"); },
+  barang:  function(){ renderMT("barang"); },
+  jasa:    function(){ renderMT("jasa"); }
+};
+var colFilters = { rules:{}, entitas:{}, barang:{}, jasa:{} };
+
+function cfValue(tab, col, r) {
+  if (tab === "rules" && col === "Cabang") return cabangLabel(r);
+  var v = r[col];
+  return (v === undefined || v === null || v === "") ? "(kosong)" : v.toString();
+}
+
+function cfDD() {
+  var dd = document.getElementById("col-filter-dd");
+  if (!dd) {
+    dd = document.createElement("div");
+    dd.id = "col-filter-dd";
+    dd.className = "col-filter-dd";
+    document.body.appendChild(dd);
+  }
+  return dd;
+}
+
+function cfToggle(ev, tab, col) {
+  ev.stopPropagation();
+  var dd   = cfDD();
+  var same = dd.dataset.tab === tab && dd.dataset.col === col;
+  if (same && dd.style.display === "block") { dd.style.display = "none"; return; }
+  cfPopulate(dd, tab, col);
+  var r    = ev.currentTarget.getBoundingClientRect();
+  var left = Math.max(8, Math.min(r.left, window.innerWidth - 220)) + window.scrollX;
+  dd.style.left   = left + "px";
+  dd.style.top    = (r.bottom + window.scrollY + 4) + "px";
+  dd.dataset.tab  = tab;
+  dd.dataset.col  = col;
+  dd.style.display = "block";
+}
+
+function cfPopulate(dd, tab, col) {
+  var rows = CF_DATA[tab]();
+  var vals = [];
+  rows.forEach(function(r){ var v = cfValue(tab,col,r); if (vals.indexOf(v) < 0) vals.push(v); });
+  vals.sort();
+  var sel = colFilters[tab][col] || [];
+  var optsHtml = vals.length ? vals.map(function(v){
+    var checked = sel.indexOf(v) > -1 ? "checked" : "";
+    return '<label class="rules-cabang-item"><input type="checkbox" class="cf-cb" data-val="' + eA(v) + '" ' + checked + '> ' + eA(v) + '</label>';
+  }).join("") : '<div class="sdd-none">Belum ada data</div>';
+  dd.innerHTML =
+    '<div class="sdd-options">' + optsHtml + '</div>' +
+    '<div style="display:flex;justify-content:space-between;padding:6px 11px;border-top:1px solid var(--g100)">' +
+      '<button type="button" class="cf-reset-btn" style="background:none;border:none;color:var(--navy);font-size:11px;cursor:pointer;font-family:inherit;padding:0">Reset</button>' +
+      '<button type="button" class="cf-close-btn" style="background:none;border:none;color:var(--navy);font-size:11px;cursor:pointer;font-family:inherit;padding:0">Tutup</button>' +
+    '</div>';
+  dd.querySelectorAll(".cf-cb").forEach(function(cb){
+    cb.addEventListener("change", function(){ cfToggleVal(tab, col, cb.getAttribute("data-val")); });
+  });
+  dd.querySelector(".cf-reset-btn").addEventListener("click", function(){ cfReset(tab, col); });
+  dd.querySelector(".cf-close-btn").addEventListener("click", function(){ dd.style.display = "none"; });
+}
+
+function cfToggleVal(tab, col, val) {
+  colFilters[tab][col] = colFilters[tab][col] || [];
+  var arr = colFilters[tab][col];
+  var i = arr.indexOf(val);
+  if (i > -1) arr.splice(i,1); else arr.push(val);
+  cfUpdateIcon(tab, col);
+  CF_RENDER[tab]();
+}
+
+function cfReset(tab, col) {
+  colFilters[tab][col] = [];
+  cfUpdateIcon(tab, col);
+  cfPopulate(cfDD(), tab, col);
+  CF_RENDER[tab]();
+}
+
+function cfUpdateIcon(tab, col) {
+  var ic = document.getElementById("cfi-" + tab + "-" + col);
+  if (ic) ic.classList.toggle("active", (colFilters[tab][col]||[]).length > 0);
+}
+
+function cfPassRow(tab, cols, r) {
+  return cols.every(function(col){
+    var arr = colFilters[tab][col];
+    if (!arr || !arr.length) return true;
+    return arr.indexOf(cfValue(tab, col, r)) > -1;
+  });
+}
+
+document.addEventListener("click", function(e){
+  var dd = document.getElementById("col-filter-dd");
+  if (dd && dd.style.display === "block" && !dd.contains(e.target)) dd.style.display = "none";
+});
+
+// =============================================
+// MASTER DATA - sort (Entitas/Barang/Jasa)
 // =============================================
 var MT_SORT_COLS  = {
   entitas: ["Company","CompanyCode","Client","Project"],
   barang:  ["NamaBarang","KategoriBarang","Subkategori","Satuan","HargaEstimasi"],
   jasa:    ["NamaVendor","Kategori","DomisiliVendor","PICVendor","NoTelpon"]
 };
-var MT_FILTER_FIELD = { entitas: "Client", barang: "KategoriBarang", jasa: "DomisiliVendor" };
-var mtSort      = { entitas: {col:null, dir:1}, barang: {col:null, dir:1}, jasa: {col:null, dir:1} };
-var mtFilterVals= { entitas: [], barang: [], jasa: [] };
-
-function mtFilterFieldVal(tab, r) { return r[MT_FILTER_FIELD[tab]] || "(kosong)"; }
+var mtSort = { entitas: {col:null, dir:1}, barang: {col:null, dir:1}, jasa: {col:null, dir:1} };
 
 function mtSortBy(tab, col) {
   var s = mtSort[tab];
@@ -2069,73 +2153,17 @@ function mtSortBy(tab, col) {
   renderMT(tab);
 }
 
-function mtToggleFilterDD(tab) {
-  var dd = document.getElementById("mt-"+tab+"-filter-list");
-  if (dd.style.display === "block") { dd.style.display = "none"; return; }
-  mtRenderFilterOptions(tab);
-  dd.style.display = "block";
-}
-
-function mtRenderFilterOptions(tab) {
-  var opts = [];
-  (mData[tab]||[]).forEach(function(r){
-    var v = mtFilterFieldVal(tab, r);
-    if (opts.indexOf(v) < 0) opts.push(v);
-  });
-  opts.sort();
-  var box = document.getElementById("mt-"+tab+"-filter-options");
-  if (!opts.length) { box.innerHTML = '<div class="sdd-none">Belum ada data</div>'; return; }
-  box.innerHTML = opts.map(function(v){
-    var checked = mtFilterVals[tab].indexOf(v) > -1 ? "checked" : "";
-    return '<label class="rules-cabang-item">' +
-      '<input type="checkbox" class="mt-filter-cb" data-val="' + eA(v) + '" ' + checked + '> ' +
-      eA(v) + '</label>';
-  }).join("");
-  box.querySelectorAll(".mt-filter-cb").forEach(function(cb){
-    cb.addEventListener("change", function(){ mtToggleFilterVal(tab, cb.getAttribute("data-val")); });
-  });
-}
-
-function mtToggleFilterVal(tab, val) {
-  var arr = mtFilterVals[tab];
-  var i = arr.indexOf(val);
-  if (i > -1) arr.splice(i,1); else arr.push(val);
-  mtUpdateFilterCount(tab);
-  renderMT(tab);
-}
-
-function mtUpdateFilterCount(tab) {
-  var el = document.getElementById("mt-"+tab+"-filter-count");
-  if (el) el.textContent = mtFilterVals[tab].length ? "(" + mtFilterVals[tab].length + ")" : "";
-}
-
-function mtClearFilter(tab) {
-  mtFilterVals[tab] = [];
-  mtUpdateFilterCount(tab);
-  mtRenderFilterOptions(tab);
-  renderMT(tab);
-}
-
-document.addEventListener("click", function(e) {
-  ["entitas","barang","jasa"].forEach(function(tab){
-    var box  = document.getElementById("mt-"+tab+"-filter");
-    var list = document.getElementById("mt-"+tab+"-filter-list");
-    if (box && list && !box.contains(e.target)) list.style.display = "none";
-  });
-});
-
 function renderMT(tab) {
   var data   = mData[tab];
   var search = (document.getElementById("ms-"+tab+"-search")||{}).value || "";
   var fAktif = (document.getElementById("ms-"+tab+"-aktif")||{}).value || "";
   var q = search.toLowerCase();
-  var filterVals = mtFilterVals[tab] || [];
 
   var f = data.filter(function(r) {
     var ak = isAktif(r);
     if (fAktif === "1" && !ak) return false;
     if (fAktif === "0" &&  ak) return false;
-    if (filterVals.length && filterVals.indexOf(mtFilterFieldVal(tab, r)) < 0) return false;
+    if (!cfPassRow(tab, MT_SORT_COLS[tab], r)) return false;
     if (q) {
       var str = [r.Company,r.Client,r.Project,r.NamaBarang,r.KategoriBarang,r.Subkategori,r.NamaVendor,r.Kategori,r.DomisiliVendor,r.PICVendor].join(" ").toLowerCase();
       if (str.indexOf(q) < 0) return false;

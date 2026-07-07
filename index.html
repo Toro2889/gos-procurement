@@ -161,6 +161,11 @@
             </div>
           </div>
 
+          <div id="approver-preview" style="display:none;margin:0 0 20px;padding:14px 16px;background:var(--navy-lt,#eef5fa);border:1.5px solid var(--navy);border-radius:var(--rsm)">
+            <div style="font-size:12px;font-weight:600;color:var(--navy);margin-bottom:8px">&#128100; Approver untuk pengajuan ini</div>
+            <div id="approver-preview-body" style="font-size:13px;color:var(--g900)"></div>
+          </div>
+
           <div class="stl"><div class="sn" style="background:#7B4FBF">3</div>Detail Permintaan</div>
           <div class="fg">
             <div class="fd s2">
@@ -313,26 +318,16 @@
             <select class="fi2" id="ms-entitas-aktif" onchange="renderMT('entitas')">
               <option value="">Semua Status</option><option value="1">Aktif</option><option value="0">Nonaktif</option>
             </select>
-            <div class="sdd" id="mt-entitas-filter" style="width:180px">
-              <div class="sdd-input" onclick="mtToggleFilterDD('entitas')">Filter Client <span id="mt-entitas-filter-count" style="color:var(--navy);font-weight:600"></span></div>
-              <div class="sdd-list" id="mt-entitas-filter-list">
-                <div class="sdd-options" id="mt-entitas-filter-options"></div>
-                <div style="display:flex;justify-content:space-between;padding:6px 11px;border-top:1px solid var(--g100)">
-                  <button type="button" style="background:none;border:none;color:var(--navy);font-size:11px;cursor:pointer;font-family:inherit;padding:0" onclick="mtClearFilter('entitas')">Reset</button>
-                  <button type="button" style="background:none;border:none;color:var(--navy);font-size:11px;cursor:pointer;font-family:inherit;padding:0" onclick="document.getElementById('mt-entitas-filter-list').style.display='none'">Tutup</button>
-                </div>
-              </div>
-            </div>
           </div>
           <button class="btn btn-p btn-sm" onclick="openMM('entitas',null)">+ Tambah Entitas</button>
         </div>
         <div class="tw"><table class="mtbl">
           <thead><tr>
             <th style="width:3%">#</th>
-            <th class="thsort" onclick="mtSortBy('entitas','Company')">Company<span class="sort-arrow" id="sa-entitas-Company"></span></th>
-            <th class="thsort" style="width:8%" onclick="mtSortBy('entitas','CompanyCode')">Kode<span class="sort-arrow" id="sa-entitas-CompanyCode"></span></th>
-            <th class="thsort" onclick="mtSortBy('entitas','Client')">Client<span class="sort-arrow" id="sa-entitas-Client"></span></th>
-            <th class="thsort" onclick="mtSortBy('entitas','Project')">Project<span class="sort-arrow" id="sa-entitas-Project"></span></th>
+            <th class="thsort" onclick="mtSortBy('entitas','Company')">Company<span class="sort-arrow" id="sa-entitas-Company"></span><span class="th-filter-ic" id="cfi-entitas-Company" onclick="cfToggle(event,'entitas','Company')">&#9660;</span></th>
+            <th class="thsort" style="width:8%" onclick="mtSortBy('entitas','CompanyCode')">Kode<span class="sort-arrow" id="sa-entitas-CompanyCode"></span><span class="th-filter-ic" id="cfi-entitas-CompanyCode" onclick="cfToggle(event,'entitas','CompanyCode')">&#9660;</span></th>
+            <th class="thsort" onclick="mtSortBy('entitas','Client')">Client<span class="sort-arrow" id="sa-entitas-Client"></span><span class="th-filter-ic" id="cfi-entitas-Client" onclick="cfToggle(event,'entitas','Client')">&#9660;</span></th>
+            <th class="thsort" onclick="mtSortBy('entitas','Project')">Project<span class="sort-arrow" id="sa-entitas-Project"></span><span class="th-filter-ic" id="cfi-entitas-Project" onclick="cfToggle(event,'entitas','Project')">&#9660;</span></th>
             <th style="width:9%">Status</th>
             <th style="width:13%">Aksi</th>
           </tr></thead>
@@ -348,27 +343,17 @@
             <select class="fi2" id="ms-barang-aktif" onchange="renderMT('barang')">
               <option value="">Semua Status</option><option value="1">Aktif</option><option value="0">Nonaktif</option>
             </select>
-            <div class="sdd" id="mt-barang-filter" style="width:180px">
-              <div class="sdd-input" onclick="mtToggleFilterDD('barang')">Filter Kategori <span id="mt-barang-filter-count" style="color:var(--navy);font-weight:600"></span></div>
-              <div class="sdd-list" id="mt-barang-filter-list">
-                <div class="sdd-options" id="mt-barang-filter-options"></div>
-                <div style="display:flex;justify-content:space-between;padding:6px 11px;border-top:1px solid var(--g100)">
-                  <button type="button" style="background:none;border:none;color:var(--navy);font-size:11px;cursor:pointer;font-family:inherit;padding:0" onclick="mtClearFilter('barang')">Reset</button>
-                  <button type="button" style="background:none;border:none;color:var(--navy);font-size:11px;cursor:pointer;font-family:inherit;padding:0" onclick="document.getElementById('mt-barang-filter-list').style.display='none'">Tutup</button>
-                </div>
-              </div>
-            </div>
           </div>
           <button class="btn btn-p btn-sm" onclick="openMM('barang',null)">+ Tambah Barang</button>
         </div>
         <div class="tw"><table class="mtbl">
           <thead><tr>
             <th style="width:3%">#</th>
-            <th class="thsort" onclick="mtSortBy('barang','NamaBarang')">Nama Barang<span class="sort-arrow" id="sa-barang-NamaBarang"></span></th>
-            <th class="thsort" onclick="mtSortBy('barang','KategoriBarang')">Kategori<span class="sort-arrow" id="sa-barang-KategoriBarang"></span></th>
-            <th class="thsort" onclick="mtSortBy('barang','Subkategori')">Subkategori<span class="sort-arrow" id="sa-barang-Subkategori"></span></th>
-            <th class="thsort" style="width:8%" onclick="mtSortBy('barang','Satuan')">Satuan<span class="sort-arrow" id="sa-barang-Satuan"></span></th>
-            <th class="thsort" style="width:12%" onclick="mtSortBy('barang','HargaEstimasi')">Harga Est.<span class="sort-arrow" id="sa-barang-HargaEstimasi"></span></th>
+            <th class="thsort" onclick="mtSortBy('barang','NamaBarang')">Nama Barang<span class="sort-arrow" id="sa-barang-NamaBarang"></span><span class="th-filter-ic" id="cfi-barang-NamaBarang" onclick="cfToggle(event,'barang','NamaBarang')">&#9660;</span></th>
+            <th class="thsort" onclick="mtSortBy('barang','KategoriBarang')">Kategori<span class="sort-arrow" id="sa-barang-KategoriBarang"></span><span class="th-filter-ic" id="cfi-barang-KategoriBarang" onclick="cfToggle(event,'barang','KategoriBarang')">&#9660;</span></th>
+            <th class="thsort" onclick="mtSortBy('barang','Subkategori')">Subkategori<span class="sort-arrow" id="sa-barang-Subkategori"></span><span class="th-filter-ic" id="cfi-barang-Subkategori" onclick="cfToggle(event,'barang','Subkategori')">&#9660;</span></th>
+            <th class="thsort" style="width:8%" onclick="mtSortBy('barang','Satuan')">Satuan<span class="sort-arrow" id="sa-barang-Satuan"></span><span class="th-filter-ic" id="cfi-barang-Satuan" onclick="cfToggle(event,'barang','Satuan')">&#9660;</span></th>
+            <th class="thsort" style="width:12%" onclick="mtSortBy('barang','HargaEstimasi')">Harga Est.<span class="sort-arrow" id="sa-barang-HargaEstimasi"></span><span class="th-filter-ic" id="cfi-barang-HargaEstimasi" onclick="cfToggle(event,'barang','HargaEstimasi')">&#9660;</span></th>
             <th style="width:9%">Status</th>
             <th style="width:13%">Aksi</th>
           </tr></thead>
@@ -384,27 +369,17 @@
             <select class="fi2" id="ms-jasa-aktif" onchange="renderMT('jasa')">
               <option value="">Semua Status</option><option value="1">Aktif</option><option value="0">Nonaktif</option>
             </select>
-            <div class="sdd" id="mt-jasa-filter" style="width:180px">
-              <div class="sdd-input" onclick="mtToggleFilterDD('jasa')">Filter Domisili <span id="mt-jasa-filter-count" style="color:var(--navy);font-weight:600"></span></div>
-              <div class="sdd-list" id="mt-jasa-filter-list">
-                <div class="sdd-options" id="mt-jasa-filter-options"></div>
-                <div style="display:flex;justify-content:space-between;padding:6px 11px;border-top:1px solid var(--g100)">
-                  <button type="button" style="background:none;border:none;color:var(--navy);font-size:11px;cursor:pointer;font-family:inherit;padding:0" onclick="mtClearFilter('jasa')">Reset</button>
-                  <button type="button" style="background:none;border:none;color:var(--navy);font-size:11px;cursor:pointer;font-family:inherit;padding:0" onclick="document.getElementById('mt-jasa-filter-list').style.display='none'">Tutup</button>
-                </div>
-              </div>
-            </div>
           </div>
           <button class="btn btn-p btn-sm" onclick="openMM('jasa',null)">+ Tambah Vendor</button>
         </div>
         <div class="tw"><table class="mtbl">
           <thead><tr>
             <th style="width:3%">#</th>
-            <th class="thsort" onclick="mtSortBy('jasa','NamaVendor')">Nama Vendor<span class="sort-arrow" id="sa-jasa-NamaVendor"></span></th>
-            <th class="thsort" onclick="mtSortBy('jasa','Kategori')">Kategori<span class="sort-arrow" id="sa-jasa-Kategori"></span></th>
-            <th class="thsort" onclick="mtSortBy('jasa','DomisiliVendor')">Domisili<span class="sort-arrow" id="sa-jasa-DomisiliVendor"></span></th>
-            <th class="thsort" onclick="mtSortBy('jasa','PICVendor')">PIC Vendor<span class="sort-arrow" id="sa-jasa-PICVendor"></span></th>
-            <th class="thsort" onclick="mtSortBy('jasa','NoTelpon')">No. Telpon<span class="sort-arrow" id="sa-jasa-NoTelpon"></span></th>
+            <th class="thsort" onclick="mtSortBy('jasa','NamaVendor')">Nama Vendor<span class="sort-arrow" id="sa-jasa-NamaVendor"></span><span class="th-filter-ic" id="cfi-jasa-NamaVendor" onclick="cfToggle(event,'jasa','NamaVendor')">&#9660;</span></th>
+            <th class="thsort" onclick="mtSortBy('jasa','Kategori')">Kategori<span class="sort-arrow" id="sa-jasa-Kategori"></span><span class="th-filter-ic" id="cfi-jasa-Kategori" onclick="cfToggle(event,'jasa','Kategori')">&#9660;</span></th>
+            <th class="thsort" onclick="mtSortBy('jasa','DomisiliVendor')">Domisili<span class="sort-arrow" id="sa-jasa-DomisiliVendor"></span><span class="th-filter-ic" id="cfi-jasa-DomisiliVendor" onclick="cfToggle(event,'jasa','DomisiliVendor')">&#9660;</span></th>
+            <th class="thsort" onclick="mtSortBy('jasa','PICVendor')">PIC Vendor<span class="sort-arrow" id="sa-jasa-PICVendor"></span><span class="th-filter-ic" id="cfi-jasa-PICVendor" onclick="cfToggle(event,'jasa','PICVendor')">&#9660;</span></th>
+            <th class="thsort" onclick="mtSortBy('jasa','NoTelpon')">No. Telpon<span class="sort-arrow" id="sa-jasa-NoTelpon"></span><span class="th-filter-ic" id="cfi-jasa-NoTelpon" onclick="cfToggle(event,'jasa','NoTelpon')">&#9660;</span></th>
             <th style="width:9%">Status</th>
             <th style="width:13%">Aksi</th>
           </tr></thead>
@@ -455,28 +430,18 @@
           <div class="mbar">
             <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center">
               <input class="fi2" style="width:260px" type="text" id="rules-search" placeholder="&#128269; Cari project, cabang, approver..." oninput="renderRules()">
-              <div class="sdd" id="rules-cabang-filter" style="width:200px">
-                <div class="sdd-input" id="rules-cabang-btn" onclick="toggleCabangFilter()">Filter Cabang <span id="rules-cabang-count" style="color:var(--navy);font-weight:600"></span></div>
-                <div class="sdd-list" id="rules-cabang-list">
-                  <div class="sdd-options" id="rules-cabang-options"></div>
-                  <div style="display:flex;justify-content:space-between;padding:6px 11px;border-top:1px solid var(--g100)">
-                    <button type="button" style="background:none;border:none;color:var(--navy);font-size:11px;cursor:pointer;font-family:inherit;padding:0" onclick="clearCabangFilter()">Reset</button>
-                    <button type="button" style="background:none;border:none;color:var(--navy);font-size:11px;cursor:pointer;font-family:inherit;padding:0" onclick="document.getElementById('rules-cabang-list').style.display='none'">Tutup</button>
-                  </div>
-                </div>
-              </div>
             </div>
           </div>
           <div class="tw">
             <table class="mtbl">
               <thead><tr>
                 <th style="width:3%">#</th>
-                <th class="thsort" onclick="sortRules('Project')">Nama Project<span class="sort-arrow" id="sa-Project"></span></th>
-                <th class="thsort" onclick="sortRules('Cabang')">Cabang<span class="sort-arrow" id="sa-Cabang"></span></th>
-                <th class="thsort" onclick="sortRules('L1Name')">L1 Approver<span class="sort-arrow" id="sa-L1Name"></span></th>
-                <th class="thsort" onclick="sortRules('L1Email')">Email L1<span class="sort-arrow" id="sa-L1Email"></span></th>
-                <th class="thsort" onclick="sortRules('L2Name')">L2 Approver<span class="sort-arrow" id="sa-L2Name"></span></th>
-                <th class="thsort" onclick="sortRules('L2Email')">Email L2<span class="sort-arrow" id="sa-L2Email"></span></th>
+                <th class="thsort" onclick="sortRules('Project')">Nama Project<span class="sort-arrow" id="sa-Project"></span><span class="th-filter-ic" id="cfi-rules-Project" onclick="cfToggle(event,'rules','Project')">&#9660;</span></th>
+                <th class="thsort" onclick="sortRules('Cabang')">Cabang<span class="sort-arrow" id="sa-Cabang"></span><span class="th-filter-ic" id="cfi-rules-Cabang" onclick="cfToggle(event,'rules','Cabang')">&#9660;</span></th>
+                <th class="thsort" onclick="sortRules('L1Name')">L1 Approver<span class="sort-arrow" id="sa-L1Name"></span><span class="th-filter-ic" id="cfi-rules-L1Name" onclick="cfToggle(event,'rules','L1Name')">&#9660;</span></th>
+                <th class="thsort" onclick="sortRules('L1Email')">Email L1<span class="sort-arrow" id="sa-L1Email"></span><span class="th-filter-ic" id="cfi-rules-L1Email" onclick="cfToggle(event,'rules','L1Email')">&#9660;</span></th>
+                <th class="thsort" onclick="sortRules('L2Name')">L2 Approver<span class="sort-arrow" id="sa-L2Name"></span><span class="th-filter-ic" id="cfi-rules-L2Name" onclick="cfToggle(event,'rules','L2Name')">&#9660;</span></th>
+                <th class="thsort" onclick="sortRules('L2Email')">Email L2<span class="sort-arrow" id="sa-L2Email"></span><span class="th-filter-ic" id="cfi-rules-L2Email" onclick="cfToggle(event,'rules','L2Email')">&#9660;</span></th>
                 <th style="width:11%">Aksi</th>
               </tr></thead>
               <tbody id="rules-tbody">

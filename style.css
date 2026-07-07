@@ -114,6 +114,11 @@ body{font-family:'Plus Jakarta Sans',-apple-system,sans-serif;background:var(--g
 .mtbl th.thsort{cursor:pointer;user-select:none;white-space:nowrap}
 .mtbl th.thsort:hover{background:#0d5a8f}
 .sort-arrow{display:inline-block;margin-left:4px;font-size:9px}
+.th-filter-ic{display:inline-block;margin-left:6px;font-size:9px;opacity:.65;cursor:pointer;padding:2px 4px;border-radius:3px}
+.th-filter-ic:hover{opacity:1;background:rgba(255,255,255,.18)}
+.th-filter-ic.active{opacity:1;color:#FFD54A}
+.col-filter-dd{display:none;position:absolute;z-index:900;background:white;border:1.5px solid var(--navy);border-radius:var(--rsm);box-shadow:0 4px 14px rgba(11,79,126,.2);min-width:190px;max-width:260px}
+.col-filter-dd .sdd-options{max-height:220px;overflow-y:auto}
 .sdd-item label{cursor:pointer}
 .rules-cabang-item{display:flex;align-items:center;gap:8px;padding:7px 11px;font-size:13px;color:var(--g900);cursor:pointer}
 .rules-cabang-item:hover{background:var(--navy-lt)}
