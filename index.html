@@ -273,6 +273,7 @@
         <div class="sc"><div class="sl">Pending L2</div><div class="sv" style="color:#7B4FBF" id="sp2">-</div></div>
         <div class="sc"><div class="sl">Approved</div><div class="sv app" id="sa">-</div></div>
         <div class="sc"><div class="sl">Rejected</div><div class="sv rej" id="sr">-</div></div>
+        <div class="sc"><div class="sl">Cancelled</div><div class="sv" style="color:var(--g500)" id="sc2">-</div></div>
       </div>
       <div class="fib">
         <input class="fi2 wide" type="text" id="srch" placeholder="Cari nomor, company, client..." oninput="renderTbl()">
@@ -284,6 +285,7 @@
           <option value="Submitted to Finance">Submitted to Finance</option>
           <option value="Delivered">Delivered</option>
           <option value="Rejected">Rejected</option>
+          <option value="Cancelled">Cancelled</option>
         </select>
         <select class="fi2" id="fco" onchange="renderTbl()"><option value="">Semua Company</option></select>
         <input class="fi2" type="date" id="ffr" onchange="renderTbl()" title="Dari tanggal">
@@ -292,8 +294,16 @@
       <div class="tw">
         <table class="dt2">
           <thead><tr>
-            <th>#</th><th>Nomor Pengajuan</th><th>Tanggal</th><th>Company</th>
-            <th>Client</th><th>Project</th><th>Jenis</th><th>Est. Harga</th><th>Harga Real</th><th>Status</th>
+            <th style="width:3%">#</th>
+            <th class="thsort" onclick="dashSortBy('NomorPengajuan')">Nomor Pengajuan<span class="sort-arrow" id="sa-dash-NomorPengajuan"></span><span class="th-filter-ic" id="cfi-dash-NomorPengajuan" onclick="cfToggle(event,'dash','NomorPengajuan')">&#9660;</span></th>
+            <th class="thsort" onclick="dashSortBy('TanggalPengajuan')">Tanggal<span class="sort-arrow" id="sa-dash-TanggalPengajuan">▼</span><span class="th-filter-ic" id="cfi-dash-TanggalPengajuan" onclick="cfToggle(event,'dash','TanggalPengajuan')">&#9660;</span></th>
+            <th class="thsort" onclick="dashSortBy('Company')">Company<span class="sort-arrow" id="sa-dash-Company"></span><span class="th-filter-ic" id="cfi-dash-Company" onclick="cfToggle(event,'dash','Company')">&#9660;</span></th>
+            <th class="thsort" onclick="dashSortBy('Client')">Client<span class="sort-arrow" id="sa-dash-Client"></span><span class="th-filter-ic" id="cfi-dash-Client" onclick="cfToggle(event,'dash','Client')">&#9660;</span></th>
+            <th class="thsort" onclick="dashSortBy('Project')">Project<span class="sort-arrow" id="sa-dash-Project"></span><span class="th-filter-ic" id="cfi-dash-Project" onclick="cfToggle(event,'dash','Project')">&#9660;</span></th>
+            <th class="thsort" onclick="dashSortBy('JenisPengadaan')">Jenis<span class="sort-arrow" id="sa-dash-JenisPengadaan"></span><span class="th-filter-ic" id="cfi-dash-JenisPengadaan" onclick="cfToggle(event,'dash','JenisPengadaan')">&#9660;</span></th>
+            <th class="thsort" onclick="dashSortBy('EstimasiHarga')">Est. Harga<span class="sort-arrow" id="sa-dash-EstimasiHarga"></span><span class="th-filter-ic" id="cfi-dash-EstimasiHarga" onclick="cfToggle(event,'dash','EstimasiHarga')">&#9660;</span></th>
+            <th class="thsort" onclick="dashSortBy('HargaReal')">Harga Real<span class="sort-arrow" id="sa-dash-HargaReal"></span><span class="th-filter-ic" id="cfi-dash-HargaReal" onclick="cfToggle(event,'dash','HargaReal')">&#9660;</span></th>
+            <th class="thsort" onclick="dashSortBy('Status')">Status<span class="sort-arrow" id="sa-dash-Status"></span><span class="th-filter-ic" id="cfi-dash-Status" onclick="cfToggle(event,'dash','Status')">&#9660;</span></th>
           </tr></thead>
           <tbody id="tbl"><tr class="lr"><td colspan="10">Memuat data...</td></tr></tbody>
         </table>
@@ -483,6 +493,17 @@
     </div>
     <div class="mb">
       <div class="dg" id="mcnt"></div>
+      <!-- Cancel Action (pengaju sendiri) -->
+      <div id="m-cancel" style="display:none" class="apv-wrap apv-cancel">
+        <div class="apv-lbl">Batalkan Pengajuan</div>
+        <div class="fd">
+          <label>Alasan Pembatalan <span style="font-weight:400;color:var(--g500);font-size:11px">(opsional)</span></label>
+          <textarea id="m-cancel-notes" rows="2" style="border:1.5px solid var(--border);border-radius:var(--rsm);padding:7px 10px;font-family:inherit;font-size:13px;width:100%;outline:none;resize:none" placeholder="Alasan membatalkan pengajuan ini..."></textarea>
+        </div>
+        <div class="apv-btns">
+          <button class="btn btn-ng btn-sm" onclick="doCancel()">&#10007; Batalkan Pengajuan</button>
+        </div>
+      </div>
       <!-- L1 Approval Action -->
       <div id="m-l1" style="display:none" class="apv-wrap apv-l1">
         <div class="apv-lbl">Tindakan Approval L1</div>

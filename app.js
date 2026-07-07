@@ -85,6 +85,10 @@ function canApproveL2(item) {
 function canUpdateGA(item)  {
   return amGA() && ["Approved","Submitted to Finance","Delivered","Rejected"].indexOf(item.Status)>-1;
 }
+function canCancel(item) {
+  return ["Pending L1","Pending L2"].indexOf(item.Status) > -1 &&
+         (item.SubmittedByEmail||"").toLowerCase() === myEmail();
+}
 
 function isApprover() {
   if (!currentUser) return false;
@@ -1135,6 +1139,13 @@ function sendNotif(type, rn, data) {
       "Pengajuan ditolak oleh Approver " + (data.level||"").toUpperCase() + ".",
       (data.notes ? "<div style='background:#fdedec;border-left:4px solid #C0392B;padding:10px 14px;border-radius:4px;margin-bottom:10px'><strong style='color:#C0392B'>Alasan:</strong> <span style='color:#666'>" + data.notes + "</span></div>" : "") +
       detail + docs + actionBtn(url, "Lihat Detail di Portal", "#C0392B"));
+
+  } else if (type === "cancelled") {
+    subject = "[Dibatalkan] " + rn + " — Dibatalkan oleh Pengaju";
+    body = emailWrap("#7F8C8D","&#10007;","Pengajuan Dibatalkan oleh Pengaju",
+      "Pengajuan berikut telah dibatalkan oleh <strong>" + (data.submitter || "pengaju") + "</strong> dan tidak lagi memerlukan approval Anda.",
+      (data.notes ? "<div style='background:#f4f4f4;border-left:4px solid #999;padding:10px 14px;border-radius:4px;margin-bottom:10px'><strong style='color:#666'>Alasan:</strong> <span style='color:#666'>" + data.notes + "</span></div>" : "") +
+      detail + docs);
   }
 
   gPost("https://graph.microsoft.com/v1.0/me/sendMail", {
@@ -1180,6 +1191,7 @@ function updateStats() {
   document.getElementById("sp2").textContent = allSubs.filter(function(i){ return i.Status==="Pending L2"; }).length;
   document.getElementById("sa").textContent  = allSubs.filter(function(i){ return ["Approved","Submitted to Finance","Delivered"].indexOf(i.Status)>-1; }).length;
   document.getElementById("sr").textContent  = allSubs.filter(function(i){ return i.Status==="Rejected"; }).length;
+  document.getElementById("sc2").textContent = allSubs.filter(function(i){ return i.Status==="Cancelled"; }).length;
 }
 
 function populateCoFilter() {
@@ -1196,6 +1208,20 @@ function populateCoFilter() {
   sel.value = prev;
 }
 
+var DASH_SORT_COLS = ["NomorPengajuan","TanggalPengajuan","Company","Client","Project","JenisPengadaan","EstimasiHarga","HargaReal","Status"];
+var DASH_NUM_COLS  = ["EstimasiHarga","HargaReal"];
+var dashSort = { col: "TanggalPengajuan", dir: -1 };
+
+function dashSortBy(col) {
+  if (dashSort.col === col) dashSort.dir = -dashSort.dir; else { dashSort.col = col; dashSort.dir = 1; }
+  DASH_SORT_COLS.forEach(function(c){
+    var el = document.getElementById("sa-dash-"+c);
+    if (!el) return;
+    el.textContent = (dashSort.col===c) ? (dashSort.dir===1?"▲":"▼") : "";
+  });
+  renderTbl();
+}
+
 function renderTbl() {
   var q  = document.getElementById("srch").value.toLowerCase();
   var st = document.getElementById("fst").value;
@@ -1209,11 +1235,22 @@ function renderTbl() {
     if (co && i.Company !== co) return false;
     if (fr && (i.TanggalPengajuan || "") < fr) return false;
     if (to && (i.TanggalPengajuan || "") > to) return false;
+    if (!cfPassRow("dash", DASH_SORT_COLS, i)) return false;
     if (filterMyApv) {
       if (!(canApproveL1(i) || canApproveL2(i))) return false;
     }
     return true;
-  }).sort(function(a,b) { return (b.TanggalPengajuan||"").localeCompare(a.TanggalPengajuan||""); });
+  }).sort(function(a,b) {
+    var col = dashSort.col, dir = dashSort.dir;
+    if (DASH_NUM_COLS.indexOf(col) > -1) {
+      return ((parseInt(a[col])||0) - (parseInt(b[col])||0)) * dir;
+    }
+    var av = (a[col]||"").toString().toLowerCase();
+    var bv = (b[col]||"").toString().toLowerCase();
+    if (av < bv) return -1*dir;
+    if (av > bv) return  1*dir;
+    return 0;
+  });
 
   var tb = document.getElementById("tbl");
   if (!f.length) {
@@ -1251,7 +1288,8 @@ function sBadge(s) {
     "Approved":            "apv",
     "Submitted to Finance":"app",
     "Delivered":           "dlv",
-    "Rejected":            "rej"
+    "Rejected":            "rej",
+    "Cancelled":           "cnc"
   };
   return '<span class="sb '+(m[s]||"pl1")+'"><span class="sd"></span>'+(s||"Pending L1")+'</span>';
 }
@@ -1308,6 +1346,10 @@ function openMo(id) {
       '<div class="df"><div class="dl">Nama Penerima</div><div class="dv" style="font-weight:600;color:#7B4FBF">' + (item.NamaPenerima||"-") + '</div></div>' +
       '<div class="df"><div class="dl">Tanggal Terima</div><div class="dv" style="font-weight:600;color:#7B4FBF">' + (item.TanggalTerima ? item.TanggalTerima.split("T")[0].split("-").reverse().join("/") : "-") + '</div></div>'
     ) : '') +
+    (item.Status === "Cancelled" ? (
+      '<div class="df"><div class="dl">Tanggal Dibatalkan</div><div class="dv" style="font-weight:600;color:var(--red)">' + (item.CancelDate ? item.CancelDate.split("T")[0].split("-").reverse().join("/") : "-") + '</div></div>' +
+      '<div class="df full"><div class="dl">Alasan Pembatalan</div><div class="dv">' + (item.CancelNotes||"-") + '</div></div>'
+    ) : '') +
     '<div class="df full"><div class="dl">Riwayat Approval</div><div class="dv">' + buildApvHistory(item) + '</div></div>';
   document.getElementById("mst").value  = item.Status || "Pending L1";
   document.getElementById("mnt").value  = item.ApproverNotes || "";
@@ -1316,9 +1358,10 @@ function openMo(id) {
   onStatusChange();
 
   // Show/hide action sections
-  document.getElementById("m-l1").style.display   = canApproveL1(item) ? "block" : "none";
-  document.getElementById("m-l2").style.display   = canApproveL2(item) ? "block" : "none";
-  document.getElementById("m-ga").style.display   = canUpdateGA(item)  ? "block" : "none";
+  document.getElementById("m-l1").style.display     = canApproveL1(item) ? "block" : "none";
+  document.getElementById("m-l2").style.display     = canApproveL2(item) ? "block" : "none";
+  document.getElementById("m-ga").style.display     = canUpdateGA(item)  ? "block" : "none";
+  document.getElementById("m-cancel").style.display = canCancel(item)    ? "block" : "none";
   document.getElementById("m-save-btn").style.display = canUpdateGA(item) ? "inline-flex" : "none";
   var showPdf = ["Submitted to Finance","Delivered"].indexOf(item.Status) > -1;
   document.getElementById("m-pdf-btn").style.display = showPdf ? "inline-flex" : "none";
@@ -1326,6 +1369,7 @@ function openMo(id) {
   // Reset notes
   document.getElementById("m-l1-notes").value = "";
   document.getElementById("m-l2-notes").value = "";
+  document.getElementById("m-cancel-notes").value = "";
 
   document.getElementById("modal").classList.add("on");
 }
@@ -1421,6 +1465,32 @@ function doReject(level) {
     Object.assign(item, fields);
     updateStats(); renderTbl(); closeMo();
     showToast("Pengajuan ditolak.", "er");
+  }).catch(function(e){ showToast("Gagal: "+e.message,"er"); });
+}
+
+function doCancel() {
+  if (!curId) return;
+  var item = allSubs.filter(function(i){ return i.id===curId; })[0];
+  if (!item) return;
+  if (!canCancel(item)) { showToast("Tidak ada akses untuk membatalkan pengajuan ini", "er"); return; }
+  if (!confirm("Batalkan pengajuan " + (item.NomorPengajuan||"") + "? Tindakan ini tidak bisa diurungkan.")) return;
+
+  var notes  = document.getElementById("m-cancel-notes").value;
+  var today  = new Date().toISOString().split("T")[0];
+  var fields = { Status: "Cancelled", CancelNotes: notes, CancelDate: today };
+
+  var pendingApprover = item.Status === "Pending L2" ? item.L2ApproverEmail : item.L1ApproverEmail;
+  if (pendingApprover) {
+    sendNotif("cancelled", item.NomorPengajuan, {
+      to: pendingApprover, item: item, notes: notes,
+      submitter: item.SubmittedBy || item.SubmittedByEmail
+    });
+  }
+
+  patchItem(CONFIG.resultList, curId, fields).then(function() {
+    Object.assign(item, fields);
+    updateStats(); renderTbl(); closeMo();
+    showToast("Pengajuan dibatalkan.", "ok");
   }).catch(function(e){ showToast("Gagal: "+e.message,"er"); });
 }
 
@@ -2027,21 +2097,23 @@ function loadMT(tab) {
 function isAktif(r) { return r.Aktif !== false && r.Aktif !== 0 && r.Aktif !== "0"; }
 
 // =============================================
-// GENERIC COLUMN TICK-FILTER (Excel-style) - Rules L1 & Master Data tables
+// GENERIC COLUMN TICK-FILTER (Excel-style) - Dashboard, Rules L1 & Master Data tables
 // =============================================
 var CF_DATA = {
+  dash:    function(){ return allSubs; },
   rules:   function(){ return apvRules; },
   entitas: function(){ return mData.entitas; },
   barang:  function(){ return mData.barang; },
   jasa:    function(){ return mData.jasa; }
 };
 var CF_RENDER = {
+  dash:    function(){ renderTbl(); },
   rules:   function(){ renderRules(); },
   entitas: function(){ renderMT("entitas"); },
   barang:  function(){ renderMT("barang"); },
   jasa:    function(){ renderMT("jasa"); }
 };
-var colFilters = { rules:{}, entitas:{}, barang:{}, jasa:{} };
+var colFilters = { dash:{}, rules:{}, entitas:{}, barang:{}, jasa:{} };
 
 function cfValue(tab, col, r) {
   if (tab === "rules" && col === "Cabang") return cabangLabel(r);
