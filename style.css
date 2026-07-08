@@ -125,8 +125,15 @@ body{font-family:'Plus Jakarta Sans',-apple-system,sans-serif;background:var(--g
 .mtab.on{background:var(--navy);color:white}
 .mtab:hover:not(.on){background:var(--g100)}
 .mbar{display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px;margin-bottom:12px}
+.pager{display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px;margin-bottom:8px}
+.pager-info{font-size:12px;color:var(--g500)}
+.pager-btns{display:flex;align-items:center;gap:4px}
+.pager-btn{border:1.5px solid var(--border);background:var(--surface);color:var(--g700);border-radius:var(--rsm);padding:5px 10px;font-size:12px;font-family:inherit;cursor:pointer;transition:all .15s}
+.pager-btn:hover:not(:disabled){border-color:var(--navy);color:var(--navy)}
+.pager-btn:disabled{opacity:.4;cursor:not-allowed}
+.pager-page{font-weight:600;color:var(--g700);font-size:12px;padding:0 4px;white-space:nowrap}
 .mtbl{width:100%;border-collapse:collapse;font-size:13px}
-.mtbl th{background:var(--navy);color:white;padding:9px 12px;text-align:left;font-weight:600;font-size:11px;text-transform:uppercase;letter-spacing:.5px}
+.mtbl th{background:var(--navy);color:white;padding:9px 12px;text-align:left;font-weight:600;font-size:11px;text-transform:uppercase;letter-spacing:.5px;position:sticky;top:0;z-index:2}
 .mtbl td{padding:9px 12px;border-bottom:1px solid var(--g100);vertical-align:middle}
 .mtbl tr:last-child td{border-bottom:none}
 .mtbl tr:hover td{background:var(--g50)}
@@ -201,7 +208,7 @@ body{font-family:'Plus Jakarta Sans',-apple-system,sans-serif;background:var(--g
 .sdd-item:hover{background:var(--navy-lt);color:var(--navy)}
 .sdd-none{color:var(--g500);cursor:default;font-style:italic}
 
-.sg{display:grid;grid-template-columns:repeat(5,1fr);gap:12px;margin-bottom:18px}
+.sg{display:grid;grid-template-columns:repeat(6,1fr);gap:12px;margin-bottom:18px}
 .sc{background:var(--surface);border-radius:var(--radius);border:1px solid var(--border);padding:14px 16px}
 .sl{font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.5px;color:var(--g500);margin-bottom:6px}
 .sv{font-size:26px;font-weight:700}
@@ -210,9 +217,9 @@ body{font-family:'Plus Jakarta Sans',-apple-system,sans-serif;background:var(--g
 .fi2{border:1.5px solid var(--border);border-radius:var(--rsm);padding:7px 11px;font-family:inherit;font-size:13px;color:var(--g900);background:var(--surface);outline:none}
 .fi2:focus{border-color:var(--navy)}
 .fi2.wide{flex:1;min-width:200px}
-.tw{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);overflow-x:auto}
+.tw{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);overflow:auto;max-height:640px}
 .dt2{width:100%;border-collapse:collapse;font-size:13px}
-.dt2 th{background:var(--navy);color:white;padding:10px 12px;text-align:left;font-weight:600;font-size:11px;text-transform:uppercase;letter-spacing:.5px}
+.dt2 th{background:var(--navy);color:white;padding:10px 12px;text-align:left;font-weight:600;font-size:11px;text-transform:uppercase;letter-spacing:.5px;position:sticky;top:0;z-index:2}
 .dt2 td{padding:10px 12px;border-bottom:1px solid var(--g100);vertical-align:middle}
 .dt2 tr:last-child td{border-bottom:none}
 .dt2 tr:hover td{background:var(--g50)}

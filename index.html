@@ -172,8 +172,8 @@
                 <input type="text" id="f-cabang" placeholder="Ketik atau pilih cabang..." autocomplete="off"
                   oninput="filterCabangDD()" onfocus="filterCabangDD()"
                   onblur="setTimeout(function(){var d=document.getElementById('cabang-dd');if(d)d.style.display='none'},200)"
-                  style="width:100%;border:1.5px solid var(--border);border-radius:var(--rsm);padding:8px 11px;font-family:inherit;font-size:13px;outline:none;transition:border-color .15s">
-                <div id="cabang-dd" style="display:none;position:absolute;top:100%;left:0;right:0;background:white;border:1.5px solid var(--navy);border-top:none;border-radius:0 0 var(--rsm) var(--rsm);max-height:180px;overflow-y:auto;z-index:500;box-shadow:0 4px 12px rgba(11,79,126,.12)"></div>
+                  style="width:100%;border:1.5px solid var(--border);border-radius:var(--rsm);padding:8px 11px;font-family:inherit;font-size:13px;color:var(--g900);background:var(--surface);outline:none;transition:border-color .15s">
+                <div id="cabang-dd" style="display:none;position:absolute;top:100%;left:0;right:0;background:var(--surface);border:1.5px solid var(--navy);border-top:none;border-radius:0 0 var(--rsm) var(--rsm);max-height:180px;overflow-y:auto;z-index:500;box-shadow:0 4px 12px rgba(11,79,126,.12)"></div>
               </div>
               <div class="fe" style="color:var(--g500)">Pilihan sesuai project — kosongkan jika tidak ada cabang</div>
             </div>
@@ -309,6 +309,7 @@
         <input class="fi2" type="date" id="ffr" onchange="renderTbl()" title="Dari tanggal">
         <input class="fi2" type="date" id="fto" onchange="renderTbl()" title="Sampai tanggal">
       </div>
+      <div class="pager" id="pager-dash"></div>
       <div class="tw">
         <table class="dt2">
           <thead><tr>
@@ -349,6 +350,7 @@
           </div>
           <button class="btn btn-p btn-sm" onclick="openMM('entitas',null)">+ Tambah Entitas</button>
         </div>
+        <div class="pager" id="pager-entitas"></div>
         <div class="tw"><table class="mtbl">
           <thead><tr>
             <th style="width:3%">#</th>
@@ -374,6 +376,7 @@
           </div>
           <button class="btn btn-p btn-sm" onclick="openMM('barang',null)">+ Tambah Barang</button>
         </div>
+        <div class="pager" id="pager-barang"></div>
         <div class="tw"><table class="mtbl">
           <thead><tr>
             <th style="width:3%">#</th>
@@ -400,6 +403,7 @@
           </div>
           <button class="btn btn-p btn-sm" onclick="openMM('jasa',null)">+ Tambah Vendor</button>
         </div>
+        <div class="pager" id="pager-jasa"></div>
         <div class="tw"><table class="mtbl">
           <thead><tr>
             <th style="width:3%">#</th>
@@ -418,7 +422,7 @@
       <div id="msub-setting" style="display:none">
 
         <!-- L2 Config -->
-        <div style="background:white;border:1px solid var(--border);border-radius:var(--radius);padding:20px 24px;margin-bottom:14px">
+        <div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:20px 24px;margin-bottom:14px">
           <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;padding-bottom:10px;border-bottom:1px solid var(--g100)">
             <div>
               <div style="font-size:13px;font-weight:600;color:var(--g900)">Konfigurasi L2 Approval</div>
@@ -447,7 +451,7 @@
         </div>
 
         <!-- L1 Rules -->
-        <div style="background:white;border:1px solid var(--border);border-radius:var(--radius);padding:20px 24px">
+        <div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:20px 24px">
           <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;padding-bottom:10px;border-bottom:1px solid var(--g100)">
             <div>
               <div style="font-size:13px;font-weight:600;color:var(--g900)">Rules L1 Approval</div>
@@ -460,6 +464,7 @@
               <input class="fi2" style="width:260px" type="text" id="rules-search" placeholder="&#128269; Cari project, cabang, approver..." oninput="renderRules()">
             </div>
           </div>
+          <div class="pager" id="pager-rules"></div>
           <div class="tw">
             <table class="mtbl">
               <thead><tr>
@@ -482,7 +487,7 @@
 
       <!-- Daftar Pengaju -->
       <div id="msub-pengaju" style="display:none">
-        <div style="background:white;border:1px solid var(--border);border-radius:var(--radius);padding:20px 24px">
+        <div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:20px 24px">
           <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;padding-bottom:10px;border-bottom:1px solid var(--g100)">
             <div>
               <div style="font-size:13px;font-weight:600;color:var(--g900)">Daftar Pengaju yang Diizinkan</div>
@@ -493,6 +498,7 @@
           <div class="mbar">
             <input class="fi2" style="width:260px" type="text" id="submitters-search" placeholder="&#128269; Cari email pengaju..." oninput="renderSubmitters()">
           </div>
+          <div class="pager" id="pager-pengaju"></div>
           <div class="tw"><table class="mtbl">
             <thead><tr><th style="width:4%">#</th><th class="thsort" onclick="sortSubmitters()">Email Pengaju<span class="sort-arrow" id="sa-submitters-SubmitterEmail"></span></th><th style="width:13%">Aksi</th></tr></thead>
             <tbody id="submitters-tbody"><tr><td colspan="3" style="text-align:center;padding:20px;color:var(--g500)">Memuat...</td></tr></tbody>
@@ -620,8 +626,8 @@
           <div style="position:relative">
             <input type="text" id="rule-project" placeholder="Ketik untuk mencari project..." autocomplete="off"
               oninput="filterProjectDD()" onfocus="filterProjectDD()" onblur="setTimeout(function(){var d=document.getElementById('project-dd');if(d)d.style.display='none'},200)"
-              style="width:100%;border:1.5px solid var(--border);border-radius:var(--rsm);padding:8px 11px;font-family:inherit;font-size:13px;outline:none">
-            <div id="project-dd" style="display:none;position:absolute;top:100%;left:0;right:0;background:white;border:1.5px solid var(--navy);border-top:none;border-radius:0 0 var(--rsm) var(--rsm);max-height:200px;overflow-y:auto;z-index:600;box-shadow:0 4px 12px rgba(11,79,126,.12)"></div>
+              style="width:100%;border:1.5px solid var(--border);border-radius:var(--rsm);padding:8px 11px;font-family:inherit;font-size:13px;color:var(--g900);background:var(--surface);outline:none">
+            <div id="project-dd" style="display:none;position:absolute;top:100%;left:0;right:0;background:var(--surface);border:1.5px solid var(--navy);border-top:none;border-radius:0 0 var(--rsm) var(--rsm);max-height:200px;overflow-y:auto;z-index:600;box-shadow:0 4px 12px rgba(11,79,126,.12)"></div>
           </div>
         </div>
         <div class="fd">

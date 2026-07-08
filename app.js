@@ -1284,6 +1284,8 @@ function renderTbl() {
     return true;
   });
   f = sortRows(f, dashSort, DASH_NUM_COLS);
+  f = paginate("dash", f);
+  var numStart = (pageState.dash - 1) * PAGE_SIZE;
 
   var tb = document.getElementById("tbl");
   if (!f.length) {
@@ -1301,7 +1303,7 @@ function renderTbl() {
     var pr   = (item.Project || "-");
     var prs  = pr.length > 25 ? pr.slice(0, 25) + "..." : pr;
     return '<tr onclick="openMo(\'' + item.id + '\')">' +
-      '<td style="color:var(--g500)">' + (idx+1) + '</td>' +
+      '<td style="color:var(--g500)">' + (numStart+idx+1) + '</td>' +
       '<td style="font-weight:600;color:var(--navy);font-family:\'Courier New\',monospace;font-size:12px">' + (item.NomorPengajuan||"-") + '</td>' +
       '<td>' + tgl + '</td>' +
       '<td style="font-size:12px">' + (item.Company||"-") + '</td>' +
@@ -1808,6 +1810,7 @@ function renderRules() {
 
   if (!apvRules.length) {
     tbody.innerHTML = '<tr><td colspan="8" style="text-align:center;padding:20px;color:var(--g500)">Belum ada rule. Klik "+ Tambah Rule" untuk menambahkan.</td></tr>';
+    renderPager("rules", 0, 1, 1);
     return;
   }
 
@@ -1821,6 +1824,8 @@ function renderRules() {
   });
 
   list = sortRows(list, rulesSort);
+  list = paginate("rules", list);
+  var numStart = (pageState.rules - 1) * PAGE_SIZE;
 
   if (!list.length) {
     tbody.innerHTML = '<tr><td colspan="8" style="text-align:center;padding:20px;color:var(--g500)">Tidak ada rule yang cocok dengan pencarian/filter.</td></tr>';
@@ -1831,7 +1836,7 @@ function renderRules() {
     var editBtn = '<button class="btn btn-o bsm" style="font-size:11px" onclick="openRuleModal(\'' + r.id + '\')">Edit</button>';
     var delBtn  = '<button class="btn bsm" style="font-size:11px;color:var(--red);border:1.5px solid var(--red);background:white;border-radius:var(--rsm);cursor:pointer;font-family:inherit" onclick="deleteRule(\'' + r.id + '\')">Hapus</button>';
     return '<tr>' +
-      '<td style="color:var(--g500)">' + (i+1) + '</td>' +
+      '<td style="color:var(--g500)">' + (numStart+i+1) + '</td>' +
       '<td style="font-weight:500">' + eA(r.Project || "-") + '</td>' +
       '<td>' + (r.Cabang ? '<span style="background:#E8F2FB;color:var(--navy);padding:2px 8px;border-radius:10px;font-size:11px">' + eA(r.Cabang) + '</span>' : '<span style="color:var(--g400);font-size:11px">semua cabang</span>') + '</td>' +
       '<td>' + eA(r.L1Name || "-") + '</td>' +
@@ -1992,6 +1997,7 @@ function renderSubmitters() {
   if (!tbody) return;
   if (!submitterRecs.length) {
     tbody.innerHTML = '<tr><td colspan="3" style="text-align:center;padding:20px;color:var(--g500)">Belum ada pengaju terdaftar.</td></tr>';
+    renderPager("pengaju", 0, 1, 1);
     return;
   }
   var search = (document.getElementById("submitters-search")||{}).value || "";
@@ -2000,13 +2006,15 @@ function renderSubmitters() {
     return !q || (r.SubmitterEmail||"").toLowerCase().indexOf(q) > -1;
   });
   list = sortRows(list, submittersSort);
+  list = paginate("pengaju", list);
+  var numStart = (pageState.pengaju - 1) * PAGE_SIZE;
   if (!list.length) {
     tbody.innerHTML = '<tr><td colspan="3" style="text-align:center;padding:20px;color:var(--g500)">Tidak ada email yang cocok dengan pencarian.</td></tr>';
     return;
   }
   tbody.innerHTML = list.map(function(r,i){
     var delBtn = '<button class="btn bsm" style="font-size:11px;color:var(--red);border:1.5px solid var(--red);background:white;border-radius:var(--rsm);cursor:pointer;font-family:inherit" onclick="deleteSubmitter(\'' + r.id + '\')">Hapus</button>';
-    return '<tr><td style="color:var(--g500)">'+(i+1)+'</td><td>'+eA(r.SubmitterEmail||"")+'</td><td>'+delBtn+'</td></tr>';
+    return '<tr><td style="color:var(--g500)">'+(numStart+i+1)+'</td><td>'+eA(r.SubmitterEmail||"")+'</td><td>'+delBtn+'</td></tr>';
   }).join("");
 }
 
@@ -2125,6 +2133,60 @@ function sortRows(rows, state, numericCols) {
 }
 
 // =============================================
+// GENERIC TABLE RENDER TRIGGERS - re-render a table by tab key
+// (shared by column-filter and pagination)
+// =============================================
+var TBL_RENDER = {
+  dash:    function(){ renderTbl(); },
+  rules:   function(){ renderRules(); },
+  entitas: function(){ renderMT("entitas"); },
+  barang:  function(){ renderMT("barang"); },
+  jasa:    function(){ renderMT("jasa"); },
+  pengaju: function(){ renderSubmitters(); }
+};
+
+// =============================================
+// GENERIC PAGINATION - 20 rows/page, shared by all list tables
+// =============================================
+var PAGE_SIZE = 20;
+var pageState = { dash:1, rules:1, entitas:1, barang:1, jasa:1, pengaju:1 };
+
+function paginate(tab, rows) {
+  var total = rows.length;
+  var totalPages = Math.max(1, Math.ceil(total / PAGE_SIZE));
+  var cur = pageState[tab] || 1;
+  if (cur > totalPages) cur = totalPages;
+  if (cur < 1) cur = 1;
+  pageState[tab] = cur;
+  renderPager(tab, total, totalPages, cur);
+  var start = (cur - 1) * PAGE_SIZE;
+  return rows.slice(start, start + PAGE_SIZE);
+}
+
+function renderPager(tab, total, totalPages, cur) {
+  var el = document.getElementById("pager-" + tab);
+  if (!el) return;
+  if (!total) { el.innerHTML = ""; return; }
+  var start = (cur - 1) * PAGE_SIZE + 1;
+  var end   = Math.min(cur * PAGE_SIZE, total);
+  var atStart = cur <= 1, atEnd = cur >= totalPages;
+  el.innerHTML =
+    '<div class="pager-info">Menampilkan ' + start + '-' + end + ' dari ' + total + '</div>' +
+    '<div class="pager-btns">' +
+      '<button type="button" class="pager-btn" ' + (atStart?"disabled":"") + ' onclick="gotoPage(\'' + tab + '\',1)">&laquo;</button>' +
+      '<button type="button" class="pager-btn" ' + (atStart?"disabled":"") + ' onclick="gotoPage(\'' + tab + '\',' + (cur-1) + ')">&lsaquo; Sebelumnya</button>' +
+      '<span class="pager-page">Halaman ' + cur + ' / ' + totalPages + '</span>' +
+      '<button type="button" class="pager-btn" ' + (atEnd?"disabled":"") + ' onclick="gotoPage(\'' + tab + '\',' + (cur+1) + ')">Berikutnya &rsaquo;</button>' +
+      '<button type="button" class="pager-btn" ' + (atEnd?"disabled":"") + ' onclick="gotoPage(\'' + tab + '\',' + totalPages + ')">&raquo;</button>' +
+    '</div>';
+}
+
+function gotoPage(tab, page) {
+  pageState[tab] = page;
+  TBL_RENDER[tab]();
+}
+
+// =============================================
 // GENERIC COLUMN TICK-FILTER (Excel-style) - Dashboard, Rules L1 & Master Data tables
 // =============================================
 var CF_DATA = {
@@ -2133,13 +2195,6 @@ var CF_DATA = {
   entitas: function(){ return mData.entitas; },
   barang:  function(){ return mData.barang; },
   jasa:    function(){ return mData.jasa; }
-};
-var CF_RENDER = {
-  dash:    function(){ renderTbl(); },
-  rules:   function(){ renderRules(); },
-  entitas: function(){ renderMT("entitas"); },
-  barang:  function(){ renderMT("barang"); },
-  jasa:    function(){ renderMT("jasa"); }
 };
 var colFilters = { dash:{}, rules:{}, entitas:{}, barang:{}, jasa:{} };
 
@@ -2204,14 +2259,14 @@ function cfToggleVal(tab, col, val) {
   var i = arr.indexOf(val);
   if (i > -1) arr.splice(i,1); else arr.push(val);
   cfUpdateIcon(tab, col);
-  CF_RENDER[tab]();
+  TBL_RENDER[tab]();
 }
 
 function cfReset(tab, col) {
   colFilters[tab][col] = [];
   cfUpdateIcon(tab, col);
   cfPopulate(cfDD(), tab, col);
-  CF_RENDER[tab]();
+  TBL_RENDER[tab]();
 }
 
 function cfUpdateIcon(tab, col) {
@@ -2264,6 +2319,8 @@ function renderMT(tab) {
   });
 
   f = sortRows(f, mtSort[tab], MT_NUM_COLS);
+  f = paginate(tab, f);
+  var numStart = (pageState[tab] - 1) * PAGE_SIZE;
 
   var tbody = document.getElementById("mt-"+tab+"-tbody");
   if (!f.length) {
@@ -2284,12 +2341,12 @@ function renderMT(tab) {
     var acts = '<div style="display:flex;gap:4px">'+editBtn+togBtn+'</div>';
 
     if (tab === "entitas") {
-      return '<tr><td style="color:var(--g500)">'+(i+1)+'</td><td>'+eA(r.Company||"")+'</td><td style="text-align:center">'+eA(r.CompanyCode||"")+'</td><td>'+eA(r.Client||"")+'</td><td style="font-size:12px">'+eA((r.Project||"").slice(0,35))+((r.Project||"").length>35?"...":"")+'</td><td>'+badge+'</td><td>'+acts+'</td></tr>';
+      return '<tr><td style="color:var(--g500)">'+(numStart+i+1)+'</td><td>'+eA(r.Company||"")+'</td><td style="text-align:center">'+eA(r.CompanyCode||"")+'</td><td>'+eA(r.Client||"")+'</td><td style="font-size:12px">'+eA((r.Project||"").slice(0,35))+((r.Project||"").length>35?"...":"")+'</td><td>'+badge+'</td><td>'+acts+'</td></tr>';
     } else if (tab === "barang") {
       var hg = r.HargaEstimasi ? "Rp "+parseInt(r.HargaEstimasi).toLocaleString("id-ID") : "-";
-      return '<tr><td style="color:var(--g500)">'+(i+1)+'</td><td>'+eA(r.NamaBarang||"")+'</td><td>'+eA(r.KategoriBarang||"")+'</td><td>'+eA(r.Subkategori||"")+'</td><td style="text-align:center">'+eA(r.Satuan||"")+'</td><td style="text-align:right;font-weight:500">'+hg+'</td><td>'+badge+'</td><td>'+acts+'</td></tr>';
+      return '<tr><td style="color:var(--g500)">'+(numStart+i+1)+'</td><td>'+eA(r.NamaBarang||"")+'</td><td>'+eA(r.KategoriBarang||"")+'</td><td>'+eA(r.Subkategori||"")+'</td><td style="text-align:center">'+eA(r.Satuan||"")+'</td><td style="text-align:right;font-weight:500">'+hg+'</td><td>'+badge+'</td><td>'+acts+'</td></tr>';
     } else {
-      return '<tr><td style="color:var(--g500)">'+(i+1)+'</td><td>'+eA(r.NamaVendor||"")+'</td><td>'+eA(r.Kategori||"")+'</td><td>'+eA(r.DomisiliVendor||"")+'</td><td>'+eA(r.PICVendor||"")+'</td><td>'+eA(r.NoTelpon||"")+'</td><td>'+badge+'</td><td>'+acts+'</td></tr>';
+      return '<tr><td style="color:var(--g500)">'+(numStart+i+1)+'</td><td>'+eA(r.NamaVendor||"")+'</td><td>'+eA(r.Kategori||"")+'</td><td>'+eA(r.DomisiliVendor||"")+'</td><td>'+eA(r.PICVendor||"")+'</td><td>'+eA(r.NoTelpon||"")+'</td><td>'+badge+'</td><td>'+acts+'</td></tr>';
     }
   });
   tbody.innerHTML = rows.join("");
